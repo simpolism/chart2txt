@@ -2,6 +2,8 @@
 
 A TypeScript library that converts astrological chart data to human-readable text.
 
+[![npm version](https://badge.fury.io/js/chart2txt.svg)](https://badge.fury.io/js/chart2txt)
+
 ## Features
 
 - Convert planet positions to text descriptions of their zodiac signs
