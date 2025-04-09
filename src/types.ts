@@ -5,8 +5,8 @@ export interface Point {
 
 export interface ChartData {
   planets: Point[]; // the set of points that may aspect other planets
-  points?: Point[]; // a set of unaspected points e.g. midheaven, lots, etc
   ascendant?: number; // 0-360 degrees, optional
+  points?: Point[]; // a set of unaspected points e.g. midheaven, lots, etc
   timestamp?: Date; // the time for the chart, optional
   location?: string; // the location of the chart, optional
 }
@@ -28,6 +28,9 @@ export interface Settings {
   // sign settings
   includeSignDegree: boolean;
   omitSigns: boolean;
+
+  // point settings
+  omitPoints: boolean;
 
   // house settings
   includeHouseDegree: boolean;

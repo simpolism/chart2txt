@@ -16,23 +16,26 @@ export const ZODIAC_SIGNS = [
 ];
 
 export const DEFAULT_ASPECTS: Aspect[] = [
-  { name: 'conjunction', angle: 0, orb: 8 },
-  { name: 'opposition', angle: 180, orb: 8 },
-  { name: 'trine', angle: 120, orb: 8 },
-  { name: 'square', angle: 90, orb: 7 },
-  { name: 'sextile', angle: 60, orb: 6 },
+  { name: 'conjunction', angle: 0, orb: 5 },
+  { name: 'opposition', angle: 180, orb: 5 },
+  { name: 'trine', angle: 120, orb: 5 },
+  { name: 'square', angle: 90, orb: 5 },
+  { name: 'sextile', angle: 60, orb: 3 },
 ]
 
 export const DEFAULT_SETTINGS: Settings = {
   // sign settings
-  includeSignDegree: false,
+  includeSignDegree: true,
   omitSigns: false,
 
   // house settings
-  includeHouseDegree: false,
   houseSystem: 'equal',
-  includeAscendant: true,
+  includeHouseDegree: false,
   omitHouses: false,
+
+  // point settings
+  includeAscendant: true,
+  omitPoints: false,
 
   // orb + aspect settings
   aspectDefinitions: DEFAULT_ASPECTS,
