@@ -1,0 +1,29 @@
+# Source files
+src/
+
+# Tests
+tests/
+jest.config.js
+
+# Development configs
+.eslintrc.js
+.prettierrc
+tsconfig.json
+
+# Git related
+.git/
+.gitignore
+
+# CI
+.github/
+
+# Editor configs
+.vscode/
+.idea/
+
+# Misc
+node_modules/
+coverage/
+*.log
+npm-debug.log*
+.DS_Store
