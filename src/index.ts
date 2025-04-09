@@ -14,19 +14,19 @@ import type {
 import { ZODIAC_SIGNS, DEFAULT_SETTINGS } from './constants';
 
 /**
- * Determines the zodiac sign for a given longitude
+ * Determines the zodiac sign for a given degree
  */
-function getLongitudeSign(longitude: number): string {
-  const signIndex = Math.floor(longitude / 30) % 12;
+function getDegreeSign(degree: number): string {
+  const signIndex = Math.floor(degree / 30) % 12;
   return ZODIAC_SIGNS[signIndex];
 }
 
 /**
- * Calculates the house for a given longitude, based on the ascendant
+ * Calculates the house for a given degree, based on the ascendant
  */
 function getHousePosition(
   houseSystem: HouseSystem,
-  longitude: number,
+  pointDegree: number,
   ascendant: number
 ): {
   house: number;
@@ -35,7 +35,7 @@ function getHousePosition(
   switch (houseSystem) {
     case 'equal': {
       // House 1 starts at the ascendant
-      const housePosition = (longitude - ascendant + 360) % 360;
+      const housePosition = (pointDegree - ascendant + 360) % 360;
       const house = Math.floor(housePosition / 30) + 1;
       const degree = housePosition % 30;
       return { house, degree };
@@ -45,7 +45,7 @@ function getHousePosition(
       const house1SignCusp = (Math.floor(ascendant / 30) % 12) * 30;
 
       // Computation proceeds same as equal, using sign cusp
-      const housePosition = (longitude - house1SignCusp + 360) % 360;
+      const housePosition = (pointDegree - house1SignCusp + 360) % 360;
       const house = Math.floor(housePosition / 30) + 1;
       const degree = housePosition % 30;
       return { house, degree };
@@ -69,7 +69,7 @@ function calculateAspects(
       const planetB = planets[j];
 
       // Calculate the angular difference
-      let diff = Math.abs(planetA.longitude - planetB.longitude);
+      let diff = Math.abs(planetA.degree - planetB.degree);
       if (diff > 180) diff = 360 - diff;
 
       // Check against each aspect type
@@ -101,13 +101,13 @@ function formatPlanetSigns(
   includeDegree = DEFAULT_SETTINGS.includeSignDegree
 ): string {
   const ascPoint: Point[] = ascendant
-    ? [{ name: 'Ascendant', longitude: ascendant }]
+    ? [{ name: 'Ascendant', degree: ascendant }]
     : [];
   const output = [...ascPoint, ...planets, ...points]
     .map((planet) => {
-      const sign = getLongitudeSign(planet.longitude);
+      const sign = getDegreeSign(planet.degree);
       if (includeDegree) {
-        const degree = Math.floor(planet.longitude % 30);
+        const degree = Math.floor(planet.degree % 30);
         return `${planet.name} is at ${degree}° ${sign}`;
       } else {
         return `${planet.name} is in ${sign}`;
@@ -132,7 +132,7 @@ function formatPlanetHouses(
     .map((planet) => {
       const houseData = getHousePosition(
         houseSystem,
-        planet.longitude,
+        planet.degree,
         ascendant
       );
       if (includeDegree) {

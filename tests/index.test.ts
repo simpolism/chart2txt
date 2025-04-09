@@ -5,9 +5,9 @@ describe('chart2txt', () => {
     test('formats planets in signs correctly', () => {
       const data: ChartData = {
         planets: [
-          { name: 'Sun', longitude: 35 }, // 5° Taurus
-          { name: 'Moon', longitude: 120 }, // 0° Leo
-          { name: 'Mercury', longitude: 75 }, // 15° Gemini
+          { name: 'Sun', degree: 35 }, // 5° Taurus
+          { name: 'Moon', degree: 120 }, // 0° Leo
+          { name: 'Mercury', degree: 75 }, // 15° Gemini
         ],
       };
 
@@ -21,8 +21,8 @@ describe('chart2txt', () => {
     test('formats planets in signs correctly without degrees', () => {
       const data: ChartData = {
         planets: [
-          { name: 'Sun', longitude: 35 }, // 5° Taurus
-          { name: 'Moon', longitude: 120 }, // 0° Leo
+          { name: 'Sun', degree: 35 }, // 5° Taurus
+          { name: 'Moon', degree: 120 }, // 0° Leo
         ],
       };
 
@@ -35,8 +35,8 @@ describe('chart2txt', () => {
     test('omits signs when disabled via settings', () => {
       const data: ChartData = {
         planets: [
-          { name: 'Sun', longitude: 35 }, // 5° Taurus
-          { name: 'Moon', longitude: 120 }, // 0° Leo
+          { name: 'Sun', degree: 35 }, // 5° Taurus
+          { name: 'Moon', degree: 120 }, // 0° Leo
         ],
       };
 
@@ -51,8 +51,8 @@ describe('chart2txt', () => {
     test('includes equal house positions', () => {
       const data: ChartData = {
         planets: [
-          { name: 'Sun', longitude: 35 }, // 5° Taurus
-          { name: 'Moon', longitude: 120 }, // 0° Leo
+          { name: 'Sun', degree: 35 }, // 5° Taurus
+          { name: 'Moon', degree: 120 }, // 0° Leo
         ],
         ascendant: 6, // 6° Aries
       };
@@ -66,8 +66,8 @@ describe('chart2txt', () => {
     test('includes whole sign house positions', () => {
       const data: ChartData = {
         planets: [
-          { name: 'Sun', longitude: 35 }, // 5° Taurus
-          { name: 'Moon', longitude: 120 }, // 0° Leo
+          { name: 'Sun', degree: 35 }, // 5° Taurus
+          { name: 'Moon', degree: 120 }, // 0° Leo
         ],
         ascendant: 6, // 6° Aries
       };
@@ -81,8 +81,8 @@ describe('chart2txt', () => {
     test('includes equal house positions correctly with degree', () => {
       const data: ChartData = {
         planets: [
-          { name: 'Sun', longitude: 35 }, // 5° Taurus
-          { name: 'Moon', longitude: 120 }, // 0° Leo
+          { name: 'Sun', degree: 35 }, // 5° Taurus
+          { name: 'Moon', degree: 120 }, // 0° Leo
         ],
         ascendant: 6, // 6° Aries
       };
@@ -96,8 +96,8 @@ describe('chart2txt', () => {
     test('includes whole sign house positions correctly with degree', () => {
       const data: ChartData = {
         planets: [
-          { name: 'Sun', longitude: 35 }, // 5° Taurus
-          { name: 'Moon', longitude: 120 }, // 0° Leo
+          { name: 'Sun', degree: 35 }, // 5° Taurus
+          { name: 'Moon', degree: 120 }, // 0° Leo
         ],
         ascendant: 6, // 6° Aries
       };
@@ -114,8 +114,8 @@ describe('chart2txt', () => {
     test('omits house positions when disabled via settings', () => {
       const data: ChartData = {
         planets: [
-          { name: 'Sun', longitude: 35 }, // 5° Taurus
-          { name: 'Moon', longitude: 120 }, // 0° Leo
+          { name: 'Sun', degree: 35 }, // 5° Taurus
+          { name: 'Moon', degree: 120 }, // 0° Leo
         ],
         ascendant: 6, // 6° Aries
       };
@@ -130,7 +130,7 @@ describe('chart2txt', () => {
     test('formats ascendant correctly', () => {
       const data: ChartData = {
         planets: [
-          { name: 'Sun', longitude: 35 }, // 5° Taurus
+          { name: 'Sun', degree: 35 }, // 5° Taurus
         ],
         ascendant: 6, // 6° Aries
       };
@@ -143,7 +143,7 @@ describe('chart2txt', () => {
     test('omits ascendant when disabled via settings', () => {
       const data: ChartData = {
         planets: [
-          { name: 'Sun', longitude: 35 }, // 5° Taurus
+          { name: 'Sun', degree: 35 }, // 5° Taurus
         ],
         ascendant: 6, // 6° Aries
       };
@@ -156,12 +156,12 @@ describe('chart2txt', () => {
     test('formats points in houses correctly', () => {
       const data: ChartData = {
         planets: [
-          { name: 'Sun', longitude: 35 }, // 5° Taurus
+          { name: 'Sun', degree: 35 }, // 5° Taurus
         ],
         ascendant: 6, // 6° Aries
         points: [
-          { name: 'MC', longitude: 120 }, // 0° Leo
-          { name: 'IC', longitude: 300 }, // 0° Aquarius
+          { name: 'MC', degree: 120 }, // 0° Leo
+          { name: 'IC', degree: 300 }, // 0° Aquarius
         ],
       };
 
@@ -174,12 +174,12 @@ describe('chart2txt', () => {
     test('formats points in signs correctly', () => {
       const data: ChartData = {
         planets: [
-          { name: 'Sun', longitude: 35 }, // 5° Taurus
+          { name: 'Sun', degree: 35 }, // 5° Taurus
         ],
         ascendant: 6, // 6° Aries
         points: [
-          { name: 'MC', longitude: 120 }, // 0° Leo
-          { name: 'IC', longitude: 300 }, // 0° Aquarius
+          { name: 'MC', degree: 120 }, // 0° Leo
+          { name: 'IC', degree: 300 }, // 0° Aquarius
         ],
       };
 
@@ -192,12 +192,12 @@ describe('chart2txt', () => {
     test('omits points when disabled via settings', () => {
       const data: ChartData = {
         planets: [
-          { name: 'Sun', longitude: 35 }, // 5° Taurus
+          { name: 'Sun', degree: 35 }, // 5° Taurus
         ],
         ascendant: 6, // 6° Aries
         points: [
-          { name: 'MC', longitude: 120 }, // 0° Leo
-          { name: 'IC', longitude: 240 }, // 0° Aquarius
+          { name: 'MC', degree: 120 }, // 0° Leo
+          { name: 'IC', degree: 240 }, // 0° Aquarius
         ],
       };
 
@@ -212,9 +212,9 @@ describe('chart2txt', () => {
     test('calculates and includes aspects between planets', () => {
       const data: ChartData = {
         planets: [
-          { name: 'Sun', longitude: 0 }, // 0° Aries
-          { name: 'Moon', longitude: 92 }, // 0° Cancer (square to Sun)
-          { name: 'Venus', longitude: 60 }, // 0° Gemini (sextile to Sun)
+          { name: 'Sun', degree: 0 }, // 0° Aries
+          { name: 'Moon', degree: 92 }, // 0° Cancer (square to Sun)
+          { name: 'Venus', degree: 60 }, // 0° Gemini (sextile to Sun)
         ],
       };
 
@@ -227,9 +227,9 @@ describe('chart2txt', () => {
     test('calculates and includes aspects with definition override', () => {
       const data: ChartData = {
         planets: [
-          { name: 'Sun', longitude: 0 }, // 0° Aries
-          { name: 'Moon', longitude: 92 }, // 0° Cancer (square to Sun)
-          { name: 'Venus', longitude: 69 }, // 0° Gemini (sextile to Sun)
+          { name: 'Sun', degree: 0 }, // 0° Aries
+          { name: 'Moon', degree: 92 }, // 0° Cancer (square to Sun)
+          { name: 'Venus', degree: 69 }, // 0° Gemini (sextile to Sun)
         ],
       };
 
@@ -244,9 +244,9 @@ describe('chart2txt', () => {
     test('omit aspects when disabled via settings', () => {
       const data: ChartData = {
         planets: [
-          { name: 'Sun', longitude: 0 }, // 0° Aries
-          { name: 'Moon', longitude: 92 }, // 0° Cancer (square to Sun)
-          { name: 'Venus', longitude: 60 }, // 0° Gemini (sextile to Sun)
+          { name: 'Sun', degree: 0 }, // 0° Aries
+          { name: 'Moon', degree: 92 }, // 0° Cancer (square to Sun)
+          { name: 'Venus', degree: 60 }, // 0° Gemini (sextile to Sun)
         ],
       };
 
@@ -261,7 +261,7 @@ describe('chart2txt', () => {
     test('displays header when no date or location provided', () => {
       const data: ChartData = {
         planets: [
-          { name: 'Sun', longitude: 35 }, // 5° Taurus
+          { name: 'Sun', degree: 35 }, // 5° Taurus
         ],
       };
 
@@ -273,7 +273,7 @@ describe('chart2txt', () => {
     test('displays timestamp when provided', () => {
       const data: ChartData = {
         planets: [
-          { name: 'Sun', longitude: 35 }, // 5° Taurus
+          { name: 'Sun', degree: 35 }, // 5° Taurus
         ],
         timestamp: new Date(1),
       };
@@ -287,7 +287,7 @@ describe('chart2txt', () => {
     test('displays location when provided', () => {
       const data: ChartData = {
         planets: [
-          { name: 'Sun', longitude: 35 }, // 5° Taurus
+          { name: 'Sun', degree: 35 }, // 5° Taurus
         ],
         location: 'San Francisco',
       };
@@ -301,7 +301,7 @@ describe('chart2txt', () => {
     test('displays location and date when provided', () => {
       const data: ChartData = {
         planets: [
-          { name: 'Sun', longitude: 35 }, // 5° Taurus
+          { name: 'Sun', degree: 35 }, // 5° Taurus
         ],
         timestamp: new Date(1),
         location: 'San Francisco',

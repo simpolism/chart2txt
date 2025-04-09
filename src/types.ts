@@ -1,6 +1,6 @@
 export interface Point {
   name: string;
-  longitude: number; // 0-360 degrees
+  degree: number; // 0-360 degrees
 }
 
 export interface ChartData {

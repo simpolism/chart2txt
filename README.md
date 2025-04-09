@@ -23,9 +23,9 @@ import { chart2txt } from 'chart2txt';
 
 const chartData = {
   planets: [
-    { name: 'Sun', longitude: 35 },  // 5° Taurus
-    { name: 'Moon', longitude: 120 }, // 0° Leo
-    { name: 'Mercury', longitude: 75 } // 15° Gemini
+    { name: 'Sun', degree: 35 },  // 5° Taurus
+    { name: 'Moon', degree: 120 }, // 0° Leo
+    { name: 'Mercury', degree: 75 } // 15° Gemini
   ],
   ascendant: 0 // 0° Aries
 };
