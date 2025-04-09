@@ -1,4 +1,4 @@
-import { Aspect, Settings } from "./types";
+import { Aspect, Settings } from './types';
 
 export const ZODIAC_SIGNS = [
   'Aries',
@@ -21,7 +21,7 @@ export const DEFAULT_ASPECTS: Aspect[] = [
   { name: 'trine', angle: 120, orb: 5 },
   { name: 'square', angle: 90, orb: 5 },
   { name: 'sextile', angle: 60, orb: 3 },
-]
+];
 
 export const DEFAULT_SETTINGS: Settings = {
   // sign settings
@@ -40,4 +40,4 @@ export const DEFAULT_SETTINGS: Settings = {
   // orb + aspect settings
   aspectDefinitions: DEFAULT_ASPECTS,
   omitAspects: false,
-}
+};

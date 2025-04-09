@@ -3,7 +3,14 @@
  * A library to convert astrological chart data to human-readable text
  */
 
-import type { Point, ChartData, AspectData, Settings, Aspect } from './types';
+import type {
+  Point,
+  ChartData,
+  AspectData,
+  Settings,
+  Aspect,
+  HouseSystem,
+} from './types';
 import { ZODIAC_SIGNS, DEFAULT_SETTINGS } from './constants';
 
 /**
@@ -17,17 +24,42 @@ function getLongitudeSign(longitude: number): string {
 /**
  * Calculates the house for a given longitude, based on the ascendant
  */
-function getHousePosition(longitude: number, ascendant: number): number {
-  // Simple house calculation (equal houses)
-  // House 1 starts at the ascendant
-  const housePosition = (longitude - ascendant + 360) % 360;
-  return Math.floor(housePosition / 30) + 1;
+function getHousePosition(
+  houseSystem: HouseSystem,
+  longitude: number,
+  ascendant: number
+): {
+  house: number;
+  degree: number;
+} {
+  switch (houseSystem) {
+    case 'equal': {
+      // House 1 starts at the ascendant
+      const housePosition = (longitude - ascendant + 360) % 360;
+      const house = Math.floor(housePosition / 30) + 1;
+      const degree = housePosition % 30;
+      return { house, degree };
+    }
+    case 'whole_sign': {
+      // House 1 starts at beginning of ascendant sign
+      const house1SignCusp = (Math.floor(ascendant / 30) % 12) * 30;
+
+      // Computation proceeds same as equal, using sign cusp
+      const housePosition = (longitude - house1SignCusp + 360) % 360;
+      const house = Math.floor(housePosition / 30) + 1;
+      const degree = housePosition % 30;
+      return { house, degree };
+    }
+  }
 }
 
 /**
  * Identifies aspects between planets
  */
-function calculateAspects(aspectDefinitions: Aspect[], planets: Point[]): AspectData[] {
+function calculateAspects(
+  aspectDefinitions: Aspect[],
+  planets: Point[]
+): AspectData[] {
   const aspects: AspectData[] = [];
 
   // Compare each planet with every other planet
@@ -62,12 +94,24 @@ function calculateAspects(aspectDefinitions: Aspect[], planets: Point[]): Aspect
 /**
  * Formats planet sign positions as text
  */
-function formatPlanetSigns(planets: Point[]): string {
-  const output = planets
+function formatPlanetSigns(
+  planets: Point[],
+  ascendant?: number,
+  points: Point[] = [],
+  includeDegree = DEFAULT_SETTINGS.includeSignDegree
+): string {
+  const ascPoint: Point[] = ascendant
+    ? [{ name: 'Ascendant', longitude: ascendant }]
+    : [];
+  const output = [...ascPoint, ...planets, ...points]
     .map((planet) => {
       const sign = getLongitudeSign(planet.longitude);
-      const degree = Math.floor(planet.longitude % 30);
-      return `${planet.name} is at ${degree}° ${sign}`;
+      if (includeDegree) {
+        const degree = Math.floor(planet.longitude % 30);
+        return `${planet.name} is at ${degree}° ${sign}`;
+      } else {
+        return `${planet.name} is in ${sign}`;
+      }
     })
     .join('. ');
   return output ? `${output}.` : '';
@@ -76,11 +120,26 @@ function formatPlanetSigns(planets: Point[]): string {
 /**
  * Formats planet house positions as text
  */
-function formatPlanetHouses(planets: Point[], ascendant: number): string {
-  const output = planets
+function formatPlanetHouses(
+  houseSystem: HouseSystem,
+  ascendant: number,
+  planets: Point[],
+  points: Point[] = [],
+  includeDegree = DEFAULT_SETTINGS.includeHouseDegree
+): string {
+  // TODO: house systems
+  const output = [...planets, ...points]
     .map((planet) => {
-      const house = getHousePosition(planet.longitude, ascendant);
-      return `${planet.name} is in house ${house}`;
+      const houseData = getHousePosition(
+        houseSystem,
+        planet.longitude,
+        ascendant
+      );
+      if (includeDegree) {
+        return `${planet.name} is at ${houseData.degree}° in house ${houseData.house}`;
+      } else {
+        return `${planet.name} is in house ${houseData.house}`;
+      }
     })
     .join('. ');
   return output ? `${output}.` : '';
@@ -112,7 +171,10 @@ function formatLocationAndDate(location?: string, timestamp?: Date): string {
 /**
  * Main function to convert chart data to text
  */
-export function chart2txt(data: ChartData, settings: Partial<Settings> = {}): string {
+export function chart2txt(
+  data: ChartData,
+  settings: Partial<Settings> = {}
+): string {
   // override default settings with any provided settings data
   const fullSettings: Settings = Object.assign({}, DEFAULT_SETTINGS, settings);
 
@@ -125,17 +187,39 @@ export function chart2txt(data: ChartData, settings: Partial<Settings> = {}): st
   result += ':\n\n';
 
   // format planets
-  result += formatPlanetSigns(data.planets);
+  if (!fullSettings.omitSigns) {
+    result += formatPlanetSigns(
+      data.planets,
+      fullSettings.includeAscendant && data.ascendant
+        ? data.ascendant
+        : undefined,
+      fullSettings.omitPoints ? [] : data.points,
+      fullSettings.includeSignDegree
+    );
+  }
 
   // format houses
-  if (data.ascendant !== undefined) {
-    result += '\n\n' + formatPlanetHouses(data.planets, data.ascendant);
+  if (!fullSettings.omitHouses && data.ascendant !== undefined) {
+    result +=
+      '\n\n' +
+      formatPlanetHouses(
+        fullSettings.houseSystem,
+        data.ascendant,
+        data.planets,
+        fullSettings.omitPoints ? [] : data.points,
+        fullSettings.includeHouseDegree
+      );
   }
 
   // format aspects
-  const aspects = calculateAspects(fullSettings.aspectDefinitions, data.planets);
-  if (aspects.length > 0) {
-    result += '\n\n' + formatAspects(aspects);
+  if (!fullSettings.omitAspects) {
+    const aspects = calculateAspects(
+      fullSettings.aspectDefinitions,
+      data.planets
+    );
+    if (aspects.length > 0) {
+      result += '\n\n' + formatAspects(aspects);
+    }
   }
 
   return result;

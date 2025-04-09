@@ -24,18 +24,20 @@ export interface AspectData {
   orb: number;
 }
 
+export type HouseSystem = 'whole_sign' | 'equal';
+
 export interface Settings {
   // sign settings
   includeSignDegree: boolean;
   omitSigns: boolean;
 
   // point settings
+  includeAscendant: boolean;
   omitPoints: boolean;
 
   // house settings
   includeHouseDegree: boolean;
-  houseSystem: 'whole_sign' | 'equal';
-  includeAscendant: boolean;
+  houseSystem: HouseSystem;
   omitHouses: boolean;
 
   // orb + aspect settings

@@ -102,7 +102,7 @@ describe('chart2txt', () => {
         ascendant: 6, // 6° Aries
       };
 
-      const result = chart2txt(data, { includeHouseDegree: true });
+      const result = chart2txt(data, { houseSystem: 'whole_sign', includeHouseDegree: true });
 
       expect(result).toContain('Sun is at 5° in house 2');
       expect(result).toContain('Moon is at 0° in house 5');
@@ -158,7 +158,7 @@ describe('chart2txt', () => {
         ascendant: 6, // 6° Aries
         points: [
           { name: 'MC', longitude: 120 }, // 0° Leo
-          { name: 'IC', longitude: 240 }, // 0° Aquarius
+          { name: 'IC', longitude: 300 }, // 0° Aquarius
         ],
       };
 
@@ -176,7 +176,7 @@ describe('chart2txt', () => {
         ascendant: 6, // 6° Aries
         points: [
           { name: 'MC', longitude: 120 }, // 0° Leo
-          { name: 'IC', longitude: 240 }, // 0° Aquarius
+          { name: 'IC', longitude: 300 }, // 0° Aquarius
         ],
       };
 
@@ -230,9 +230,9 @@ describe('chart2txt', () => {
         ],
       };
 
-      const result = chart2txt(data, { aspectDefinitions: [
-        { name: 'sextile2', angle: 60, orb: 10 },
-      ]});
+      const result = chart2txt(data, {
+        aspectDefinitions: [{ name: 'sextile2', angle: 60, orb: 10 }],
+      });
 
       expect(result).not.toContain('square');
       expect(result).toContain('Sun is in sextile2 with Venus');
@@ -307,7 +307,9 @@ describe('chart2txt', () => {
       const result = chart2txt(data);
 
       expect(result).toContain('Astrology Chart ');
-      expect(result).toContain('location: San Francisco, at: 1970-01-01T00:00:00.001Z');
+      expect(result).toContain(
+        'location: San Francisco, at: 1970-01-01T00:00:00.001Z'
+      );
     });
   });
 });
