@@ -3,42 +3,8 @@
  * A library to convert astrological chart data to human-readable text
  */
 
-// Types
-interface Planet {
-  name: string;
-  longitude: number; // 0-360 degrees
-}
-
-interface ChartData {
-  planets: Planet[];
-  ascendant?: number; // 0-360 degrees, optional
-}
-
-interface Settings {
-  // For future configuration options
-}
-
-interface AspectData {
-  planetA: string;
-  planetB: string;
-  aspectType: string;
-  orb: number;
-}
-
-// Constants
-const ZODIAC_SIGNS = [
-  'Aries', 'Taurus', 'Gemini', 'Cancer', 
-  'Leo', 'Virgo', 'Libra', 'Scorpio', 
-  'Sagittarius', 'Capricorn', 'Aquarius', 'Pisces'
-];
-
-const ASPECT_TYPES = {
-  CONJUNCTION: { name: 'conjunction', angle: 0, orb: 8 },
-  OPPOSITION: { name: 'opposition', angle: 180, orb: 8 },
-  TRINE: { name: 'trine', angle: 120, orb: 8 },
-  SQUARE: { name: 'square', angle: 90, orb: 7 },
-  SEXTILE: { name: 'sextile', angle: 60, orb: 6 }
-};
+import type { Point, ChartData, AspectData, Settings, Aspect } from './types';
+import { ZODIAC_SIGNS, DEFAULT_SETTINGS } from './constants';
 
 /**
  * Determines the zodiac sign for a given longitude
@@ -61,89 +27,119 @@ function getHousePosition(longitude: number, ascendant: number): number {
 /**
  * Identifies aspects between planets
  */
-function calculateAspects(planets: Planet[]): AspectData[] {
+function calculateAspects(aspectDefinitions: Aspect[], planets: Point[]): AspectData[] {
   const aspects: AspectData[] = [];
-  
+
   // Compare each planet with every other planet
   for (let i = 0; i < planets.length; i++) {
     for (let j = i + 1; j < planets.length; j++) {
       const planetA = planets[i];
       const planetB = planets[j];
-      
+
       // Calculate the angular difference
       let diff = Math.abs(planetA.longitude - planetB.longitude);
       if (diff > 180) diff = 360 - diff;
-      
+
       // Check against each aspect type
-      for (const aspectType of Object.values(ASPECT_TYPES)) {
+      for (const aspectType of aspectDefinitions) {
         const orb = Math.abs(diff - aspectType.angle);
         if (orb <= aspectType.orb) {
           aspects.push({
             planetA: planetA.name,
             planetB: planetB.name,
             aspectType: aspectType.name,
-            orb
+            orb,
           });
           break; // Only record the strongest aspect between two planets
         }
       }
     }
   }
-  
+
   return aspects;
 }
 
 /**
  * Formats planet sign positions as text
  */
-function formatPlanetSigns(planets: Planet[]): string {
-  return planets.map(planet => {
-    const sign = getLongitudeSign(planet.longitude);
-    const degree = Math.floor(planet.longitude % 30);
-    return `${planet.name} is at ${degree}° ${sign}`;
-  }).join('. ');
+function formatPlanetSigns(planets: Point[]): string {
+  const output = planets
+    .map((planet) => {
+      const sign = getLongitudeSign(planet.longitude);
+      const degree = Math.floor(planet.longitude % 30);
+      return `${planet.name} is at ${degree}° ${sign}`;
+    })
+    .join('. ');
+  return output ? `${output}.` : '';
 }
 
 /**
  * Formats planet house positions as text
  */
-function formatPlanetHouses(planets: Planet[], ascendant: number): string {
-  return planets.map(planet => {
-    const house = getHousePosition(planet.longitude, ascendant);
-    return `${planet.name} is in house ${house}`;
-  }).join('. ');
+function formatPlanetHouses(planets: Point[], ascendant: number): string {
+  const output = planets
+    .map((planet) => {
+      const house = getHousePosition(planet.longitude, ascendant);
+      return `${planet.name} is in house ${house}`;
+    })
+    .join('. ');
+  return output ? `${output}.` : '';
 }
 
 /**
  * Formats aspects between planets as text
  */
 function formatAspects(aspects: AspectData[]): string {
-  return aspects.map(aspect => {
-    return `${aspect.planetA} is in ${aspect.aspectType} with ${aspect.planetB} (orb: ${aspect.orb.toFixed(1)}°)`;
-  }).join('. ');
+  const output = aspects
+    .map((aspect) => {
+      return `${aspect.planetA} is in ${aspect.aspectType} with ${
+        aspect.planetB
+      } (orb: ${aspect.orb.toFixed(1)}°)`;
+    })
+    .join('. ');
+  return output ? `${output}.` : '';
+}
+
+/**
+ * Formats provided location and time, if present, as text
+ */
+function formatLocationAndDate(location?: string, timestamp?: Date): string {
+  const locationString = location ? `location: ${location}` : '';
+  const timestampString = timestamp ? `at: ${timestamp.toISOString()}` : '';
+  return [locationString, timestampString].filter((s) => s !== '').join(', ');
 }
 
 /**
  * Main function to convert chart data to text
  */
-export function chart2txt(data: ChartData, settings: Settings = {}): string {
-  let result = formatPlanetSigns(data.planets);
-  
+export function chart2txt(data: ChartData, settings: Partial<Settings> = {}): string {
+  // override default settings with any provided settings data
+  const fullSettings: Settings = Object.assign({}, DEFAULT_SETTINGS, settings);
+
+  // format header
+  let result = 'Astrology Chart';
+  const locationAndDate = formatLocationAndDate(data.location, data.timestamp);
+  if (locationAndDate) {
+    result += ` (${locationAndDate})`;
+  }
+  result += ':\n\n';
+
+  // format planets
+  result += formatPlanetSigns(data.planets);
+
+  // format houses
   if (data.ascendant !== undefined) {
     result += '\n\n' + formatPlanetHouses(data.planets, data.ascendant);
   }
-  
-  const aspects = calculateAspects(data.planets);
+
+  // format aspects
+  const aspects = calculateAspects(fullSettings.aspectDefinitions, data.planets);
   if (aspects.length > 0) {
     result += '\n\n' + formatAspects(aspects);
   }
-  
+
   return result;
 }
 
 // Export main function and types
-export {
-  ChartData,
-  Planet,
-  Settings
-};
+export { ChartData, Point, Settings };
