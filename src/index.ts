@@ -227,3 +227,6 @@ export function chart2txt(
 
 // Export main function and types
 export { ChartData, Point, Settings };
+
+// Default export for browser usage
+export default chart2txt;

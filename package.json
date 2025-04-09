@@ -1,11 +1,14 @@
 {
   "name": "chart2txt",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Convert astrological chart data to human-readable text",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
+  "browser": "dist/chart2txt.min.js",
   "scripts": {
-    "build": "tsc",
+    "build": "tsc && webpack",
+    "build:tsc": "tsc",
+    "build:webpack": "webpack",
     "test": "jest",
     "lint": "eslint src/**/*.ts",
     "format": "prettier --write \"src/**/*.ts\" \"tests/**/*.ts\""
@@ -28,6 +31,15 @@
     "jest": "^29.0.0",
     "prettier": "^2.0.0",
     "ts-jest": "^29.1.0",
-    "typescript": "^5.0.0"
-  }
+    "ts-loader": "^9.4.4",
+    "typescript": "^5.0.0",
+    "webpack": "^5.88.2",
+    "webpack-cli": "^5.1.4",
+    "terser-webpack-plugin": "^5.3.9"
+  },
+  "files": [
+    "dist",
+    "LICENSE",
+    "README.md"
+  ]
 }
