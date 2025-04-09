@@ -105,6 +105,21 @@
             margin-top: 5px;
             font-size: 14px;
         }
+        footer {
+            text-align: center;
+            margin-top: 30px;
+            padding: 15px;
+            color: #7f8c8d;
+            font-size: 14px;
+            border-top: 1px solid #eee;
+        }
+        footer a {
+            color: #3498db;
+            text-decoration: none;
+        }
+        footer a:hover {
+            text-decoration: underline;
+        }
     </style>
 </head>
 <body>
@@ -141,6 +156,12 @@
         
         <div id="result"></div>
         <button id="copyBtn" class="copy-btn">Copy to Clipboard</button>
+        
+        <footer>
+            Built with <a href="https://github.com/simpolism/chart2txt" target="_blank">chart2txt</a>, 
+            <a href="https://github.com/simpolism/simple-astro-api" target="_blank">simple-astro-api</a>, 
+            and <a href="https://nominatim.openstreetmap.org" target="_blank">OpenStreetMap API</a>.
+        </footer>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/chart2txt@latest/dist/chart2txt.min.js"></script>
