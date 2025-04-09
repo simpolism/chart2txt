@@ -15,7 +15,8 @@
     "chart",
     "text"
   ],
-  "author": "",
+  "homepage": "https://github.com/simpolism/chart2txt",
+  "author": "simpolism <simpolism@gmail.com>",
   "license": "MIT",
   "devDependencies": {
     "@types/jest": "^29.5.0",

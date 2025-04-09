@@ -102,7 +102,10 @@ describe('chart2txt', () => {
         ascendant: 6, // 6° Aries
       };
 
-      const result = chart2txt(data, { houseSystem: 'whole_sign', includeHouseDegree: true });
+      const result = chart2txt(data, {
+        houseSystem: 'whole_sign',
+        includeHouseDegree: true,
+      });
 
       expect(result).toContain('Sun is at 5° in house 2');
       expect(result).toContain('Moon is at 0° in house 5');
