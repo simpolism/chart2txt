@@ -137,7 +137,7 @@
             const locationError = document.getElementById('locationError');
             
             // API endpoint
-            const API_ENDPOINT = 'http://localhost:8888/api/positions';
+            const API_ENDPOINT = 'https://simple-astro-api.netlify.app/api/positions';
             
             form.addEventListener('submit', async function(e) {
                 e.preventDefault();
@@ -220,7 +220,6 @@
                 try {
                     const url = `${API_ENDPOINT}?date=${date}&time=${time}&lat=${lat}&lng=${lng}`;
                     const response = await fetch(url);
-                    console.log(response);
                     
                     if (!response.ok) {
                         throw new Error(`HTTP error! status: ${response.status}`);
@@ -237,14 +236,14 @@
             function generateChartDescription(apiData, locationName) {
                 // API already returns data in the correct format for chart2txt
                 const chartData = {
-                    planets: apiData.planets,
+                    planets: apiData.planets.map(({ name, longitude }) => ({ name, degree: longitude })),
                     ascendant: apiData.ascendant,
                     location: locationName,
                     timestamp: new Date(`${apiData.date.replace(/-/g, '/')} ${apiData.time.replace(/-/g, ':')}`)
                 };
                 
                 // Generate text description
-                return window.chart2txt(chartData);
+                return window.chart2txt(chartData, { houseSystem: 'whole_sign' });
             }
         });
     </script>
