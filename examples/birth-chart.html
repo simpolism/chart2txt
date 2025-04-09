@@ -68,6 +68,20 @@
             border-radius: 4px;
             border-left: 4px solid #3498db;
         }
+        .copy-btn {
+            background-color: #2ecc71;
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            margin-top: 15px;
+            display: none;
+        }
+        .copy-btn:hover {
+            background-color: #27ae60;
+        }
         #loading {
             text-align: center;
             display: none;
@@ -126,6 +140,7 @@
         </div>
         
         <div id="result"></div>
+        <button id="copyBtn" class="copy-btn">Copy to Clipboard</button>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/chart2txt@latest/dist/chart2txt.min.js"></script>
@@ -135,6 +150,26 @@
             const resultDiv = document.getElementById('result');
             const loadingDiv = document.getElementById('loading');
             const locationError = document.getElementById('locationError');
+            const copyBtn = document.getElementById('copyBtn');
+            
+            // Setup copy button functionality
+            copyBtn.addEventListener('click', function() {
+                const textToCopy = resultDiv.textContent;
+                if (textToCopy) {
+                    navigator.clipboard.writeText(textToCopy)
+                        .then(() => {
+                            // Temporarily change button text to indicate success
+                            const originalText = copyBtn.textContent;
+                            copyBtn.textContent = 'Copied!';
+                            setTimeout(() => {
+                                copyBtn.textContent = originalText;
+                            }, 2000);
+                        })
+                        .catch(err => {
+                            console.error('Failed to copy text: ', err);
+                        });
+                }
+            });
             
             // API endpoint
             const API_ENDPOINT = 'https://simple-astro-api.netlify.app/api/positions';
@@ -145,6 +180,7 @@
                 // Clear previous results and errors
                 resultDiv.textContent = '';
                 locationError.textContent = '';
+                copyBtn.style.display = 'none';
                 
                 // Get form values
                 const birthdate = document.getElementById('birthdate').value;
@@ -181,6 +217,9 @@
                     
                     // Display result
                     resultDiv.textContent = textDescription;
+                    
+                    // Show copy button if text was generated
+                    copyBtn.style.display = 'block';
                     
                 } catch (error) {
                     console.error('Error generating chart:', error);
