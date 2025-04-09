@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Birth Chart Text Description</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            color: #333;
+            line-height: 1.6;
+        }
+        h1 {
+            color: #2c3e50;
+            text-align: center;
+        }
+        .container {
+            background-color: #f9f9f9;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+        }
+        input, select {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        .time-inputs {
+            display: flex;
+            gap: 10px;
+        }
+        .time-inputs input, .time-inputs select {
+            flex: 1;
+        }
+        button {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            display: block;
+            width: 100%;
+            margin-top: 20px;
+        }
+        button:hover {
+            background-color: #2980b9;
+        }
+        #result {
+            margin-top: 30px;
+            white-space: pre-wrap;
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 4px;
+            border-left: 4px solid #3498db;
+        }
+        #loading {
+            text-align: center;
+            display: none;
+            margin-top: 20px;
+        }
+        .spinner {
+            border: 4px solid rgba(0, 0, 0, 0.1);
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            border-left-color: #3498db;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .error {
+            color: #e74c3c;
+            margin-top: 5px;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Birth Chart Text Description</h1>
+        
+        <form id="birthDataForm">
+            <div class="form-group">
+                <label for="birthdate">Birth Date:</label>
+                <input type="date" id="birthdate" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="birthtime">Birth Time:</label>
+                <div class="time-inputs">
+                    <input type="number" id="hours" min="0" max="23" placeholder="Hour" required>
+                    <input type="number" id="minutes" min="0" max="59" placeholder="Minute" required>
+                    <select id="timezone" required>
+                        <option value="">Select Timezone</option>
+                        <!-- Common timezones -->
+                        <option value="-12">UTC-12:00</option>
+                        <option value="-11">UTC-11:00</option>
+                        <option value="-10">UTC-10:00</option>
+                        <option value="-9.5">UTC-09:30</option>
+                        <option value="-9">UTC-09:00</option>
+                        <option value="-8">UTC-08:00</option>
+                        <option value="-7">UTC-07:00</option>
+                        <option value="-6">UTC-06:00</option>
+                        <option value="-5">UTC-05:00</option>
+                        <option value="-4">UTC-04:00</option>
+                        <option value="-3.5">UTC-03:30</option>
+                        <option value="-3">UTC-03:00</option>
+                        <option value="-2">UTC-02:00</option>
+                        <option value="-1">UTC-01:00</option>
+                        <option value="0">UTC±00:00</option>
+                        <option value="1">UTC+01:00</option>
+                        <option value="2">UTC+02:00</option>
+                        <option value="3">UTC+03:00</option>
+                        <option value="3.5">UTC+03:30</option>
+                        <option value="4">UTC+04:00</option>
+                        <option value="4.5">UTC+04:30</option>
+                        <option value="5">UTC+05:00</option>
+                        <option value="5.5">UTC+05:30</option>
+                        <option value="5.75">UTC+05:45</option>
+                        <option value="6">UTC+06:00</option>
+                        <option value="6.5">UTC+06:30</option>
+                        <option value="7">UTC+07:00</option>
+                        <option value="8">UTC+08:00</option>
+                        <option value="8.75">UTC+08:45</option>
+                        <option value="9">UTC+09:00</option>
+                        <option value="9.5">UTC+09:30</option>
+                        <option value="10">UTC+10:00</option>
+                        <option value="10.5">UTC+10:30</option>
+                        <option value="11">UTC+11:00</option>
+                        <option value="12">UTC+12:00</option>
+                        <option value="12.75">UTC+12:45</option>
+                        <option value="13">UTC+13:00</option>
+                        <option value="14">UTC+14:00</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label for="location">Birth Location:</label>
+                <input type="text" id="location" placeholder="City, Country" required>
+                <div id="locationError" class="error"></div>
+            </div>
+            
+            <button type="submit">Generate Chart Description</button>
+        </form>
+        
+        <div id="loading">
+            <div class="spinner"></div>
+            <p>Calculating chart...</p>
+        </div>
+        
+        <div id="result"></div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart2txt@latest/dist/chart2txt.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const form = document.getElementById('birthDataForm');
+            const resultDiv = document.getElementById('result');
+            const loadingDiv = document.getElementById('loading');
+            const locationError = document.getElementById('locationError');
+            
+            // API key (in a real app, this would be secured through environment variables)
+            const API_KEY = process.env.ASTROLOGY_API_KEY || 'YOUR_API_KEY_HERE';
+            
+            form.addEventListener('submit', async function(e) {
+                e.preventDefault();
+                
+                // Clear previous results and errors
+                resultDiv.textContent = '';
+                locationError.textContent = '';
+                
+                // Get form values
+                const birthdate = document.getElementById('birthdate').value;
+                const hours = parseInt(document.getElementById('hours').value);
+                const minutes = parseInt(document.getElementById('minutes').value);
+                const timezone = parseFloat(document.getElementById('timezone').value);
+                const location = document.getElementById('location').value;
+                
+                // Parse birthdate
+                const [year, month, date] = birthdate.split('-').map(num => parseInt(num));
+                
+                try {
+                    // Show loading indicator
+                    loadingDiv.style.display = 'block';
+                    
+                    // Step 1: Geocode the location
+                    const coordinates = await geocodeLocation(location);
+                    
+                    if (!coordinates) {
+                        locationError.textContent = 'Location not found. Please enter a valid city and country.';
+                        loadingDiv.style.display = 'none';
+                        return;
+                    }
+                    
+                    // Step 2: Get planetary positions
+                    const chartData = await getPlanetaryPositions(
+                        year, 
+                        month, 
+                        date, 
+                        hours, 
+                        minutes, 
+                        coordinates.latitude, 
+                        coordinates.longitude, 
+                        timezone
+                    );
+                    
+                    // Step 3: Generate text description
+                    const textDescription = generateChartDescription(chartData, location, birthdate, hours, minutes);
+                    
+                    // Display result
+                    resultDiv.textContent = textDescription;
+                    
+                } catch (error) {
+                    console.error('Error generating chart:', error);
+                    resultDiv.textContent = 'Error: ' + error.message;
+                } finally {
+                    // Hide loading indicator
+                    loadingDiv.style.display = 'none';
+                }
+            });
+            
+            // Function to geocode location using OpenStreetMap API
+            async function geocodeLocation(locationString) {
+                try {
+                    const response = await fetch(
+                        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(locationString)}`,
+                        { headers: { 'Accept-Language': 'en-US,en' } }
+                    );
+                    
+                    const data = await response.json();
+                    
+                    if (data && data.length > 0) {
+                        return {
+                            latitude: parseFloat(data[0].lat),
+                            longitude: parseFloat(data[0].lon)
+                        };
+                    }
+                    
+                    return null;
+                } catch (error) {
+                    console.error('Geocoding error:', error);
+                    throw new Error('Failed to geocode location');
+                }
+            }
+            
+            // Function to get planetary positions from Free Astrology API
+            async function getPlanetaryPositions(year, month, date, hours, minutes, latitude, longitude, timezone) {
+                try {
+                    const response = await fetch('https://json.freeastrologyapi.com/western/planets', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'x-api-key': API_KEY
+                        },
+                        body: JSON.stringify({
+                            year,
+                            month,
+                            date,
+                            hours,
+                            minutes,
+                            seconds: 0,
+                            latitude,
+                            longitude,
+                            timezone,
+                            config: {
+                                observation_point: "topocentric",
+                                ayanamsha: "tropical",
+                                language: "en"
+                            }
+                        })
+                    });
+                    
+                    const data = await response.json();
+                    
+                    if (data.statusCode !== 200) {
+                        throw new Error(data.message || 'Failed to get planetary positions');
+                    }
+                    
+                    return data.output;
+                } catch (error) {
+                    console.error('API error:', error);
+                    throw new Error('Failed to get astrological data');
+                }
+            }
+            
+            // Function to convert API data to chart2txt format and generate description
+            function generateChartDescription(apiData, location, birthdate, hours, minutes) {
+                // Extract ascendant and planets
+                let ascendant;
+                const planets = [];
+                
+                apiData.forEach(item => {
+                    if (item.planet.en === 'Ascendant') {
+                        ascendant = item.fullDegree;
+                    } else {
+                        planets.push({
+                            name: item.planet.en,
+                            longitude: item.fullDegree
+                        });
+                    }
+                });
+                
+                // Format data for chart2txt
+                const chartData = {
+                    planets,
+                    ascendant,
+                    location,
+                    timestamp: new Date(`${birthdate}T${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:00`)
+                };
+                
+                // Generate text description
+                return window.chart2txt.chart2txt(chartData);
+            }
+        });
+    </script>
+</body>
+</html>
