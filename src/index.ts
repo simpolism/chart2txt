@@ -164,7 +164,7 @@ function formatAspects(aspects: AspectData[]): string {
  */
 function formatLocationAndDate(location?: string, timestamp?: Date): string {
   const locationString = location ? `location: ${location}` : '';
-  const timestampString = timestamp ? `at: ${timestamp.toISOString()}` : '';
+  const timestampString = timestamp ? `at: ${timestamp.toLocaleString()}` : '';
   return [locationString, timestampString].filter((s) => s !== '').join(', ');
 }
 
