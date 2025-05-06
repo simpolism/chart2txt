@@ -178,8 +178,8 @@ export function chart2txt(
   // override default settings with any provided settings data
   const fullSettings: Settings = Object.assign({}, DEFAULT_SETTINGS, settings);
 
-  // format header
-  let result = 'Astrology Chart';
+  // format header with name if provided
+  let result = `Astrology Chart${data.name ? ' for ' + data.name : ''}`;
   const locationAndDate = formatLocationAndDate(data.location, data.timestamp);
   if (locationAndDate) {
     result += ` (${locationAndDate})`;
