@@ -185,6 +185,25 @@
                 <input type="text" id="transitLocation" placeholder="City, Country for Transits">
                 <div id="transitLocationError" class="error"></div>
             </div>
+            <div id="transitDateTimeGroup" class="form-group" style="display:none;">
+                <label for="transitDate">Transit Date:</label>
+                <input type="date" id="transitDate">
+                <label for="transitTime">Transit Time:</label>
+                <div class="time-inputs">
+                    <input type="number" id="transitHours" min="0" max="23" placeholder="Hour">
+                    <input type="number" id="transitMinutes" min="0" max="59" placeholder="Minute">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="houseSystem">House System (for all charts):</label>
+                <select id="houseSystem">
+                    <option value="P" selected>Placidus</option>
+                    <option value="W">Whole Sign</option>
+                    <option value="E">Equal</option>
+                    <option value="O">Porphyry</option>
+                </select>
+            </div>
             
             <button type="submit">Generate Chart Description</button>
         </form>
@@ -234,12 +253,17 @@
             const transitLocationGroup = document.getElementById('transitLocationGroup');
             const transitLocationInput = document.getElementById('transitLocation');
             const transitLocationError = document.getElementById('transitLocationError');
-
+            const transitDateTimeGroup = document.getElementById('transitDateTimeGroup');
+            const transitDateInput = document.getElementById('transitDate');
+            const transitHoursInput = document.getElementById('transitHours');
+            const transitMinutesInput = document.getElementById('transitMinutes');
+            const houseSystemSelect = document.getElementById('houseSystem');
+            
             // --- localStorage Persistence ---
             const formFieldsToPersist = [
                 'name1', 'birthdate', 'hours', 'minutes', 'location',
                 'name2', 'birthdate2', 'hours2', 'minutes2', 'location2',
-                'enableTransits', 'transitLocation'
+                'enableTransits', 'transitLocation', 'transitDate', 'transitHours', 'transitMinutes', 'houseSystem'
             ];
 
             function saveFormData() {
@@ -269,9 +293,19 @@
                         }
                     }
                 });
-                // Ensure transit location group visibility is updated based on loaded checkbox state
+                // Ensure transit groups visibility is updated based on loaded checkbox state
                 if (enableTransitsCheckbox) {
-                     transitLocationGroup.style.display = enableTransitsCheckbox.checked ? 'block' : 'none';
+                     const showTransitFields = enableTransitsCheckbox.checked;
+                     transitLocationGroup.style.display = showTransitFields ? 'block' : 'none';
+                     transitDateTimeGroup.style.display = showTransitFields ? 'block' : 'none';
+                     if (showTransitFields) {
+                        if (!transitDateInput.value) { // Set default transit date/time if not already set
+                            const now = new Date();
+                            transitDateInput.value = `${now.getFullYear()}-${(now.getMonth() + 1).toString().padStart(2, '0')}-${now.getDate().toString().padStart(2, '0')}`;
+                            transitHoursInput.value = now.getHours().toString().padStart(2, '0');
+                            transitMinutesInput.value = now.getMinutes().toString().padStart(2, '0');
+                        }
+                     }
                 }
             }
 
@@ -290,7 +324,17 @@
 
 
             enableTransitsCheckbox.addEventListener('change', function() {
-                transitLocationGroup.style.display = this.checked ? 'block' : 'none';
+                const showTransitFields = this.checked;
+                transitLocationGroup.style.display = showTransitFields ? 'block' : 'none';
+                transitDateTimeGroup.style.display = showTransitFields ? 'block' : 'none';
+                if (showTransitFields) {
+                    if (!transitDateInput.value) { // Set default transit date/time if enabling and not set
+                        const now = new Date();
+                        transitDateInput.value = `${now.getFullYear()}-${(now.getMonth() + 1).toString().padStart(2, '0')}-${now.getDate().toString().padStart(2, '0')}`;
+                        transitHoursInput.value = now.getHours().toString().padStart(2, '0');
+                        transitMinutesInput.value = now.getMinutes().toString().padStart(2, '0');
+                    }
+                }
                 saveFormData(); // Also save when this specific checkbox changes visibility
             });
             
@@ -332,6 +376,7 @@
                     const hours1 = parseInt(hoursInput.value);
                     const minutes1 = parseInt(minutesInput.value);
                     const location1 = locationInput.value.trim();
+                    const houseSystem = houseSystemSelect.value;
 
                     if (!birthdate1 || isNaN(hours1) || isNaN(minutes1) || !location1) {
                         locationError.textContent = 'Person 1: Please fill all required date, time, and location fields.';
@@ -345,7 +390,7 @@
                         return;
                     }
                     const timeString1 = `${hours1.toString().padStart(2, '0')}:${minutes1.toString().padStart(2, '0')}:00`;
-                    const apiData1 = await getPlanetaryPositions(birthdate1, timeString1, coordinates1.latitude, coordinates1.longitude, locationError);
+                    const apiData1 = await getPlanetaryPositions(birthdate1, timeString1, coordinates1.latitude, coordinates1.longitude, houseSystem, locationError);
                     if (!apiData1) {
                         loadingDiv.style.display = 'none';
                         return;
@@ -354,8 +399,8 @@
                         name: name1 || 'Person 1',
                         planets: apiData1.planets.map(({ name, longitude, speed }) => ({ name, degree: longitude, speed })),
                         ascendant: apiData1.ascendant,
-                        midheaven: apiData1.midheaven, // Assuming API provides MC
-                        points: apiData1.points || [], // Assuming API might provide other points
+                        midheaven: apiData1.midheaven, // Corrected
+                        points: apiData1.points || [],
                         houseCusps: apiData1.houseCusps,
                         houseSystemName: apiData1.houseSystemName,
                         location: location1,
@@ -385,7 +430,7 @@
                             return;
                         }
                         const timeString2 = `${hours2.toString().padStart(2, '0')}:${minutes2.toString().padStart(2, '0')}:00`;
-                        const apiData2 = await getPlanetaryPositions(birthdate2, timeString2, coordinates2.latitude, coordinates2.longitude, locationError2);
+                        const apiData2 = await getPlanetaryPositions(birthdate2, timeString2, coordinates2.latitude, coordinates2.longitude, houseSystem, locationError2);
                         if (!apiData2) {
                             loadingDiv.style.display = 'none';
                             return;
@@ -394,8 +439,8 @@
                             name: name2 || 'Person 2',
                             planets: apiData2.planets.map(({ name, longitude, speed }) => ({ name, degree: longitude, speed })),
                             ascendant: apiData2.ascendant,
-                            midheaven: apiData2.midheaven, // Assuming API provides MC
-                            points: apiData2.points || [], // Assuming API might provide other points
+                            midheaven: apiData2.midheaven, // Corrected
+                            points: apiData2.points || [],
                             houseCusps: apiData2.houseCusps,
                             houseSystemName: apiData2.houseSystemName,
                             location: location2,
@@ -423,25 +468,36 @@
                             return;
                         }
                         
-                        const now = new Date();
-                        const transitDate = `${now.getFullYear()}-${(now.getMonth() + 1).toString().padStart(2, '0')}-${now.getDate().toString().padStart(2, '0')}`;
-                        const transitTime = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}:${now.getSeconds().toString().padStart(2, '0')}`;
+                        let transitDate = transitDateInput.value;
+                        let transitHours = parseInt(transitHoursInput.value);
+                        let transitMinutes = parseInt(transitMinutesInput.value);
+                        let transitTimestamp = new Date();
+
+                        if (transitDate && !isNaN(transitHours) && !isNaN(transitMinutes)) {
+                            transitTimestamp = new Date(`${transitDate}T${transitHours.toString().padStart(2, '0')}:${transitMinutes.toString().padStart(2, '0')}:00`);
+                        } else { // Default to now if not fully specified
+                            transitDate = `${transitTimestamp.getFullYear()}-${(transitTimestamp.getMonth() + 1).toString().padStart(2, '0')}-${transitTimestamp.getDate().toString().padStart(2, '0')}`;
+                            transitHours = transitTimestamp.getHours();
+                            transitMinutes = transitTimestamp.getMinutes();
+                        }
                         
-                        const apiDataTransit = await getPlanetaryPositions(transitDate, transitTime, coordinatesTransit.latitude, coordinatesTransit.longitude, transitLocationError);
+                        const transitTimeString = `${transitHours.toString().padStart(2, '0')}:${transitMinutes.toString().padStart(2, '0')}:00`;
+                        
+                        const apiDataTransit = await getPlanetaryPositions(transitDate, transitTimeString, coordinatesTransit.latitude, coordinatesTransit.longitude, houseSystem, transitLocationError);
                         if (!apiDataTransit) {
                             loadingDiv.style.display = 'none';
                             return;
                         }
                         multiChartDataObject.transit = {
-                            name: `Current Transits at ${transitLocation}`,
+                            name: `Transits for ${transitDate} at ${transitLocation}`,
                             planets: apiDataTransit.planets.map(({ name, longitude, speed }) => ({ name, degree: longitude, speed })),
                             ascendant: apiDataTransit.ascendant,
-                            midheaven: apiDataTransit.midheaven, // Assuming API provides MC for transits
-                            points: apiDataTransit.points || [], // Assuming API might provide other points for transits
+                            midheaven: apiDataTransit.midheaven, // Corrected
+                            points: apiDataTransit.points || [],
                             houseCusps: apiDataTransit.houseCusps,
                             houseSystemName: apiDataTransit.houseSystemName,
                             location: transitLocation,
-                            timestamp: now
+                            timestamp: transitTimestamp
                         };
                     }
 
@@ -488,10 +544,10 @@
                 }
             }
             
-            async function getPlanetaryPositions(date, time, lat, lng, errorElement) {
+            async function getPlanetaryPositions(date, time, lat, lng, houseSystem, errorElement) {
                 errorElement.textContent = '';
                 try {
-                    const url = `${API_ENDPOINT}?date=${date}&time=${time}&lat=${lat}&lng=${lng}`;
+                    const url = `${API_ENDPOINT}?date=${date}&time=${time}&lat=${lat}&lng=${lng}&house_system=${houseSystem}`;
                     const response = await fetch(url);
                     if (!response.ok) {
                         errorElement.textContent = `API error: ${response.statusText || response.status}`;
