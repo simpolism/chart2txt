@@ -299,7 +299,7 @@
                     name: locationName, // Or a more specific name if available
                     planets: apiData.planets.map(({ name, longitude, speed }) => ({ name, degree: longitude, speed })),
                     ascendant: apiData.ascendant,
-                    mc: apiData.mc, // Assuming API provides MC
+                    midheaven: apiData.midheaven, // Assuming API provides MC
                     points: apiData.points || [], // Assuming API might provide other points
                     houseCusps: apiData.houseCusps, // e.g., [10, 40, 70, 100, 130, 160, 190, 220, 250, 280, 310, 340]
                     houseSystemName: apiData.houseSystemName, // e.g., "Whole Sign"

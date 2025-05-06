@@ -54,12 +54,12 @@ export function generateAspectsOutput(
         let p2NameStr = asp.planetB;
 
         if (p2IsTransit) {
-          // For "Transit Aspects: Jake", p1 is Jake, p2 is the transiting planet.
-          // Example: "Jake's Mercury opposition transiting Neptune: 0.3°" - here p2ChartName is not used for the planet itself.
+          // For "Transit Aspects: Alice", p1 is Alice, p2 is the transiting planet.
+          // Example: "Alice's Mercury opposition transiting Neptune: 0.3°" - here p2ChartName is not used for the planet itself.
           p2NameStr = `transiting ${asp.planetB}`;
         } else if (p2ChartName) {
-          // For "Synastry: Jake-Mollie", "Planet-Planet Aspects"
-          // Example: "Jake's Mercury opposition Mollie's Neptune: 0.3°"
+          // For "Synastry: Alice-Bob", "Planet-Planet Aspects"
+          // Example: "Alice's Mercury opposition Bob's Neptune: 0.3°"
           p2NameStr = `${p2ChartName}'s ${asp.planetB}`;
         }
         // If neither p2IsTransit nor p2ChartName, it's a natal chart aspect, e.g. "Venus opposition Pluto: 1.2°"

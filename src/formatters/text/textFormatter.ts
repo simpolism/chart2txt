@@ -62,7 +62,7 @@ export function formatChartToText(
       )
     );
     outputLines.push(
-      ...generateAnglesOutput(chartData.ascendant, chartData.mc)
+      ...generateAnglesOutput(chartData.ascendant, chartData.midheaven)
     );
     outputLines.push(
       ...generatePlanetsOutput(

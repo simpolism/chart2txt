@@ -8,7 +8,7 @@ export interface ChartData {
   name?: string; // the name of the chart's person or event
   planets: Point[]; // the set of points that may aspect other planets
   ascendant?: number; // 0-360 degrees, optional
-  mc?: number; // 0-360 degrees, optional for Midheaven
+  midheaven?: number; // 0-360 degrees, optional for Midheaven
   points?: Point[]; // a set of unaspected points e.g. midheaven, lots, etc
   houseCusps?: number[]; // Optional: Array of 12 degrees (0-360) for house cusps 1-12
   houseSystemName?: string; // Optional: Name of the house system used (e.g., "Placidus")
