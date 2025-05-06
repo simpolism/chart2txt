@@ -145,6 +145,16 @@
                 <input type="text" id="location" placeholder="City, Country" required>
                 <div id="locationError" class="error"></div>
             </div>
+
+            <div class="form-group">
+                <label for="houseSystem">House System:</label>
+                <select id="houseSystem">
+                    <option value="P" selected>Placidus</option>
+                    <option value="W">Whole Sign</option>
+                    <option value="E">Equal</option>
+                    <option value="O">Porphyry</option>
+                </select>
+            </div>
             
             <button type="submit">Generate Chart Description</button>
         </form>
@@ -172,6 +182,7 @@
             const loadingDiv = document.getElementById('loading');
             const locationError = document.getElementById('locationError');
             const copyBtn = document.getElementById('copyBtn');
+            const houseSystemSelect = document.getElementById('houseSystem');
             
             // Setup copy button functionality
             copyBtn.addEventListener('click', function() {
@@ -208,6 +219,7 @@
                 const hours = parseInt(document.getElementById('hours').value);
                 const minutes = parseInt(document.getElementById('minutes').value);
                 const location = document.getElementById('location').value;
+                const houseSystem = houseSystemSelect.value;
                 
                 try {
                     // Show loading indicator
@@ -230,7 +242,8 @@
                         birthdate,
                         timeString,
                         coordinates.latitude,
-                        coordinates.longitude
+                        coordinates.longitude,
+                        houseSystem
                     );
                     
                     // Step 3: Generate text description
@@ -276,9 +289,9 @@
             }
             
             // Function to get planetary positions from local API
-            async function getPlanetaryPositions(date, time, lat, lng) {
+            async function getPlanetaryPositions(date, time, lat, lng, houseSystem) {
                 try {
-                    const url = `${API_ENDPOINT}?date=${date}&time=${time}&lat=${lat}&lng=${lng}`;
+                    const url = `${API_ENDPOINT}?date=${date}&time=${time}&lat=${lat}&lng=${lng}&house_system=${houseSystem}`;
                     const response = await fetch(url);
                     
                     if (!response.ok) {
@@ -294,16 +307,21 @@
             
             // Function to use chart2txt to generate description
             function generateChartDescription(apiData, locationName) {
-                // API already returns data in the correct format for chart2txt
+                // API should now return houseCusps and houseSystemName
                 const chartData = {
-                    planets: apiData.planets.map(({ name, longitude }) => ({ name, degree: longitude })),
+                    name: locationName, // Or a more specific name if available
+                    planets: apiData.planets.map(({ name, longitude, speed }) => ({ name, degree: longitude, speed })),
                     ascendant: apiData.ascendant,
+                    midheaven: apiData.midheaven, // Corrected from midheaven to midheaven to match common API patterns
+                    points: apiData.points || [], // Assuming API might provide other points
+                    houseCusps: apiData.houseCusps, // e.g., [10, 40, 70, 100, 130, 160, 190, 220, 250, 280, 310, 340]
+                    houseSystemName: apiData.houseSystemName, // e.g., "Whole Sign"
                     location: locationName,
                     timestamp: new Date(`${apiData.date.replace(/-/g, '/')} ${apiData.time.replace(/-/g, ':')}`)
                 };
                 
-                // Generate text description
-                return window.chart2txt(chartData, { houseSystem: 'whole_sign' });
+                // Generate text description (houseSystem option is no longer needed)
+                return window.chart2txt(chartData);
             }
         });
     </script>
