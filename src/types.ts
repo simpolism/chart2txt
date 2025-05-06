@@ -12,6 +12,19 @@ export interface ChartData {
   location?: string; // the location of the chart, optional
 }
 
+export interface MultiChartData {
+  chart1: ChartData;
+  chart2?: ChartData;
+  transit?: ChartData;
+}
+
+export function isMultiChartData(
+  obj: ChartData | MultiChartData
+): obj is MultiChartData {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  return (obj as any).chart1 !== undefined;
+}
+
 export interface Aspect {
   name: string;
   angle: number; // 0-360 degrees
