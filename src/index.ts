@@ -110,7 +110,7 @@ function formatPlanetSigns(
       const sign = getDegreeSign(planet.degree);
       if (includeDegree) {
         const degree = Math.floor(planet.degree % 30);
-        return `${planet.name} is at ${degree}° ${sign}`;
+        return `${planet.name} is at ${degree.toFixed(2)}° ${sign}`;
       } else {
         return `${planet.name} is in ${sign}`;
       }
@@ -134,7 +134,7 @@ function formatPlanetHouses(
     .map((planet) => {
       const houseData = getHousePosition(houseSystem, planet.degree, ascendant);
       if (includeDegree) {
-        return `${planet.name} is at ${houseData.degree}° in house ${houseData.house}`;
+        return `${planet.name} is at ${houseData.degree.toFixed(2)}° in house ${houseData.house}`;
       } else {
         return `${planet.name} is in house ${houseData.house}`;
       }
@@ -294,9 +294,9 @@ function formatHouseEquivalences(
   c2Ascendant: number
 ) {
   const c1Asc = getHousePosition(houseSystem, c1Ascendant, c2Ascendant);
-  const c1AscText = `${c1Name}'s ascendant is at ${c1Asc.degree}° in ${c2Name}'s house ${c1Asc.house}.`;
+  const c1AscText = `${c1Name}'s ascendant is at ${c1Asc.degree.toFixed(2)}° in ${c2Name}'s house ${c1Asc.house}.`;
   const c2Asc = getHousePosition(houseSystem, c2Ascendant, c1Ascendant);
-  const c2AscText = `${c2Name}'s ascendant is at ${c2Asc.degree}° in ${c1Name}'s house ${c2Asc.house}.`;
+  const c2AscText = `${c2Name}'s ascendant is at ${c2Asc.degree.toFixed(2)}° in ${c1Name}'s house ${c2Asc.house}.`;
   return `${c1AscText} ${c2AscText}`;
 }
 
@@ -322,9 +322,9 @@ function formatCrossChartPlanetsInHouses(
         c1Ascendant
       );
       if (isC2Transit) {
-        return `${planet.name} is transiting ${c1Name}'s house ${houseData.house} at ${houseData.degree}°`;
+        return `${planet.name} is transiting ${c1Name}'s house ${houseData.house} at ${houseData.degree.toFixed(2)}°`;
       } else if (includeDegree) {
-        return `${c2Name}'s ${planet.name} is at ${houseData.degree}° in ${c1Name}'s house ${houseData.house}`;
+        return `${c2Name}'s ${planet.name} is at ${houseData.degree.toFixed(2)}° in ${c1Name}'s house ${houseData.house}`;
       } else {
         return `${c2Name}'s ${planet.name} is in ${c1Name}'s house ${houseData.house}`;
       }
@@ -349,7 +349,7 @@ function formatChartInteractions(
   isTransit = false
 ): string {
   const c1Name = chart1.name || 'chart1';
-  const c2Name = chart2.name || isTransit ? 'transit' : 'chart2';
+  const c2Name = chart2.name || 'chart2';
   let result = '';
 
   const aspects = calculateMultichartAspects(
@@ -433,6 +433,8 @@ export function chart2txt(
   const fullSettings: Settings = Object.assign({}, DEFAULT_SETTINGS, settings);
 
   if (isMultiChartData(data)) {
+    const SEP = '\n\n-------------------\n\n';
+    console.log('got multichart data!');
     // handle multi-chart data
     // always compute chart1 as normal
     let result = formatChartData(data.chart1, fullSettings);
@@ -447,7 +449,7 @@ export function chart2txt(
         data.chart2,
         fullSettings
       );
-      result += chart2Result + interactions;
+      result += SEP + chart2Result + SEP + interactions;
     }
 
     // append transits if provided
@@ -462,7 +464,7 @@ export function chart2txt(
         true
       );
 
-      result += transitResults + '\n\n' + chart1Transits;
+      result += SEP + transitResults + SEP + chart1Transits;
 
       // if chart2 exists, compute transits
       if (data.chart2) {
@@ -472,7 +474,7 @@ export function chart2txt(
           fullSettings,
           true
         );
-        result += '\n\n' + chart2Transits;
+        result += SEP + chart2Transits;
       }
     }
     return result;
