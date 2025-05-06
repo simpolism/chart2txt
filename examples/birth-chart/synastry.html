@@ -352,11 +352,14 @@
                     }
                     multiChartDataObject.chart1 = {
                         name: name1 || 'Person 1',
-                        planets: apiData1.planets.map(({ name, longitude }) => ({ name, degree: longitude })),
+                        planets: apiData1.planets.map(({ name, longitude, speed }) => ({ name, degree: longitude, speed })),
                         ascendant: apiData1.ascendant,
+                        mc: apiData1.mc, // Assuming API provides MC
+                        points: apiData1.points || [], // Assuming API might provide other points
+                        houseCusps: apiData1.houseCusps,
+                        houseSystemName: apiData1.houseSystemName,
                         location: location1,
                         timestamp: new Date(`${apiData1.date.replace(/-/g, '/')} ${apiData1.time.replace(/-/g, ':')}`)
-                        // points array omitted as per plan
                     };
 
                     // Person 2 Data (Optional)
@@ -389,11 +392,14 @@
                         }
                         multiChartDataObject.chart2 = {
                             name: name2 || 'Person 2',
-                            planets: apiData2.planets.map(({ name, longitude }) => ({ name, degree: longitude })),
+                            planets: apiData2.planets.map(({ name, longitude, speed }) => ({ name, degree: longitude, speed })),
                             ascendant: apiData2.ascendant,
+                            mc: apiData2.mc, // Assuming API provides MC
+                            points: apiData2.points || [], // Assuming API might provide other points
+                            houseCusps: apiData2.houseCusps,
+                            houseSystemName: apiData2.houseSystemName,
                             location: location2,
                             timestamp: new Date(`${apiData2.date.replace(/-/g, '/')} ${apiData2.time.replace(/-/g, ':')}`)
-                            // points array omitted
                         };
                     } else if (birthdate2 || location2 || hours2Str || minutes2Str || name2) {
                         // If some but not all required fields for person 2 are filled
@@ -428,11 +434,14 @@
                         }
                         multiChartDataObject.transit = {
                             name: `Current Transits at ${transitLocation}`,
-                            planets: apiDataTransit.planets.map(({ name, longitude }) => ({ name, degree: longitude })),
-                            ascendant: apiDataTransit.ascendant, // API might not return asc for current transits depending on its logic
+                            planets: apiDataTransit.planets.map(({ name, longitude, speed }) => ({ name, degree: longitude, speed })),
+                            ascendant: apiDataTransit.ascendant,
+                            mc: apiDataTransit.mc, // Assuming API provides MC for transits
+                            points: apiDataTransit.points || [], // Assuming API might provide other points for transits
+                            houseCusps: apiDataTransit.houseCusps,
+                            houseSystemName: apiDataTransit.houseSystemName,
                             location: transitLocation,
                             timestamp: now
-                            // points array omitted
                         };
                     }
 
@@ -443,7 +452,8 @@
                     }
                     
                     console.log(multiChartDataObject);
-                    const textDescription = window.chart2txt(multiChartDataObject, { houseSystem: 'whole_sign' });
+                    // houseSystem option is no longer needed
+                    const textDescription = window.chart2txt(multiChartDataObject);
                     resultDiv.textContent = textDescription;
                     copyBtn.style.display = 'block';
                     
