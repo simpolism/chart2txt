@@ -1,4 +1,4 @@
-import { Aspect, Settings, HouseSystem, AspectCategory } from './types';
+import { Aspect, Settings, AspectCategory } from './types';
 
 export const ZODIAC_SIGNS = [
   'Aries',
@@ -31,20 +31,15 @@ export const DEFAULT_ASPECT_CATEGORIES: AspectCategory[] = [
 export const DEFAULT_SETTINGS: Settings = {
   // sign settings
   includeSignDegree: true, // For planets list: "Sun: 8° Cancer" vs "Sun: Cancer"
-  omitSigns: false, // Legacy, may not be used directly in the new structured output
 
   // house settings
-  houseSystem: 'whole_sign', // As per example output
   includeHouseDegree: false, // New format shows "House X", not degree in house for planets list
-  omitHouses: false, // Legacy
 
   // point settings
   includeAscendant: true, // Legacy, ASC/MC now have dedicated [ANGLES] section
-  omitPoints: false, // Whether to process ChartData.points (if any)
 
   // orb + aspect settings
   aspectDefinitions: DEFAULT_ASPECTS,
-  omitAspects: false, // Legacy, aspects now have dedicated [ASPECTS] section
   aspectCategories: DEFAULT_ASPECT_CATEGORIES,
   dateFormat: 'MM/DD/YYYY', // As per example output
 };
