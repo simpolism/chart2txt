@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Synastry & Transit Chart Description</title>
+    <title>chart2txt - Convert Astrological Chart to Text</title>
     <style>
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -124,13 +124,12 @@
 </head>
 <body>
     <div class="container">
-        <h1>Synastry & Transit Chart Description</h1>
+        <h1>Convert Astrological Chart to Text</h1>
         
         <form id="birthDataForm">
-            <h2>Person 1</h2>
             <div class="form-group">
-                <label for="name1">Name (Person 1):</label>
-                <input type="text" id="name1" placeholder="Name (Person 1)">
+                <label for="name1">Name:</label>
+                <input type="text" id="name1" placeholder="Name">
             </div>
             <div class="form-group">
                 <label for="birthdate">Birth Date:</label>
@@ -138,7 +137,7 @@
             </div>
             
             <div class="form-group">
-                <label for="birthtime">Birth Time:</label>
+                <label for="birthtime">Birth Time (24 hour):</label>
                 <div class="time-inputs">
                     <input type="number" id="hours" min="0" max="23" placeholder="Hour" required>
                     <input type="number" id="minutes" min="0" max="59" placeholder="Minute" required>
@@ -153,26 +152,32 @@
 
             <h2>Optional: Person 2 for Synastry</h2>
             <div class="form-group">
-                <label for="name2">Name (Person 2):</label>
-                <input type="text" id="name2" placeholder="Name (Person 2)">
+                <input type="checkbox" id="enablePerson2" style="width: auto; margin-right: 5px;">
+                <label for="enablePerson2" style="display: inline;">Enable Person 2</label>
             </div>
-            <div class="form-group">
-                <label for="birthdate2">Birth Date (Person 2):</label>
-                <input type="date" id="birthdate2">
-            </div>
-            
-            <div class="form-group">
-                <label for="birthtime2">Birth Time (Person 2):</label>
-                <div class="time-inputs">
-                    <input type="number" id="hours2" min="0" max="23" placeholder="Hour">
-                    <input type="number" id="minutes2" min="0" max="59" placeholder="Minute">
+            <div id="person2Fields" style="display:none;">
+                <div class="form-group">
+                    <label for="name2">Name (Person 2):</label>
+                    <input type="text" id="name2" placeholder="Name (Person 2)">
                 </div>
-            </div>
-            
-            <div class="form-group">
-                <label for="location2">Birth Location (Person 2):</label>
-                <input type="text" id="location2" placeholder="City, Country">
-                <div id="locationError2" class="error"></div>
+                <div class="form-group">
+                    <label for="birthdate2">Birth Date (Person 2):</label>
+                    <input type="date" id="birthdate2">
+                </div>
+                
+                <div class="form-group">
+                    <label for="birthtime2">Birth Time (24 hour) (Person 2):</label>
+                    <div class="time-inputs">
+                        <input type="number" id="hours2" min="0" max="23" placeholder="Hour">
+                        <input type="number" id="minutes2" min="0" max="59" placeholder="Minute">
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="location2">Birth Location (Person 2):</label>
+                    <input type="text" id="location2" placeholder="City, Country">
+                    <div id="locationError2" class="error"></div>
+                </div>
             </div>
 
             <h2>Optional: Transits</h2>
@@ -241,6 +246,8 @@
             const locationError = document.getElementById('locationError');
 
             // Person 2 inputs
+            const enablePerson2Checkbox = document.getElementById('enablePerson2');
+            const person2Fields = document.getElementById('person2Fields');
             const name2Input = document.getElementById('name2');
             const birthdate2Input = document.getElementById('birthdate2');
             const hours2Input = document.getElementById('hours2');
@@ -262,7 +269,7 @@
             // --- localStorage Persistence ---
             const formFieldsToPersist = [
                 'name1', 'birthdate', 'hours', 'minutes', 'location',
-                'name2', 'birthdate2', 'hours2', 'minutes2', 'location2',
+                'enablePerson2', 'name2', 'birthdate2', 'hours2', 'minutes2', 'location2',
                 'enableTransits', 'transitLocation', 'transitDate', 'transitHours', 'transitMinutes', 'houseSystem'
             ];
 
@@ -307,6 +314,12 @@
                         }
                      }
                 }
+
+                // Ensure Person 2 fields visibility is updated based on loaded checkbox state
+                if (enablePerson2Checkbox) {
+                    const showPerson2Fields = enablePerson2Checkbox.checked;
+                    person2Fields.style.display = showPerson2Fields ? 'block' : 'none';
+                }
             }
 
             // Load saved data on page load
@@ -322,6 +335,11 @@
             });
             // --- End localStorage Persistence ---
 
+            enablePerson2Checkbox.addEventListener('change', function() {
+                const showPerson2Fields = this.checked;
+                person2Fields.style.display = showPerson2Fields ? 'block' : 'none';
+                saveFormData();
+            });
 
             enableTransitsCheckbox.addEventListener('change', function() {
                 const showTransitFields = this.checked;
@@ -408,49 +426,51 @@
                     };
 
                     // Person 2 Data (Optional)
-                    const name2 = name2Input.value.trim();
-                    const birthdate2 = birthdate2Input.value;
-                    const hours2Str = hours2Input.value;
-                    const minutes2Str = minutes2Input.value;
-                    const location2 = location2Input.value.trim();
+                    if (enablePerson2Checkbox.checked) {
+                        const name2 = name2Input.value.trim();
+                        const birthdate2 = birthdate2Input.value;
+                        const hours2Str = hours2Input.value;
+                        const minutes2Str = minutes2Input.value;
+                        const location2 = location2Input.value.trim();
 
-                    if (birthdate2 && location2 && hours2Str && minutes2Str) { // Only process if core fields are present
-                        const hours2 = parseInt(hours2Str);
-                        const minutes2 = parseInt(minutes2Str);
+                        if (birthdate2 && location2 && hours2Str && minutes2Str) { // Only process if core fields are present
+                            const hours2 = parseInt(hours2Str);
+                            const minutes2 = parseInt(minutes2Str);
 
-                        if (isNaN(hours2) || isNaN(minutes2)) {
-                             locationError2.textContent = 'Person 2: Invalid time.';
-                             loadingDiv.style.display = 'none';
-                             return;
-                        }
+                            if (isNaN(hours2) || isNaN(minutes2)) {
+                                 locationError2.textContent = 'Person 2: Invalid time.';
+                                 loadingDiv.style.display = 'none';
+                                 return;
+                            }
 
-                        const coordinates2 = await geocodeLocation(location2, locationError2);
-                        if (!coordinates2) {
+                            const coordinates2 = await geocodeLocation(location2, locationError2);
+                            if (!coordinates2) {
+                                loadingDiv.style.display = 'none';
+                                return;
+                            }
+                            const timeString2 = `${hours2.toString().padStart(2, '0')}:${minutes2.toString().padStart(2, '0')}:00`;
+                            const apiData2 = await getPlanetaryPositions(birthdate2, timeString2, coordinates2.latitude, coordinates2.longitude, houseSystem, locationError2);
+                            if (!apiData2) {
+                                loadingDiv.style.display = 'none';
+                                return;
+                            }
+                            multiChartDataObject.chart2 = {
+                                name: name2 || 'Person 2',
+                                planets: apiData2.planets.map(({ name, longitude, speed }) => ({ name, degree: longitude, speed })),
+                                ascendant: apiData2.ascendant,
+                                midheaven: apiData2.midheaven, // Corrected
+                                points: apiData2.points || [],
+                                houseCusps: apiData2.houseCusps,
+                                houseSystemName: apiData2.houseSystemName,
+                                location: location2,
+                                timestamp: new Date(`${apiData2.date.replace(/-/g, '/')} ${apiData2.time.replace(/-/g, ':')}`)
+                            };
+                        } else if (birthdate2 || location2 || hours2Str || minutes2Str || name2) {
+                            // If some but not all required fields for person 2 are filled
+                            locationError2.textContent = 'Person 2: Please fill all date, time, and location fields when Person 2 is enabled.';
                             loadingDiv.style.display = 'none';
                             return;
                         }
-                        const timeString2 = `${hours2.toString().padStart(2, '0')}:${minutes2.toString().padStart(2, '0')}:00`;
-                        const apiData2 = await getPlanetaryPositions(birthdate2, timeString2, coordinates2.latitude, coordinates2.longitude, houseSystem, locationError2);
-                        if (!apiData2) {
-                            loadingDiv.style.display = 'none';
-                            return;
-                        }
-                        multiChartDataObject.chart2 = {
-                            name: name2 || 'Person 2',
-                            planets: apiData2.planets.map(({ name, longitude, speed }) => ({ name, degree: longitude, speed })),
-                            ascendant: apiData2.ascendant,
-                            midheaven: apiData2.midheaven, // Corrected
-                            points: apiData2.points || [],
-                            houseCusps: apiData2.houseCusps,
-                            houseSystemName: apiData2.houseSystemName,
-                            location: location2,
-                            timestamp: new Date(`${apiData2.date.replace(/-/g, '/')} ${apiData2.time.replace(/-/g, ':')}`)
-                        };
-                    } else if (birthdate2 || location2 || hours2Str || minutes2Str || name2) {
-                        // If some but not all required fields for person 2 are filled
-                        locationError2.textContent = 'Person 2: Please fill all date, time, and location fields, or leave all blank.';
-                        loadingDiv.style.display = 'none';
-                        return;
                     }
 
 
