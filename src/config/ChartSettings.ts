@@ -9,6 +9,7 @@ export class ChartSettings implements Settings {
   // Properties from Settings interface
   includeSignDegree: boolean;
   includeAscendant: boolean;
+  houseSystemName: string;
   includeHouseDegree: boolean;
   aspectDefinitions: Aspect[];
   aspectCategories: AspectCategory[];
@@ -19,6 +20,7 @@ export class ChartSettings implements Settings {
 
     this.includeSignDegree = mergedSettings.includeSignDegree;
     this.includeAscendant = mergedSettings.includeAscendant;
+    this.houseSystemName = mergedSettings.houseSystemName;
     this.includeHouseDegree = mergedSettings.includeHouseDegree;
     this.aspectDefinitions =
       mergedSettings.aspectDefinitions || DEFAULT_ASPECTS; // Ensure array is not undefined

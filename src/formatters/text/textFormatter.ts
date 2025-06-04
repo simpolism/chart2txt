@@ -1,4 +1,4 @@
-import { ChartData, MultiChartData, PartialSettings } from '../../types';
+import { ChartData, isMultiChartData, MultiChartData, PartialSettings } from '../../types';
 import { ChartSettings } from '../../config/ChartSettings';
 import {
   calculateAspects,
@@ -13,6 +13,149 @@ import { generatePlanetsOutput } from './sections/planets';
 import { generateAspectsOutput } from './sections/aspects';
 import { generateHouseOverlaysOutput } from './sections/houseOverlays';
 
+const processSingleChartOutput = (
+  settings: ChartSettings,
+  chartData: ChartData,
+  chartTitlePrefix?: string
+): string[] => {
+  const outputLines: string[] = [];
+  outputLines.push(
+    ...generateChartHeaderOutput(chartData.name, chartTitlePrefix)
+  );
+  outputLines.push(
+    ...generateBirthdataOutput(
+      chartData.location,
+      chartData.timestamp,
+      settings
+    )
+  );
+  outputLines.push(
+    ...generateAnglesOutput(chartData.ascendant, chartData.midheaven)
+  );
+  outputLines.push(
+    ...generatePlanetsOutput(
+      chartData.planets,
+      chartData.houseCusps,
+      settings
+    )
+  );
+
+  const aspects = calculateAspects(
+    settings.aspectDefinitions,
+    chartData.planets
+  );
+  // For single chart, p1ChartName and p2ChartName are not needed for aspect string generation
+  outputLines.push(...generateAspectsOutput('[ASPECTS]', aspects, settings));
+  outputLines.push('');
+  return outputLines;
+};
+
+const processChartPairOutput = (settings: ChartSettings, chart1: ChartData, chart2: ChartData): string[] => {
+  const outputLines: string[] = [];
+  const header = chart1.chartType === 'event' && chart2.chartType === 'event'
+    ? 'EVENT_RELATIONSHIP'
+    : chart1.chartType === 'event' || chart2.chartType === 'event'
+    ? 'NATAL_EVENT'
+    : 'SYNASTRY';
+  outputLines.push(
+    ...generateChartHeaderOutput(`${chart1.name}-${chart2.name}`, header)
+  );
+  const synastryAspects = calculateMultichartAspects(
+    settings.aspectDefinitions,
+    chart1.planets,
+    chart2.planets
+  );
+  outputLines.push(
+    ...generateAspectsOutput(
+      '[PLANET-PLANET ASPECTS]',
+      synastryAspects,
+      settings,
+      chart1.name,
+      chart2.name
+    )
+  );
+  outputLines.push('');
+  outputLines.push(
+    ...generateHouseOverlaysOutput(chart1, chart2, settings)
+  );
+  outputLines.push('');
+  return outputLines;
+}
+
+const processTransitChartInfoOutput = (settings: ChartSettings, transitData: ChartData): string[] => {
+  const outputLines: string[] = [];
+  outputLines.push(
+    ...generateChartHeaderOutput(transitData.name || 'Current', 'TRANSIT')
+  );
+  outputLines.push(
+    ...generateBirthdataOutput(
+      transitData.location,
+      transitData.timestamp,
+      settings,
+      '[DATETIME]'
+    )
+  );
+  // For transit chart's own planets, houses are usually not shown unless it's a full natal chart for that moment.
+  outputLines.push(
+    ...generatePlanetsOutput(
+      transitData.planets,
+      transitData.houseCusps,
+      settings
+    )
+  );
+  outputLines.push('');
+  return outputLines;
+};
+
+const determineChartType = (data: MultiChartData): string => {
+  let baseChartString: string = 'natal';
+  let suffixString: string = '';
+  const natalCharts = data.filter(({ chartType }) => chartType !== 'transit' && chartType !== 'event');
+  const eventCharts = data.filter(({ chartType }) => chartType === 'event');
+  const transitCharts = data.filter(({ chartType }) => chartType === 'transit');
+  if (transitCharts.length > 1) {
+    throw new Error('Must provide at most one transit chart');
+  }
+  const hasTransit = transitCharts.length > 0;
+
+  // first determine suffix
+  if (natalCharts.length > 0) {
+    if (eventCharts.length === 0) {
+      if (hasTransit) {
+        suffixString = '_with_transit';
+      }
+    } else if (eventCharts.length === 1) {
+      suffixString = hasTransit ? '_with_event_and_transit' : '_with_event';
+    } else {
+      suffixString = hasTransit ? '_with_events_and_transit' : '_with_events';
+    }
+  } else {
+    // base event charts can have transits
+    if (hasTransit) {
+      suffixString = '_with_transit';
+    }
+  }
+
+  // then determine base string
+  if (natalCharts.length === 0) {
+    if (eventCharts.length === 0) {
+      throw new Error('Must provide at least one non-transit chart');
+    } else if (eventCharts.length === 1) {
+      baseChartString = 'event';
+    } else {
+      baseChartString = 'multi_event';
+    }
+  } else if (natalCharts.length === 1) {
+    baseChartString = 'natal';
+  } else if (natalCharts.length === 2) {
+    baseChartString = 'synastry';
+  } else {
+    baseChartString = 'group_synastry';
+  }
+
+  return baseChartString + suffixString;
+}
+
 /**
  * Orchestrates the generation of a complete astrological chart report in text format.
  * @param data The chart data, can be for a single chart or multiple charts (synastry, transits).
@@ -24,170 +167,69 @@ export function formatChartToText(
   partialSettings: PartialSettings = {}
 ): string {
   const settings = new ChartSettings(partialSettings);
+  const houseSystemName = settings.houseSystemName;
   const outputLines: string[] = [];
 
-  let baseChartType = 'natal';
-  let primaryHouseSystemName: string | undefined;
-
-  if ('chart1' in data) {
-    // Check if it's MultiChartData
-    const multiData = data as MultiChartData;
-    primaryHouseSystemName = multiData.chart1.houseSystemName; // Use chart1's house system name for overall metadata
-    if (multiData.chart2 && multiData.transit)
-      baseChartType = 'synastry_with_transit';
-    else if (multiData.chart2) baseChartType = 'synastry';
-    else if (multiData.transit) baseChartType = 'natal_with_transit';
-  } else {
-    // Single ChartData object
-    primaryHouseSystemName = (data as ChartData).houseSystemName;
+  if (!isMultiChartData(data)) {
+    // single chart or event, legacy usage
+    if (data.chartType === 'transit') {
+      throw new Error('Single chart data must not be transit.');
+    }
+    outputLines.push(
+      ...generateMetadataOutput(settings, data.chartType || 'natal', houseSystemName)
+    );
+    outputLines.push(''); // Blank line after metadata
+    outputLines.push(...processSingleChartOutput(settings, data as ChartData));
+    return outputLines.join('\n').trimEnd();
   }
 
+  // multi-chart analysis proceeds from here on
+
+  // TODO: ensure all names are populated in chartdata
+
+  // generate metadata
+  const chartType = determineChartType(data);
   outputLines.push(
-    ...generateMetadataOutput(settings, baseChartType, primaryHouseSystemName)
+    ...generateMetadataOutput(settings, chartType, houseSystemName)
   );
   outputLines.push(''); // Blank line after metadata
 
-  const processSingleChartOutput = (
-    chartData: ChartData,
-    chartTitlePrefix?: string
-  ): void => {
-    outputLines.push(
-      ...generateChartHeaderOutput(chartData.name, chartTitlePrefix)
-    );
-    outputLines.push(
-      ...generateBirthdataOutput(
-        chartData.location,
-        chartData.timestamp,
-        settings
-      )
-    );
-    outputLines.push(
-      ...generateAnglesOutput(chartData.ascendant, chartData.midheaven)
-    );
-    outputLines.push(
-      ...generatePlanetsOutput(
-        chartData.planets,
-        chartData.houseCusps,
-        settings
-      )
-    );
+  const nonTransitCharts = data.filter(({ chartType }) => chartType !== 'transit');
+  const transitChart = data.find(({ chartType }) => chartType === 'transit');
 
-    const aspects = calculateAspects(
-      settings.aspectDefinitions,
-      chartData.planets
-    );
-    // For single chart, p1ChartName and p2ChartName are not needed for aspect string generation
-    outputLines.push(...generateAspectsOutput('[ASPECTS]', aspects, settings));
-    outputLines.push('');
-  };
+  // first, process each chart individually
+  for (const chart of nonTransitCharts) {
+    outputLines.push(...processSingleChartOutput(settings, chart));
+  }
 
-  const processTransitChartInfoOutput = (transitData: ChartData): void => {
-    outputLines.push(
-      ...generateChartHeaderOutput(transitData.name || 'Current', 'TRANSIT')
-    );
-    outputLines.push(
-      ...generateBirthdataOutput(
-        transitData.location,
-        transitData.timestamp,
-        settings,
-        '[DATETIME]'
-      )
-    );
-    // For transit chart's own planets, houses are usually not shown unless it's a full natal chart for that moment.
-    outputLines.push(
-      ...generatePlanetsOutput(
-        transitData.planets,
-        transitData.houseCusps,
-        settings
-      )
-    );
-    outputLines.push('');
-  };
-
-  if ('chart1' in data) {
-    // MultiChartData
-    const multiData = data as MultiChartData;
-    const chart1 = multiData.chart1;
-    const chart1Name = chart1.name || 'Chart 1';
-    processSingleChartOutput(chart1);
-
-    if (multiData.chart2) {
-      const chart2 = multiData.chart2;
-      const chart2Name = chart2.name || 'Chart 2';
-      processSingleChartOutput(chart2);
-
-      // Synastry Section
-      outputLines.push(
-        ...generateChartHeaderOutput(`${chart1Name}-${chart2Name}`, 'SYNASTRY')
-      );
-      const synastryAspects = calculateMultichartAspects(
-        settings.aspectDefinitions,
-        chart1.planets,
-        chart2.planets
-      );
-      outputLines.push(
-        ...generateAspectsOutput(
-          '[PLANET-PLANET ASPECTS]',
-          synastryAspects,
-          settings,
-          chart1Name,
-          chart2Name
-        )
-      );
-      outputLines.push('');
-      outputLines.push(
-        ...generateHouseOverlaysOutput(chart1, chart2, settings)
-      );
-      outputLines.push('');
+  // then, process each pairwise chart
+  for (let i = 0; i < nonTransitCharts.length; i++) {
+    for (let j = i + 1; j < nonTransitCharts.length; j++) {
+      outputLines.push(...processChartPairOutput(settings, nonTransitCharts[i], nonTransitCharts[j]));
     }
+  }
 
-    if (multiData.transit) {
-      const transit = multiData.transit;
-      const transitName = transit.name || 'Current'; // Used for p2ChartName in transit aspects
-      processTransitChartInfoOutput(transit);
-
+  // finally, process transit against each non-transit chart
+  if (transitChart) {
+    for (const chart of nonTransitCharts) {
       // Transit Aspects to Chart 1
       const transitAspectsC1 = calculateMultichartAspects(
         settings.aspectDefinitions,
-        chart1.planets,
-        transit.planets
+        chart.planets,
+        transitChart.planets
       );
       outputLines.push(
         ...generateAspectsOutput(
-          `[TRANSIT ASPECTS: ${chart1Name}]`,
+          `[TRANSIT ASPECTS: ${chart.name}]`,
           transitAspectsC1,
           settings,
-          chart1Name,
-          transitName,
+          chart.name,
+          transitChart.name,
           true
         )
       );
       outputLines.push('');
-
-      if (multiData.chart2) {
-        const chart2Name = multiData.chart2.name || 'Chart 2';
-        // Transit Aspects to Chart 2
-        const transitAspectsC2 = calculateMultichartAspects(
-          settings.aspectDefinitions,
-          multiData.chart2.planets,
-          transit.planets
-        );
-        outputLines.push(
-          ...generateAspectsOutput(
-            `[TRANSIT ASPECTS: ${chart2Name}]`,
-            transitAspectsC2,
-            settings,
-            chart2Name,
-            transitName,
-            true
-          )
-        );
-        outputLines.push('');
-      }
     }
-  } else {
-    // Single ChartData object
-    processSingleChartOutput(data as ChartData);
   }
 
   return outputLines.join('\n').trimEnd();

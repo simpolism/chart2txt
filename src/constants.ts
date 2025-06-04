@@ -33,6 +33,7 @@ export const DEFAULT_SETTINGS: Settings = {
   includeSignDegree: true, // For planets list: "Sun: 8° Cancer" vs "Sun: Cancer"
 
   // house settings
+  houseSystemName: 'whole_sign',
   includeHouseDegree: false, // New format shows "House X", not degree in house for planets list
 
   // point settings

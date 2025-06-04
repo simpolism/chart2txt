@@ -14,19 +14,15 @@ export interface ChartData {
   houseSystemName?: string; // Optional: Name of the house system used (e.g., "Placidus")
   timestamp?: Date; // the time for the chart, optional
   location?: string; // the location of the chart, optional
+  chartType?: 'natal' | 'event' | 'transit'; // type of chart, optional, defaults to natal
 }
 
-export interface MultiChartData {
-  chart1: ChartData;
-  chart2?: ChartData;
-  transit?: ChartData;
-}
+export type MultiChartData = ChartData[];
 
 export function isMultiChartData(
   obj: ChartData | MultiChartData
 ): obj is MultiChartData {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  return (obj as any).chart1 !== undefined;
+  return Array.isArray(obj);
 }
 
 export interface Aspect {
@@ -56,6 +52,7 @@ export interface Settings {
   includeAscendant: boolean; // Legacy, angles now have their own section
 
   // house settings
+  houseSystemName: string; // Name of house system used in computations
   includeHouseDegree: boolean; // For planets list, if degree in house is shown (legacy)
 
   // orb + aspect settings
