@@ -228,8 +228,8 @@
         </footer>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/chart2txt@0.4.0/dist/chart2txt.min.js"></script>
-    <!--script src="../../dist/chart2txt.min.js"></script-->
+    <!-- script src="https://cdn.jsdelivr.net/npm/chart2txt@0.4.0/dist/chart2txt.min.js"></script!-->
+    <script src="../../dist/chart2txt.min.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             const form = document.getElementById('birthDataForm');
@@ -385,7 +385,7 @@
                 copyBtn.style.display = 'none';
                 loadingDiv.style.display = 'block';
 
-                const multiChartDataObject = {};
+                const multiChartData = [];
 
                 try {
                     // Person 1 Data
@@ -413,17 +413,16 @@
                         loadingDiv.style.display = 'none';
                         return;
                     }
-                    multiChartDataObject.chart1 = {
+                    multiChartData.push({
                         name: name1 || 'Person 1',
                         planets: apiData1.planets.map(({ name, longitude, speed }) => ({ name, degree: longitude, speed })),
                         ascendant: apiData1.ascendant,
                         midheaven: apiData1.midheaven, // Corrected
                         points: apiData1.points || [],
                         houseCusps: apiData1.houseCusps,
-                        houseSystemName: apiData1.houseSystemName,
                         location: location1,
                         timestamp: new Date(`${apiData1.date.replace(/-/g, '/')} ${apiData1.time.replace(/-/g, ':')}`)
-                    };
+                    })
 
                     // Person 2 Data (Optional)
                     if (enablePerson2Checkbox.checked) {
@@ -454,17 +453,16 @@
                                 loadingDiv.style.display = 'none';
                                 return;
                             }
-                            multiChartDataObject.chart2 = {
+                            multiChartData.push({
                                 name: name2 || 'Person 2',
                                 planets: apiData2.planets.map(({ name, longitude, speed }) => ({ name, degree: longitude, speed })),
                                 ascendant: apiData2.ascendant,
                                 midheaven: apiData2.midheaven, // Corrected
                                 points: apiData2.points || [],
                                 houseCusps: apiData2.houseCusps,
-                                houseSystemName: apiData2.houseSystemName,
                                 location: location2,
                                 timestamp: new Date(`${apiData2.date.replace(/-/g, '/')} ${apiData2.time.replace(/-/g, ':')}`)
-                            };
+                            })
                         } else if (birthdate2 || location2 || hours2Str || minutes2Str || name2) {
                             // If some but not all required fields for person 2 are filled
                             locationError2.textContent = 'Person 2: Please fill all date, time, and location fields when Person 2 is enabled.';
@@ -508,28 +506,28 @@
                             loadingDiv.style.display = 'none';
                             return;
                         }
-                        multiChartDataObject.transit = {
+                        multiChartData.push({
                             name: `Transits for ${transitDate} at ${transitLocation}`,
                             planets: apiDataTransit.planets.map(({ name, longitude, speed }) => ({ name, degree: longitude, speed })),
                             ascendant: apiDataTransit.ascendant,
                             midheaven: apiDataTransit.midheaven, // Corrected
                             points: apiDataTransit.points || [],
                             houseCusps: apiDataTransit.houseCusps,
-                            houseSystemName: apiDataTransit.houseSystemName,
                             location: transitLocation,
-                            timestamp: transitTimestamp
-                        };
+                            timestamp: transitTimestamp,
+                            chartType: 'transit'
+                        });
                     }
 
-                    if (Object.keys(multiChartDataObject).length === 0 || !multiChartDataObject.chart1) {
+                    if (multiChartData.length === 0) {
                          resultDiv.textContent = 'Please provide at least Person 1\'s chart data.';
                          loadingDiv.style.display = 'none';
                          return;
                     }
                     
-                    console.log(multiChartDataObject);
-                    // houseSystem option is no longer needed
-                    const textDescription = window.chart2txt(multiChartDataObject);
+                    const houseSystemName = houseSystemSelect.options[houseSystemSelect.selectedIndex].innerText;
+                    console.log(multiChartData, houseSystemName);
+                    const textDescription = window.chart2txt(multiChartData, { houseSystemName });
                     resultDiv.textContent = textDescription;
                     copyBtn.style.display = 'block';
                     
