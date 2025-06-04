@@ -92,7 +92,7 @@ const processTransitChartInfoOutput = (
 ): string[] => {
   const outputLines: string[] = [];
   outputLines.push(
-    ...generateChartHeaderOutput(transitData.name || 'Current', 'TRANSIT')
+    ...generateChartHeaderOutput(transitData.name, 'TRANSIT')
   );
   outputLines.push(
     ...generateBirthdataOutput(
@@ -197,9 +197,6 @@ export function formatChartToText(
   }
 
   // multi-chart analysis proceeds from here on
-
-  // TODO: ensure all names are populated in chartdata
-
   // generate metadata
   const chartType = determineChartType(data);
   outputLines.push(
@@ -232,6 +229,7 @@ export function formatChartToText(
 
   // finally, process transit against each non-transit chart
   if (transitChart) {
+    outputLines.push(...processTransitChartInfoOutput(settings, transitChart));
     for (const chart of nonTransitCharts) {
       // Transit Aspects to Chart 1
       const transitAspectsC1 = calculateMultichartAspects(

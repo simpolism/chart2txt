@@ -45,6 +45,19 @@
         .time-inputs input, .time-inputs select {
             flex: 1;
         }
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .checkbox-group input[type="checkbox"] {
+            width: auto;
+            margin: 0;
+        }
+        .checkbox-group label {
+            margin: 0;
+            font-weight: normal;
+        }
         button {
             background-color: #3498db;
             color: white;
@@ -59,6 +72,62 @@
         }
         button:hover {
             background-color: #2980b9;
+        }
+        .btn-secondary {
+            background-color: #95a5a6;
+            width: auto;
+            display: inline-block;
+            margin: 10px 5px 0 0;
+            padding: 8px 12px;
+            font-size: 14px;
+        }
+        .btn-secondary:hover {
+            background-color: #7f8c8d;
+        }
+        .btn-danger {
+            background-color: #e74c3c;
+        }
+        .btn-danger:hover {
+            background-color: #c0392b;
+        }
+        .chart-container {
+            background-color: #fff;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            position: relative;
+        }
+        .chart-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #eee;
+        }
+        .chart-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #2c3e50;
+            margin: 0;
+        }
+        .remove-chart-btn {
+            background-color: #e74c3c;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            width: auto;
+            margin: 0;
+        }
+        .remove-chart-btn:hover {
+            background-color: #c0392b;
+        }
+        #chartsContainer {
+            margin-bottom: 20px;
         }
         #result {
             margin-top: 30px;
@@ -127,63 +196,16 @@
         <h1>Convert Astrological Chart to Text</h1>
         
         <form id="birthDataForm">
-            <div class="form-group">
-                <label for="name1">Name:</label>
-                <input type="text" id="name1" placeholder="Name">
-            </div>
-            <div class="form-group">
-                <label for="birthdate">Birth Date:</label>
-                <input type="date" id="birthdate" required>
+            <div id="chartsContainer">
+                <!-- Charts will be dynamically added here -->
             </div>
             
-            <div class="form-group">
-                <label for="birthtime">Birth Time (24 hour):</label>
-                <div class="time-inputs">
-                    <input type="number" id="hours" min="0" max="23" placeholder="Hour" required>
-                    <input type="number" id="minutes" min="0" max="59" placeholder="Minute" required>
-                </div>
-            </div>
-            
-            <div class="form-group">
-                <label for="location">Birth Location:</label>
-                <input type="text" id="location" placeholder="City, Country" required>
-                <div id="locationError" class="error"></div>
-            </div>
-
-            <h2>Optional: Person 2 for Synastry</h2>
-            <div class="form-group">
-                <input type="checkbox" id="enablePerson2" style="width: auto; margin-right: 5px;">
-                <label for="enablePerson2" style="display: inline;">Enable Person 2</label>
-            </div>
-            <div id="person2Fields" style="display:none;">
-                <div class="form-group">
-                    <label for="name2">Name (Person 2):</label>
-                    <input type="text" id="name2" placeholder="Name (Person 2)">
-                </div>
-                <div class="form-group">
-                    <label for="birthdate2">Birth Date (Person 2):</label>
-                    <input type="date" id="birthdate2">
-                </div>
-                
-                <div class="form-group">
-                    <label for="birthtime2">Birth Time (24 hour) (Person 2):</label>
-                    <div class="time-inputs">
-                        <input type="number" id="hours2" min="0" max="23" placeholder="Hour">
-                        <input type="number" id="minutes2" min="0" max="59" placeholder="Minute">
-                    </div>
-                </div>
-                
-                <div class="form-group">
-                    <label for="location2">Birth Location (Person 2):</label>
-                    <input type="text" id="location2" placeholder="City, Country">
-                    <div id="locationError2" class="error"></div>
-                </div>
-            </div>
+            <button type="button" id="addChartBtn" class="btn-secondary">Add Another Chart</button>
 
             <h2>Optional: Transits</h2>
-            <div class="form-group">
-                <input type="checkbox" id="enableTransits" style="width: auto; margin-right: 5px;">
-                <label for="enableTransits" style="display: inline;">Enable Transits</label>
+            <div class="checkbox-group">
+                <input type="checkbox" id="enableTransits">
+                <label for="enableTransits">Enable Transits</label>
             </div>
             <div id="transitLocationGroup" class="form-group" style="display:none;">
                 <label for="transitLocation">Transit Location:</label>
@@ -232,28 +254,16 @@
     <script src="../../dist/chart2txt.min.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
+            const MAX_CHARTS = 10;
+            let chartCounter = 0;
+            let charts = [];
+
             const form = document.getElementById('birthDataForm');
+            const chartsContainer = document.getElementById('chartsContainer');
+            const addChartBtn = document.getElementById('addChartBtn');
             const resultDiv = document.getElementById('result');
             const loadingDiv = document.getElementById('loading');
             const copyBtn = document.getElementById('copyBtn');
-
-            // Person 1 inputs
-            const name1Input = document.getElementById('name1');
-            const birthdateInput = document.getElementById('birthdate');
-            const hoursInput = document.getElementById('hours');
-            const minutesInput = document.getElementById('minutes');
-            const locationInput = document.getElementById('location');
-            const locationError = document.getElementById('locationError');
-
-            // Person 2 inputs
-            const enablePerson2Checkbox = document.getElementById('enablePerson2');
-            const person2Fields = document.getElementById('person2Fields');
-            const name2Input = document.getElementById('name2');
-            const birthdate2Input = document.getElementById('birthdate2');
-            const hours2Input = document.getElementById('hours2');
-            const minutes2Input = document.getElementById('minutes2');
-            const location2Input = document.getElementById('location2');
-            const locationError2 = document.getElementById('locationError2');
 
             // Transit inputs
             const enableTransitsCheckbox = document.getElementById('enableTransits');
@@ -265,32 +275,194 @@
             const transitHoursInput = document.getElementById('transitHours');
             const transitMinutesInput = document.getElementById('transitMinutes');
             const houseSystemSelect = document.getElementById('houseSystem');
-            
-            // --- localStorage Persistence ---
-            const formFieldsToPersist = [
-                'name1', 'birthdate', 'hours', 'minutes', 'location',
-                'enablePerson2', 'name2', 'birthdate2', 'hours2', 'minutes2', 'location2',
-                'enableTransits', 'transitLocation', 'transitDate', 'transitHours', 'transitMinutes', 'houseSystem'
-            ];
 
+            // Chart template for creating new charts
+            function createChartHTML(chartId, chartNumber) {
+                return `
+                    <div class="chart-container" data-chart-id="${chartId}">
+                        <div class="chart-header">
+                            <h3 class="chart-title">Chart ${chartNumber}</h3>
+                            ${chartNumber > 1 ? `<button type="button" class="remove-chart-btn" onclick="removeChart('${chartId}')">Remove Chart</button>` : ''}
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="name_${chartId}">Name:</label>
+                            <input type="text" id="name_${chartId}" placeholder="Name">
+                        </div>
+                        
+                        <div class="checkbox-group">
+                            <input type="checkbox" id="isEvent_${chartId}">
+                            <label for="isEvent_${chartId}">Is Event?</label>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="birthdate_${chartId}">Date:</label>
+                            <input type="date" id="birthdate_${chartId}" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="birthtime_${chartId}">Time (24 hour):</label>
+                            <div class="time-inputs">
+                                <input type="number" id="hours_${chartId}" min="0" max="23" placeholder="Hour" required>
+                                <input type="number" id="minutes_${chartId}" min="0" max="59" placeholder="Minute" required>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="location_${chartId}">Location:</label>
+                            <input type="text" id="location_${chartId}" placeholder="City, Country" required>
+                            <div id="locationError_${chartId}" class="error"></div>
+                        </div>
+                    </div>
+                `;
+            }
+            // Initialize with first chart
+            function initializeCharts() {
+                addChart();
+                loadFormData();
+            }
+
+            // Add a new chart
+            function addChart() {
+                if (charts.length >= MAX_CHARTS) {
+                    alert(`Maximum of ${MAX_CHARTS} charts allowed.`);
+                    return;
+                }
+
+                chartCounter++;
+                const chartId = `chart_${chartCounter}`;
+                const chartNumber = charts.length + 1;
+                
+                charts.push({
+                    id: chartId,
+                    number: chartNumber
+                });
+
+                const chartHTML = createChartHTML(chartId, chartNumber);
+                chartsContainer.insertAdjacentHTML('beforeend', chartHTML);
+                
+                updateAddButtonVisibility();
+                attachChartEventListeners(chartId);
+                saveFormData();
+            }
+
+            // Remove a chart
+            window.removeChart = function(chartId) {
+                const chartElement = document.querySelector(`[data-chart-id="${chartId}"]`);
+                if (chartElement) {
+                    chartElement.remove();
+                    charts = charts.filter(chart => chart.id !== chartId);
+                    renumberCharts();
+                    updateAddButtonVisibility();
+                    saveFormData();
+                }
+            };
+
+            // Renumber charts after removal
+            function renumberCharts() {
+                charts.forEach((chart, index) => {
+                    chart.number = index + 1;
+                    const chartElement = document.querySelector(`[data-chart-id="${chart.id}"]`);
+                    if (chartElement) {
+                        const titleElement = chartElement.querySelector('.chart-title');
+                        titleElement.textContent = `Chart ${chart.number}`;
+                    }
+                });
+            }
+
+            // Update visibility of add chart button
+            function updateAddButtonVisibility() {
+                addChartBtn.style.display = charts.length >= MAX_CHARTS ? 'none' : 'inline-block';
+            }
+
+            // Attach event listeners to chart inputs
+            function attachChartEventListeners(chartId) {
+                const chartInputs = [
+                    `name_${chartId}`, `isEvent_${chartId}`, `birthdate_${chartId}`,
+                    `hours_${chartId}`, `minutes_${chartId}`, `location_${chartId}`
+                ];
+                
+                chartInputs.forEach(inputId => {
+                    const element = document.getElementById(inputId);
+                    if (element) {
+                        const eventType = (element.type === 'checkbox' || element.type === 'date') ? 'change' : 'input';
+                        element.addEventListener(eventType, saveFormData);
+                    }
+                });
+            }
+
+            // Get all chart field IDs for persistence
+            function getAllChartFieldIds() {
+                const fieldIds = [];
+                charts.forEach(chart => {
+                    fieldIds.push(
+                        `name_${chart.id}`, `isEvent_${chart.id}`, `birthdate_${chart.id}`,
+                        `hours_${chart.id}`, `minutes_${chart.id}`, `location_${chart.id}`
+                    );
+                });
+                return fieldIds;
+            }
+
+            // Save form data to localStorage
             function saveFormData() {
-                formFieldsToPersist.forEach(fieldId => {
+                // Save chart structure
+                localStorage.setItem('chartStructure', JSON.stringify(charts));
+                localStorage.setItem('chartCounter', chartCounter.toString());
+                
+                // Save chart field values
+                const chartFieldIds = getAllChartFieldIds();
+                chartFieldIds.forEach(fieldId => {
                     const field = document.getElementById(fieldId);
                     if (field) {
                         if (field.type === 'checkbox') {
-                            localStorage.setItem(`synastryForm_${fieldId}`, field.checked);
+                            localStorage.setItem(`chartForm_${fieldId}`, field.checked);
                         } else {
-                            localStorage.setItem(`synastryForm_${fieldId}`, field.value);
+                            localStorage.setItem(`chartForm_${fieldId}`, field.value);
+                        }
+                    }
+                });
+
+                // Save transit and other fields
+                const otherFields = [
+                    'enableTransits', 'transitLocation', 'transitDate', 
+                    'transitHours', 'transitMinutes', 'houseSystem'
+                ];
+                otherFields.forEach(fieldId => {
+                    const field = document.getElementById(fieldId);
+                    if (field) {
+                        if (field.type === 'checkbox') {
+                            localStorage.setItem(`chartForm_${fieldId}`, field.checked);
+                        } else {
+                            localStorage.setItem(`chartForm_${fieldId}`, field.value);
                         }
                     }
                 });
             }
 
+            // Load form data from localStorage
             function loadFormData() {
-                formFieldsToPersist.forEach(fieldId => {
+                // Load chart structure
+                const savedChartStructure = localStorage.getItem('chartStructure');
+                const savedChartCounter = localStorage.getItem('chartCounter');
+                
+                if (savedChartStructure && savedChartCounter) {
+                    const savedCharts = JSON.parse(savedChartStructure);
+                    chartCounter = parseInt(savedChartCounter);
+                    
+                    // Clear existing charts and recreate from saved structure
+                    if (savedCharts.length > 1) {
+                        for (let i = 1; i < savedCharts.length; i++) {
+                            addChart();
+                        }
+                    }
+                }
+
+                // Load chart field values
+                const chartFieldIds = getAllChartFieldIds();
+                chartFieldIds.forEach(fieldId => {
                     const field = document.getElementById(fieldId);
                     if (field) {
-                        const savedValue = localStorage.getItem(`synastryForm_${fieldId}`);
+                        const savedValue = localStorage.getItem(`chartForm_${fieldId}`);
                         if (savedValue !== null) {
                             if (field.type === 'checkbox') {
                                 field.checked = (savedValue === 'true');
@@ -300,60 +472,59 @@
                         }
                     }
                 });
-                // Ensure transit groups visibility is updated based on loaded checkbox state
-                if (enableTransitsCheckbox) {
-                     const showTransitFields = enableTransitsCheckbox.checked;
-                     transitLocationGroup.style.display = showTransitFields ? 'block' : 'none';
-                     transitDateTimeGroup.style.display = showTransitFields ? 'block' : 'none';
-                     if (showTransitFields) {
-                        if (!transitDateInput.value) { // Set default transit date/time if not already set
-                            const now = new Date();
-                            transitDateInput.value = `${now.getFullYear()}-${(now.getMonth() + 1).toString().padStart(2, '0')}-${now.getDate().toString().padStart(2, '0')}`;
-                            transitHoursInput.value = now.getHours().toString().padStart(2, '0');
-                            transitMinutesInput.value = now.getMinutes().toString().padStart(2, '0');
-                        }
-                     }
-                }
 
-                // Ensure Person 2 fields visibility is updated based on loaded checkbox state
-                if (enablePerson2Checkbox) {
-                    const showPerson2Fields = enablePerson2Checkbox.checked;
-                    person2Fields.style.display = showPerson2Fields ? 'block' : 'none';
+                // Load transit and other fields
+                const otherFields = [
+                    'enableTransits', 'transitLocation', 'transitDate', 
+                    'transitHours', 'transitMinutes', 'houseSystem'
+                ];
+                otherFields.forEach(fieldId => {
+                    const field = document.getElementById(fieldId);
+                    if (field) {
+                        const savedValue = localStorage.getItem(`chartForm_${fieldId}`);
+                        if (savedValue !== null) {
+                            if (field.type === 'checkbox') {
+                                field.checked = (savedValue === 'true');
+                            } else {
+                                field.value = savedValue;
+                            }
+                        }
+                    }
+                });
+
+                // Update transit field visibility
+                updateTransitFieldsVisibility();
+            }
+
+            // Update transit fields visibility
+            function updateTransitFieldsVisibility() {
+                const showTransitFields = enableTransitsCheckbox.checked;
+                transitLocationGroup.style.display = showTransitFields ? 'block' : 'none';
+                transitDateTimeGroup.style.display = showTransitFields ? 'block' : 'none';
+                
+                if (showTransitFields && !transitDateInput.value) {
+                    const now = new Date();
+                    transitDateInput.value = `${now.getFullYear()}-${(now.getMonth() + 1).toString().padStart(2, '0')}-${now.getDate().toString().padStart(2, '0')}`;
+                    transitHoursInput.value = now.getHours().toString().padStart(2, '0');
+                    transitMinutesInput.value = now.getMinutes().toString().padStart(2, '0');
                 }
             }
 
-            // Load saved data on page load
-            loadFormData();
-
-            // Save data on input change
-            formFieldsToPersist.forEach(fieldId => {
-                const field = document.getElementById(fieldId);
-                if (field) {
-                    const eventType = (field.type === 'checkbox' || field.type === 'date') ? 'change' : 'input';
-                    field.addEventListener(eventType, saveFormData);
-                }
-            });
-            // --- End localStorage Persistence ---
-
-            enablePerson2Checkbox.addEventListener('change', function() {
-                const showPerson2Fields = this.checked;
-                person2Fields.style.display = showPerson2Fields ? 'block' : 'none';
+            // Event listeners
+            addChartBtn.addEventListener('click', addChart);
+            
+            enableTransitsCheckbox.addEventListener('change', function() {
+                updateTransitFieldsVisibility();
                 saveFormData();
             });
 
-            enableTransitsCheckbox.addEventListener('change', function() {
-                const showTransitFields = this.checked;
-                transitLocationGroup.style.display = showTransitFields ? 'block' : 'none';
-                transitDateTimeGroup.style.display = showTransitFields ? 'block' : 'none';
-                if (showTransitFields) {
-                    if (!transitDateInput.value) { // Set default transit date/time if enabling and not set
-                        const now = new Date();
-                        transitDateInput.value = `${now.getFullYear()}-${(now.getMonth() + 1).toString().padStart(2, '0')}-${now.getDate().toString().padStart(2, '0')}`;
-                        transitHoursInput.value = now.getHours().toString().padStart(2, '0');
-                        transitMinutesInput.value = now.getMinutes().toString().padStart(2, '0');
-                    }
+            // Other field event listeners
+            ['transitLocation', 'transitDate', 'transitHours', 'transitMinutes', 'houseSystem'].forEach(fieldId => {
+                const field = document.getElementById(fieldId);
+                if (field) {
+                    const eventType = (field.type === 'date') ? 'change' : 'input';
+                    field.addEventListener(eventType, saveFormData);
                 }
-                saveFormData(); // Also save when this specific checkbox changes visibility
             });
             
             copyBtn.addEventListener('click', function() {
@@ -375,158 +546,56 @@
             
             const API_ENDPOINT = 'https://simple-astro-api.netlify.app/api/positions';
             
+            // Form submission handler
             form.addEventListener('submit', async function(e) {
                 e.preventDefault();
                 
                 resultDiv.textContent = '';
-                locationError.textContent = '';
-                locationError2.textContent = '';
-                transitLocationError.textContent = '';
                 copyBtn.style.display = 'none';
                 loadingDiv.style.display = 'block';
+                
+                // Clear all error messages
+                charts.forEach(chart => {
+                    const errorElement = document.getElementById(`locationError_${chart.id}`);
+                    if (errorElement) errorElement.textContent = '';
+                });
+                transitLocationError.textContent = '';
 
                 const multiChartData = [];
+                const houseSystem = houseSystemSelect.value;
 
                 try {
-                    // Person 1 Data
-                    const name1 = name1Input.value.trim();
-                    const birthdate1 = birthdateInput.value;
-                    const hours1 = parseInt(hoursInput.value);
-                    const minutes1 = parseInt(minutesInput.value);
-                    const location1 = locationInput.value.trim();
-                    const houseSystem = houseSystemSelect.value;
-
-                    if (!birthdate1 || isNaN(hours1) || isNaN(minutes1) || !location1) {
-                        locationError.textContent = 'Person 1: Please fill all required date, time, and location fields.';
-                        loadingDiv.style.display = 'none';
-                        return;
-                    }
-
-                    const coordinates1 = await geocodeLocation(location1, locationError);
-                    if (!coordinates1) {
-                        loadingDiv.style.display = 'none';
-                        return;
-                    }
-                    const timeString1 = `${hours1.toString().padStart(2, '0')}:${minutes1.toString().padStart(2, '0')}:00`;
-                    const apiData1 = await getPlanetaryPositions(birthdate1, timeString1, coordinates1.latitude, coordinates1.longitude, houseSystem, locationError);
-                    if (!apiData1) {
-                        loadingDiv.style.display = 'none';
-                        return;
-                    }
-                    multiChartData.push({
-                        name: name1 || 'Person 1',
-                        planets: apiData1.planets.map(({ name, longitude, speed }) => ({ name, degree: longitude, speed })),
-                        ascendant: apiData1.ascendant,
-                        midheaven: apiData1.midheaven, // Corrected
-                        points: apiData1.points || [],
-                        houseCusps: apiData1.houseCusps,
-                        location: location1,
-                        timestamp: new Date(`${apiData1.date.replace(/-/g, '/')} ${apiData1.time.replace(/-/g, ':')}`)
-                    })
-
-                    // Person 2 Data (Optional)
-                    if (enablePerson2Checkbox.checked) {
-                        const name2 = name2Input.value.trim();
-                        const birthdate2 = birthdate2Input.value;
-                        const hours2Str = hours2Input.value;
-                        const minutes2Str = minutes2Input.value;
-                        const location2 = location2Input.value.trim();
-
-                        if (birthdate2 && location2 && hours2Str && minutes2Str) { // Only process if core fields are present
-                            const hours2 = parseInt(hours2Str);
-                            const minutes2 = parseInt(minutes2Str);
-
-                            if (isNaN(hours2) || isNaN(minutes2)) {
-                                 locationError2.textContent = 'Person 2: Invalid time.';
-                                 loadingDiv.style.display = 'none';
-                                 return;
-                            }
-
-                            const coordinates2 = await geocodeLocation(location2, locationError2);
-                            if (!coordinates2) {
-                                loadingDiv.style.display = 'none';
-                                return;
-                            }
-                            const timeString2 = `${hours2.toString().padStart(2, '0')}:${minutes2.toString().padStart(2, '0')}:00`;
-                            const apiData2 = await getPlanetaryPositions(birthdate2, timeString2, coordinates2.latitude, coordinates2.longitude, houseSystem, locationError2);
-                            if (!apiData2) {
-                                loadingDiv.style.display = 'none';
-                                return;
-                            }
-                            multiChartData.push({
-                                name: name2 || 'Person 2',
-                                planets: apiData2.planets.map(({ name, longitude, speed }) => ({ name, degree: longitude, speed })),
-                                ascendant: apiData2.ascendant,
-                                midheaven: apiData2.midheaven, // Corrected
-                                points: apiData2.points || [],
-                                houseCusps: apiData2.houseCusps,
-                                location: location2,
-                                timestamp: new Date(`${apiData2.date.replace(/-/g, '/')} ${apiData2.time.replace(/-/g, ':')}`)
-                            })
-                        } else if (birthdate2 || location2 || hours2Str || minutes2Str || name2) {
-                            // If some but not all required fields for person 2 are filled
-                            locationError2.textContent = 'Person 2: Please fill all date, time, and location fields when Person 2 is enabled.';
+                    // Process each chart
+                    for (const chart of charts) {
+                        const chartData = await processChart(chart, houseSystem);
+                        if (chartData) {
+                            multiChartData.push(chartData);
+                        } else {
                             loadingDiv.style.display = 'none';
-                            return;
+                            return; // Error occurred, stop processing
                         }
                     }
 
-
-                    // Transit Data (Optional)
+                    // Process transit data if enabled
                     if (enableTransitsCheckbox.checked) {
-                        const transitLocation = transitLocationInput.value.trim();
-                        if (!transitLocation) {
-                            transitLocationError.textContent = 'Please enter a location for transits.';
+                        const transitData = await processTransitData(houseSystem);
+                        if (transitData) {
+                            multiChartData.push(transitData);
+                        } else {
                             loadingDiv.style.display = 'none';
-                            return;
+                            return; // Error occurred, stop processing
                         }
-                        const coordinatesTransit = await geocodeLocation(transitLocation, transitLocationError);
-                        if (!coordinatesTransit) {
-                            loadingDiv.style.display = 'none';
-                            return;
-                        }
-                        
-                        let transitDate = transitDateInput.value;
-                        let transitHours = parseInt(transitHoursInput.value);
-                        let transitMinutes = parseInt(transitMinutesInput.value);
-                        let transitTimestamp = new Date();
-
-                        if (transitDate && !isNaN(transitHours) && !isNaN(transitMinutes)) {
-                            transitTimestamp = new Date(`${transitDate}T${transitHours.toString().padStart(2, '0')}:${transitMinutes.toString().padStart(2, '0')}:00`);
-                        } else { // Default to now if not fully specified
-                            transitDate = `${transitTimestamp.getFullYear()}-${(transitTimestamp.getMonth() + 1).toString().padStart(2, '0')}-${transitTimestamp.getDate().toString().padStart(2, '0')}`;
-                            transitHours = transitTimestamp.getHours();
-                            transitMinutes = transitTimestamp.getMinutes();
-                        }
-                        
-                        const transitTimeString = `${transitHours.toString().padStart(2, '0')}:${transitMinutes.toString().padStart(2, '0')}:00`;
-                        
-                        const apiDataTransit = await getPlanetaryPositions(transitDate, transitTimeString, coordinatesTransit.latitude, coordinatesTransit.longitude, houseSystem, transitLocationError);
-                        if (!apiDataTransit) {
-                            loadingDiv.style.display = 'none';
-                            return;
-                        }
-                        multiChartData.push({
-                            name: `Transits for ${transitDate} at ${transitLocation}`,
-                            planets: apiDataTransit.planets.map(({ name, longitude, speed }) => ({ name, degree: longitude, speed })),
-                            ascendant: apiDataTransit.ascendant,
-                            midheaven: apiDataTransit.midheaven, // Corrected
-                            points: apiDataTransit.points || [],
-                            houseCusps: apiDataTransit.houseCusps,
-                            location: transitLocation,
-                            timestamp: transitTimestamp,
-                            chartType: 'transit'
-                        });
                     }
 
                     if (multiChartData.length === 0) {
-                         resultDiv.textContent = 'Please provide at least Person 1\'s chart data.';
-                         loadingDiv.style.display = 'none';
-                         return;
+                        resultDiv.textContent = 'Please provide at least one chart.';
+                        loadingDiv.style.display = 'none';
+                        return;
                     }
                     
+                    // Generate text description
                     const houseSystemName = houseSystemSelect.options[houseSystemSelect.selectedIndex].innerText;
-                    console.log(multiChartData, houseSystemName);
+                    console.log('Chart data:', multiChartData);
                     const textDescription = window.chart2txt(multiChartData, { houseSystemName });
                     resultDiv.textContent = textDescription;
                     copyBtn.style.display = 'block';
@@ -538,7 +607,100 @@
                     loadingDiv.style.display = 'none';
                 }
             });
+
+            // Process individual chart data
+            async function processChart(chart, houseSystem) {
+                const nameInput = document.getElementById(`name_${chart.id}`);
+                const isEventInput = document.getElementById(`isEvent_${chart.id}`);
+                const birthdateInput = document.getElementById(`birthdate_${chart.id}`);
+                const hoursInput = document.getElementById(`hours_${chart.id}`);
+                const minutesInput = document.getElementById(`minutes_${chart.id}`);
+                const locationInput = document.getElementById(`location_${chart.id}`);
+                const locationError = document.getElementById(`locationError_${chart.id}`);
+
+                const name = nameInput.value.trim();
+                const isEvent = isEventInput.checked;
+                const birthdate = birthdateInput.value;
+                const hours = parseInt(hoursInput.value);
+                const minutes = parseInt(minutesInput.value);
+                const location = locationInput.value.trim();
+
+                if (!birthdate || isNaN(hours) || isNaN(minutes) || !location) {
+                    locationError.textContent = `Chart ${chart.number}: Please fill all required date, time, and location fields.`;
+                    return null;
+                }
+
+                const coordinates = await geocodeLocation(location, locationError);
+                if (!coordinates) {
+                    return null;
+                }
+
+                const timeString = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:00`;
+                const apiData = await getPlanetaryPositions(birthdate, timeString, coordinates.latitude, coordinates.longitude, houseSystem, locationError);
+                if (!apiData) {
+                    return null;
+                }
+
+                return {
+                    name: name || `Chart ${chart.number}`,
+                    planets: apiData.planets.map(({ name, longitude, speed }) => ({ name, degree: longitude, speed })),
+                    ascendant: apiData.ascendant,
+                    midheaven: apiData.midheaven,
+                    points: apiData.points || [],
+                    houseCusps: apiData.houseCusps,
+                    location: location,
+                    timestamp: new Date(`${apiData.date.replace(/-/g, '/')} ${apiData.time.replace(/-/g, ':')}`),
+                    chartType: isEvent ? 'event' : 'natal',
+                };
+            }
+
+            // Process transit data
+            async function processTransitData(houseSystem) {
+                const transitLocation = transitLocationInput.value.trim();
+                if (!transitLocation) {
+                    transitLocationError.textContent = 'Please enter a location for transits.';
+                    return null;
+                }
+
+                const coordinatesTransit = await geocodeLocation(transitLocation, transitLocationError);
+                if (!coordinatesTransit) {
+                    return null;
+                }
+                
+                let transitDate = transitDateInput.value;
+                let transitHours = parseInt(transitHoursInput.value);
+                let transitMinutes = parseInt(transitMinutesInput.value);
+                let transitTimestamp = new Date();
+
+                if (transitDate && !isNaN(transitHours) && !isNaN(transitMinutes)) {
+                    transitTimestamp = new Date(`${transitDate}T${transitHours.toString().padStart(2, '0')}:${transitMinutes.toString().padStart(2, '0')}:00`);
+                } else {
+                    transitDate = `${transitTimestamp.getFullYear()}-${(transitTimestamp.getMonth() + 1).toString().padStart(2, '0')}-${transitTimestamp.getDate().toString().padStart(2, '0')}`;
+                    transitHours = transitTimestamp.getHours();
+                    transitMinutes = transitTimestamp.getMinutes();
+                }
+                
+                const transitTimeString = `${transitHours.toString().padStart(2, '0')}:${transitMinutes.toString().padStart(2, '0')}:00`;
+                
+                const apiDataTransit = await getPlanetaryPositions(transitDate, transitTimeString, coordinatesTransit.latitude, coordinatesTransit.longitude, houseSystem, transitLocationError);
+                if (!apiDataTransit) {
+                    return null;
+                }
+
+                return {
+                    name: `Transits for ${transitDate} at ${transitLocation}`,
+                    planets: apiDataTransit.planets.map(({ name, longitude, speed }) => ({ name, degree: longitude, speed })),
+                    ascendant: apiDataTransit.ascendant,
+                    midheaven: apiDataTransit.midheaven,
+                    points: apiDataTransit.points || [],
+                    houseCusps: apiDataTransit.houseCusps,
+                    location: transitLocation,
+                    timestamp: transitTimestamp,
+                    chartType: 'transit'
+                };
+            }
             
+            // Utility functions
             async function geocodeLocation(locationString, errorElement) {
                 errorElement.textContent = '';
                 try {
@@ -558,7 +720,7 @@
                 } catch (error) {
                     console.error('Geocoding error:', error);
                     errorElement.textContent = 'Failed to geocode location.';
-                    throw new Error('Failed to geocode location');
+                    return null;
                 }
             }
             
@@ -578,6 +740,9 @@
                     throw new Error('Failed to get astrological data');
                 }
             }
+
+            // Initialize the application
+            initializeCharts();
         });
     </script>
 </body>

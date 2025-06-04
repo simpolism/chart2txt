@@ -42,8 +42,8 @@ export function generateHouseOverlaysOutput(
   settings: ChartSettings
 ): string[] {
   const output: string[] = ['[HOUSE OVERLAYS]'];
-  const c1Name = chart1.name || 'Chart 1';
-  const c2Name = chart2.name || 'Chart 2';
+  const c1Name = chart1.name;
+  const c2Name = chart2.name;
 
   // Chart 1's planets in Chart 2's houses
   if (chart2.houseCusps && chart2.houseCusps.length === 12) {

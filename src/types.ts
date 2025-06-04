@@ -5,7 +5,7 @@ export interface Point {
 }
 
 export interface ChartData {
-  name?: string; // the name of the chart's person or event
+  name: string; // the name of the chart's person or event
   planets: Point[]; // the set of points that may aspect other planets
   ascendant?: number; // 0-360 degrees, optional
   midheaven?: number; // 0-360 degrees, optional for Midheaven
