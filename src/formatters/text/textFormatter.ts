@@ -1,4 +1,9 @@
-import { ChartData, isMultiChartData, MultiChartData, PartialSettings } from '../../types';
+import {
+  ChartData,
+  isMultiChartData,
+  MultiChartData,
+  PartialSettings,
+} from '../../types';
 import { ChartSettings } from '../../config/ChartSettings';
 import {
   calculateAspects,
@@ -33,11 +38,7 @@ const processSingleChartOutput = (
     ...generateAnglesOutput(chartData.ascendant, chartData.midheaven)
   );
   outputLines.push(
-    ...generatePlanetsOutput(
-      chartData.planets,
-      chartData.houseCusps,
-      settings
-    )
+    ...generatePlanetsOutput(chartData.planets, chartData.houseCusps, settings)
   );
 
   const aspects = calculateAspects(
@@ -50,13 +51,18 @@ const processSingleChartOutput = (
   return outputLines;
 };
 
-const processChartPairOutput = (settings: ChartSettings, chart1: ChartData, chart2: ChartData): string[] => {
+const processChartPairOutput = (
+  settings: ChartSettings,
+  chart1: ChartData,
+  chart2: ChartData
+): string[] => {
   const outputLines: string[] = [];
-  const header = chart1.chartType === 'event' && chart2.chartType === 'event'
-    ? 'EVENT_RELATIONSHIP'
-    : chart1.chartType === 'event' || chart2.chartType === 'event'
-    ? 'NATAL_EVENT'
-    : 'SYNASTRY';
+  const header =
+    chart1.chartType === 'event' && chart2.chartType === 'event'
+      ? 'EVENT_RELATIONSHIP'
+      : chart1.chartType === 'event' || chart2.chartType === 'event'
+      ? 'NATAL_EVENT'
+      : 'SYNASTRY';
   outputLines.push(
     ...generateChartHeaderOutput(`${chart1.name}-${chart2.name}`, header)
   );
@@ -75,14 +81,15 @@ const processChartPairOutput = (settings: ChartSettings, chart1: ChartData, char
     )
   );
   outputLines.push('');
-  outputLines.push(
-    ...generateHouseOverlaysOutput(chart1, chart2, settings)
-  );
+  outputLines.push(...generateHouseOverlaysOutput(chart1, chart2, settings));
   outputLines.push('');
   return outputLines;
-}
+};
 
-const processTransitChartInfoOutput = (settings: ChartSettings, transitData: ChartData): string[] => {
+const processTransitChartInfoOutput = (
+  settings: ChartSettings,
+  transitData: ChartData
+): string[] => {
   const outputLines: string[] = [];
   outputLines.push(
     ...generateChartHeaderOutput(transitData.name || 'Current', 'TRANSIT')
@@ -110,7 +117,9 @@ const processTransitChartInfoOutput = (settings: ChartSettings, transitData: Cha
 const determineChartType = (data: MultiChartData): string => {
   let baseChartString: string = 'natal';
   let suffixString: string = '';
-  const natalCharts = data.filter(({ chartType }) => chartType !== 'transit' && chartType !== 'event');
+  const natalCharts = data.filter(
+    ({ chartType }) => chartType !== 'transit' && chartType !== 'event'
+  );
   const eventCharts = data.filter(({ chartType }) => chartType === 'event');
   const transitCharts = data.filter(({ chartType }) => chartType === 'transit');
   if (transitCharts.length > 1) {
@@ -154,7 +163,7 @@ const determineChartType = (data: MultiChartData): string => {
   }
 
   return baseChartString + suffixString;
-}
+};
 
 /**
  * Orchestrates the generation of a complete astrological chart report in text format.
@@ -176,7 +185,11 @@ export function formatChartToText(
       throw new Error('Single chart data must not be transit.');
     }
     outputLines.push(
-      ...generateMetadataOutput(settings, data.chartType || 'natal', houseSystemName)
+      ...generateMetadataOutput(
+        settings,
+        data.chartType || 'natal',
+        houseSystemName
+      )
     );
     outputLines.push(''); // Blank line after metadata
     outputLines.push(...processSingleChartOutput(settings, data as ChartData));
@@ -194,7 +207,9 @@ export function formatChartToText(
   );
   outputLines.push(''); // Blank line after metadata
 
-  const nonTransitCharts = data.filter(({ chartType }) => chartType !== 'transit');
+  const nonTransitCharts = data.filter(
+    ({ chartType }) => chartType !== 'transit'
+  );
   const transitChart = data.find(({ chartType }) => chartType === 'transit');
 
   // first, process each chart individually
@@ -205,7 +220,13 @@ export function formatChartToText(
   // then, process each pairwise chart
   for (let i = 0; i < nonTransitCharts.length; i++) {
     for (let j = i + 1; j < nonTransitCharts.length; j++) {
-      outputLines.push(...processChartPairOutput(settings, nonTransitCharts[i], nonTransitCharts[j]));
+      outputLines.push(
+        ...processChartPairOutput(
+          settings,
+          nonTransitCharts[i],
+          nonTransitCharts[j]
+        )
+      );
     }
   }
 
