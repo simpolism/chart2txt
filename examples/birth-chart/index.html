@@ -318,12 +318,43 @@
             }
             // Initialize with first chart
             function initializeCharts() {
-                addChart();
+                // Load chart structure first
+                const savedChartStructure = localStorage.getItem('chartStructure');
+                const savedChartCounter = localStorage.getItem('chartCounter');
+                
+                if (savedChartStructure && savedChartCounter) {
+                    const savedCharts = JSON.parse(savedChartStructure);
+                    chartCounter = parseInt(savedChartCounter);
+                    
+                    // Recreate charts with their original IDs
+                    savedCharts.forEach(savedChart => {
+                        recreateChart(savedChart.id, savedChart.number);
+                    });
+                } else {
+                    // Create first chart if no saved structure
+                    addChart(true); // skipSave = true
+                }
+                
+                // Load form data after all charts are created
                 loadFormData();
             }
 
+            // Recreate a chart with specific ID (for localStorage loading)
+            function recreateChart(chartId, chartNumber) {
+                charts.push({
+                    id: chartId,
+                    number: chartNumber
+                });
+
+                const chartHTML = createChartHTML(chartId, chartNumber);
+                chartsContainer.insertAdjacentHTML('beforeend', chartHTML);
+                
+                updateAddButtonVisibility();
+                attachChartEventListeners(chartId);
+            }
+
             // Add a new chart
-            function addChart() {
+            function addChart(skipSave = false) {
                 if (charts.length >= MAX_CHARTS) {
                     alert(`Maximum of ${MAX_CHARTS} charts allowed.`);
                     return;
@@ -343,7 +374,10 @@
                 
                 updateAddButtonVisibility();
                 attachChartEventListeners(chartId);
-                saveFormData();
+                
+                if (!skipSave) {
+                    saveFormData();
+                }
             }
 
             // Remove a chart
@@ -441,22 +475,6 @@
 
             // Load form data from localStorage
             function loadFormData() {
-                // Load chart structure
-                const savedChartStructure = localStorage.getItem('chartStructure');
-                const savedChartCounter = localStorage.getItem('chartCounter');
-                
-                if (savedChartStructure && savedChartCounter) {
-                    const savedCharts = JSON.parse(savedChartStructure);
-                    chartCounter = parseInt(savedChartCounter);
-                    
-                    // Clear existing charts and recreate from saved structure
-                    if (savedCharts.length > 1) {
-                        for (let i = 1; i < savedCharts.length; i++) {
-                            addChart();
-                        }
-                    }
-                }
-
                 // Load chart field values
                 const chartFieldIds = getAllChartFieldIds();
                 chartFieldIds.forEach(fieldId => {
