@@ -308,6 +308,50 @@ describe('chart2txt', () => {
       expect(result).toContain('4.0°');
     });
 
+    test('correctly handles Saturn-Venus cross-sign square with skipOutOfSignAspects', () => {
+      const data: ChartData = {
+        name: 'Saturn-Venus Bug Test',
+        planets: [
+          { name: 'Venus', degree: 54.17 }, // 24° Taurus (sign 1)
+          { name: 'Saturn', degree: 329.99 }, // 29° Aquarius (sign 10)
+          { name: 'Sun', degree: 98.76 }, // 8° Cancer - for context
+        ],
+      };
+
+      // Test with major/moderate orbs and skipOutOfSignAspects: true (should now include the square)
+      const resultWithSkip = chart2txt(data, { 
+        skipOutOfSignAspects: true,
+        aspectDefinitions: [
+          { name: 'square', angle: 90, orb: 6 }, // Extend orb to 6° to catch the 5.82° aspect
+        ],
+        aspectCategories: [
+          { name: 'MAJOR', maxOrb: 3 },
+          { name: 'MODERATE', maxOrb: 6 }
+        ]
+      });
+      
+      // Test with skipOutOfSignAspects: false (should also include the square)
+      const resultWithoutSkip = chart2txt(data, { 
+        skipOutOfSignAspects: false,
+        aspectDefinitions: [
+          { name: 'square', angle: 90, orb: 6 }, // Extend orb to 6° to catch the 5.82° aspect
+        ],
+        aspectCategories: [
+          { name: 'MAJOR', maxOrb: 3 },
+          { name: 'MODERATE', maxOrb: 6 }
+        ]
+      });
+
+      expect(resultWithSkip).toContain('[ASPECTS]');
+      expect(resultWithoutSkip).toContain('[ASPECTS]');
+
+      // Saturn-Venus are 84.18° apart (5.82° from exact square)
+      // Saturn 29° Aquarius, Venus 24° Taurus - circular distance is 3 signs (valid square)
+      // This should now be correctly included even with skipOutOfSignAspects: true
+      expect(resultWithSkip).toMatch(/(?:Saturn square Venus|Venus square Saturn)/);
+      expect(resultWithoutSkip).toMatch(/(?:Saturn square Venus|Venus square Saturn)/);
+    });
+
     test.skip('omit aspects when disabled via settings', () => {
       const data: ChartData = {
         name: 'test',

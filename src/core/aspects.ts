@@ -17,7 +17,9 @@ function findTightestAspect(
       const planetASign = Math.floor(planetA.degree / 30);
       const planetBSign = Math.floor(planetB.degree / 30);
       const aspectSignDiff = Math.floor(aspectType.angle / 30);
-      if (Math.abs(planetASign - planetBSign) !== aspectSignDiff) {
+      let signDiff = Math.abs(planetASign - planetBSign);
+      if (signDiff > 6) signDiff = 12 - signDiff;
+      if (signDiff !== aspectSignDiff) {
         continue;
       }
     }
