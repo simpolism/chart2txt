@@ -58,6 +58,7 @@ export interface Settings {
   // orb + aspect settings
   aspectDefinitions: Aspect[];
   aspectCategories: AspectCategory[];
+  skipOutOfSignAspects: boolean;
   dateFormat: string; // e.g., "MM/DD/YYYY", "YYYY-MM-DD"
 }
 

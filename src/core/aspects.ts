@@ -1,5 +1,41 @@
 import { Point, Aspect, AspectData } from '../types';
 
+function findTightestAspect(
+  aspectDefinitions: Aspect[],
+  planetA: Point,
+  planetB: Point,
+  skipOutOfSignAspects: boolean,
+): AspectData | null {
+  let diff = Math.abs(planetA.degree - planetB.degree);
+  if (diff > 180) diff = 360 - diff;
+
+  let tightestAspect: AspectData | null = null;
+  for (const aspectType of aspectDefinitions) {
+    const orb = Math.abs(diff - aspectType.angle);
+
+    if (skipOutOfSignAspects) {
+      const planetASign = Math.floor(planetA.degree / 30);
+      const planetBSign = Math.floor(planetB.degree / 30);
+      const aspectSignDiff = Math.floor(aspectType.angle / 30);
+      if (Math.abs(planetASign - planetBSign) !== aspectSignDiff) {
+        continue;
+      }
+    }
+
+    if (orb <= aspectType.orb) {
+      if (!tightestAspect || orb < tightestAspect.orb) {
+        tightestAspect = {
+          planetA: planetA.name,
+          planetB: planetB.name,
+          aspectType: aspectType.name,
+          orb,
+        };
+      }
+    }
+  }
+  return tightestAspect;
+}
+
 /**
  * Identifies aspects between planets in a single chart.
  * @param aspectDefinitions Array of aspect types to check for.
@@ -8,7 +44,8 @@ import { Point, Aspect, AspectData } from '../types';
  */
 export function calculateAspects(
   aspectDefinitions: Aspect[],
-  planets: Point[]
+  planets: Point[],
+  skipOutOfSignAspects = true,
 ): AspectData[] {
   const aspects: AspectData[] = [];
   if (!planets || planets.length < 2) return aspects;
@@ -17,26 +54,9 @@ export function calculateAspects(
     for (let j = i + 1; j < planets.length; j++) {
       const planetA = planets[i];
       const planetB = planets[j];
-      let diff = Math.abs(planetA.degree - planetB.degree);
-      if (diff > 180) diff = 360 - diff;
-
-      // Find the tightest valid aspect
-      let tightestAspect: AspectData | null = null;
-      for (const aspectType of aspectDefinitions) {
-        const orb = Math.abs(diff - aspectType.angle);
-        if (orb <= aspectType.orb) {
-          if (!tightestAspect || orb < tightestAspect.orb) {
-            tightestAspect = {
-              planetA: planetA.name,
-              planetB: planetB.name,
-              aspectType: aspectType.name,
-              orb,
-            };
-          }
-        }
-      }
-      if (tightestAspect) {
-        aspects.push(tightestAspect);
+      const aspect = findTightestAspect(aspectDefinitions, planetA, planetB, skipOutOfSignAspects);
+      if (aspect) {
+        aspects.push(aspect);
       }
     }
   }
@@ -54,7 +74,8 @@ export function calculateAspects(
 export function calculateMultichartAspects(
   aspectDefinitions: Aspect[],
   chart1Planets: Point[],
-  chart2Planets: Point[]
+  chart2Planets: Point[],
+  skipOutOfSignAspects = true,
 ): AspectData[] {
   const aspects: AspectData[] = [];
   if (
@@ -68,26 +89,9 @@ export function calculateMultichartAspects(
 
   for (const p1 of chart1Planets) {
     for (const p2 of chart2Planets) {
-      let diff = Math.abs(p1.degree - p2.degree);
-      if (diff > 180) diff = 360 - diff;
-
-      // Find the tightest valid aspect
-      let tightestAspect: AspectData | null = null;
-      for (const aspectType of aspectDefinitions) {
-        const orb = Math.abs(diff - aspectType.angle);
-        if (orb <= aspectType.orb) {
-          if (!tightestAspect || orb < tightestAspect.orb) {
-            tightestAspect = {
-              planetA: p1.name, // From chart1
-              planetB: p2.name, // From chart2
-              aspectType: aspectType.name,
-              orb,
-            };
-          }
-        }
-      }
-      if (tightestAspect) {
-        aspects.push(tightestAspect);
+      const aspect = findTightestAspect(aspectDefinitions, p1, p2, skipOutOfSignAspects);
+      if (aspect) {
+        aspects.push(aspect);
       }
     }
   }

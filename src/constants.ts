@@ -42,5 +42,6 @@ export const DEFAULT_SETTINGS: Settings = {
   // orb + aspect settings
   aspectDefinitions: DEFAULT_ASPECTS,
   aspectCategories: DEFAULT_ASPECT_CATEGORIES,
+  skipOutOfSignAspects: true,
   dateFormat: 'MM/DD/YYYY', // As per example output
 };

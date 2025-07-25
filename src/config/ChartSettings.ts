@@ -11,6 +11,7 @@ export class ChartSettings implements Settings {
   includeAscendant: boolean;
   houseSystemName: string;
   includeHouseDegree: boolean;
+  skipOutOfSignAspects: boolean;
   aspectDefinitions: Aspect[];
   aspectCategories: AspectCategory[];
   dateFormat: string;
@@ -26,6 +27,7 @@ export class ChartSettings implements Settings {
       mergedSettings.aspectDefinitions || DEFAULT_ASPECTS; // Ensure array is not undefined
     this.aspectCategories =
       mergedSettings.aspectCategories || DEFAULT_ASPECT_CATEGORIES; // Ensure array is not undefined
+    this.skipOutOfSignAspects = mergedSettings.skipOutOfSignAspects;
     this.dateFormat = mergedSettings.dateFormat;
   }
 }

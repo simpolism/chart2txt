@@ -43,7 +43,8 @@ const processSingleChartOutput = (
 
   const aspects = calculateAspects(
     settings.aspectDefinitions,
-    chartData.planets
+    chartData.planets,
+    settings.skipOutOfSignAspects
   );
   // For single chart, p1ChartName and p2ChartName are not needed for aspect string generation
   outputLines.push(...generateAspectsOutput('[ASPECTS]', aspects, settings));
@@ -69,7 +70,8 @@ const processChartPairOutput = (
   const synastryAspects = calculateMultichartAspects(
     settings.aspectDefinitions,
     chart1.planets,
-    chart2.planets
+    chart2.planets,
+    settings.skipOutOfSignAspects
   );
   outputLines.push(
     ...generateAspectsOutput(
@@ -115,8 +117,8 @@ const processTransitChartInfoOutput = (
 };
 
 const determineChartType = (data: MultiChartData): string => {
-  let baseChartString: string = 'natal';
-  let suffixString: string = '';
+  let baseChartString = 'natal';
+  let suffixString = '';
   const natalCharts = data.filter(
     ({ chartType }) => chartType !== 'transit' && chartType !== 'event'
   );
@@ -235,7 +237,8 @@ export function formatChartToText(
       const transitAspectsC1 = calculateMultichartAspects(
         settings.aspectDefinitions,
         chart.planets,
-        transitChart.planets
+        transitChart.planets,
+        settings.skipOutOfSignAspects
       );
       outputLines.push(
         ...generateAspectsOutput(
