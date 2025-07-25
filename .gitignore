@@ -30,3 +30,4 @@ yarn-error.log*
 *.njsproj
 *.sln
 *.sw?
+CLAUDE.md
