@@ -1,4 +1,4 @@
-import { Settings, PartialSettings, AspectCategory, Aspect } from '../types';
+import { Settings, PartialSettings, AspectCategory, Aspect, DisplayMode } from '../types';
 import {
   DEFAULT_SETTINGS,
   DEFAULT_ASPECT_CATEGORIES,
@@ -17,6 +17,7 @@ export class ChartSettings implements Settings {
   dateFormat: string;
   includePlanetaryDignities: boolean;
   useDegreesOnly: boolean;
+  displayMode: DisplayMode;
 
   constructor(customSettings: PartialSettings = {}) {
     const mergedSettings = { ...DEFAULT_SETTINGS, ...customSettings };
@@ -33,5 +34,6 @@ export class ChartSettings implements Settings {
     this.dateFormat = mergedSettings.dateFormat;
     this.includePlanetaryDignities = mergedSettings.includePlanetaryDignities;
     this.useDegreesOnly = mergedSettings.useDegreesOnly;
+    this.displayMode = mergedSettings.displayMode;
   }
 }

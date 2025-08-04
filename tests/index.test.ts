@@ -164,7 +164,7 @@ describe('chart2txt', () => {
       const result = chart2txt(data);
 
       expect(result).toContain('[ANGLES]');
-      expect(result).toContain('ASC: 6°00\'00" Aries');
+      expect(result).toContain('Ascendant: 6°00\'00" Aries');
     });
 
     test('omits ascendant when disabled via settings', () => {
@@ -180,7 +180,7 @@ describe('chart2txt', () => {
 
       expect(result).toContain('[ANGLES]');
       // The includeAscendant setting is legacy, it still shows the ASC if provided
-      expect(result).toContain('ASC: 6°00\'00" Aries');
+      expect(result).toContain('Ascendant: 6°00\'00" Aries');
     });
 
     test('formats midheaven correctly', () => {
@@ -196,8 +196,8 @@ describe('chart2txt', () => {
       const result = chart2txt(data);
 
       expect(result).toContain('[ANGLES]');
-      expect(result).toContain('ASC: 6°00\'00" Aries');
-      expect(result).toContain('MC: 0°00\'00" Leo');
+      expect(result).toContain('Ascendant: 6°00\'00" Aries');
+      expect(result).toContain('Midheaven: 0°00\'00" Leo');
     });
 
     test('omits midheaven when not provided', () => {
@@ -212,8 +212,8 @@ describe('chart2txt', () => {
       const result = chart2txt(data);
 
       expect(result).toContain('[ANGLES]');
-      expect(result).toContain('ASC: 6°00\'00" Aries');
-      expect(result).toContain('MC: Not available');
+      expect(result).toContain('Ascendant: 6°00\'00" Aries');
+      expect(result).toContain('Midheaven: Not available');
     });
 
     test.skip('omits points when disabled via settings', () => {
@@ -584,7 +584,7 @@ describe('chart2txt', () => {
       const result = chart2txt(data);
 
       expect(result).toContain('Sun: 5°30\'00" Taurus');
-      expect(result).toContain('ASC: 6°15\'00" Aries');
+      expect(result).toContain('Ascendant: 6°15\'00" Aries');
     });
 
     test('can use degrees only when useDegreesOnly is true', () => {
@@ -602,7 +602,7 @@ describe('chart2txt', () => {
 
       expect(result).toContain('Sun: 5° Taurus');
       expect(result).toContain('Moon: 0° Leo'); 
-      expect(result).toContain('ASC: 6° Aries');
+      expect(result).toContain('Ascendant: 6° Aries');
       expect(result).toContain('House 1: 0° Aries');
       expect(result).toContain('House 2: 30° Taurus');
       expect(result).toContain('Sun: 5° into house');
@@ -623,11 +623,205 @@ describe('chart2txt', () => {
       const result = chart2txt(data, { useDegreesOnly: true });
 
       // Check all sections use degrees only format
-      expect(result).toContain('ASC: 6° Aries');
-      expect(result).toContain('MC: 5° Cancer');
+      expect(result).toContain('Ascendant: 6° Aries');
+      expect(result).toContain('Midheaven: 5° Cancer');
       expect(result).toContain('Sun: 5° Taurus');
       expect(result).toContain('House 1: 0° Aries');
       expect(result).toContain('Sun: 5° into house');
+    });
+  });
+
+  describe('symbol display modes', () => {
+    const testData: ChartData = {
+      name: 'Symbol Test',
+      planets: [
+        { name: 'Sun', degree: 35 }, // 5° Taurus
+        { name: 'Moon', degree: 120 }, // 0° Leo
+        { name: 'Mercury', degree: 75 }, // 15° Gemini
+        { name: 'Venus', degree: 185 }, // 5° Libra
+      ],
+      ascendant: 6, // 6° Aries
+      midheaven: 95, // 5° Cancer
+      houseCusps: [0, 30, 60, 90, 120, 150, 180, 210, 240, 270, 300, 330],
+    };
+
+    test('displays words by default (backward compatibility)', () => {
+      const result = chart2txt(testData);
+
+      expect(result).toContain('Sun: 5°00\'00" Taurus');
+      expect(result).toContain('Moon: 0°00\'00" Leo');
+      expect(result).toContain('Mercury: 15°00\'00" Gemini');
+      expect(result).toContain('Venus: 5°00\'00" Libra');
+      expect(result).toContain('Ascendant: 6°00\'00" Aries');
+      expect(result).toContain('Midheaven: 5°00\'00" Cancer');
+      expect(result).toContain('House 1: 0°00\'00" Aries');
+      expect(result).toContain('House 2: 30°00\'00" Taurus');
+    });
+
+    test('displays symbols when displayMode is "symbols"', () => {
+      const result = chart2txt(testData, { displayMode: 'symbols' });
+
+      expect(result).toContain('☉: 5°00\'00" ♉');
+      expect(result).toContain('☽: 0°00\'00" ♌');
+      expect(result).toContain('☿: 15°00\'00" ♊');
+      expect(result).toContain('♀: 5°00\'00" ♎');
+      expect(result).toContain('AC: 6°00\'00" ♈');
+      expect(result).toContain('MC: 5°00\'00" ♋');
+      expect(result).toContain('1H: 0°00\'00" ♈');
+      expect(result).toContain('2H: 30°00\'00" ♉');
+    });
+
+    test('displays both words and symbols when displayMode is "both"', () => {
+      const result = chart2txt(testData, { displayMode: 'both' });
+
+      expect(result).toContain('Sun ☉: 5°00\'00" Taurus ♉');
+      expect(result).toContain('Moon ☽: 0°00\'00" Leo ♌');
+      expect(result).toContain('Mercury ☿: 15°00\'00" Gemini ♊');
+      expect(result).toContain('Venus ♀: 5°00\'00" Libra ♎');
+      expect(result).toContain('Ascendant AC: 6°00\'00" Aries ♈');
+      expect(result).toContain('Midheaven MC: 5°00\'00" Cancer ♋');
+      expect(result).toContain('House 1: 0°00\'00" Aries ♈');
+      expect(result).toContain('House 2: 30°00\'00" Taurus ♉');
+    });
+
+    test('displays symbols for aspects when displayMode is "symbols"', () => {
+      const aspectData: ChartData = {
+        name: 'Aspect Symbols Test',
+        planets: [
+          { name: 'Sun', degree: 0 }, // 0° Aries
+          { name: 'Moon', degree: 90 }, // 0° Cancer (square)
+          { name: 'Venus', degree: 60 }, // 0° Gemini (sextile)
+          { name: 'Mars', degree: 120 }, // 0° Leo (trine)
+          { name: 'Jupiter', degree: 180 }, // 0° Libra (opposition)
+        ],
+      };
+
+      const result = chart2txt(aspectData, { displayMode: 'symbols' });
+
+      expect(result).toContain('☉ □ ☽'); // Sun square Moon
+      expect(result).toContain('☉ ⚹ ♀'); // Sun sextile Venus
+      expect(result).toContain('☉ △ ♂'); // Sun trine Mars
+      expect(result).toContain('☉ ☍ ♃'); // Sun opposition Jupiter
+    });
+
+    test('displays both words and symbols for aspects when displayMode is "both"', () => {
+      const aspectData: ChartData = {
+        name: 'Aspect Both Test',
+        planets: [
+          { name: 'Sun', degree: 0 }, // 0° Aries
+          { name: 'Moon', degree: 90 }, // 0° Cancer (square)
+          { name: 'Venus', degree: 60 }, // 0° Gemini (sextile)
+        ],
+      };
+
+      const result = chart2txt(aspectData, { displayMode: 'both' });
+
+      expect(result).toContain('Sun ☉ square □ Moon ☽');
+      expect(result).toContain('Sun ☉ sextile ⚹ Venus ♀');
+    });
+
+    test('handles planets without symbols gracefully', () => {
+      const customData: ChartData = {
+        name: 'Custom Planet Test',
+        planets: [
+          { name: 'Ceres', degree: 35 }, // Custom planet without symbol
+          { name: 'Sun', degree: 120 }, // Standard planet with symbol
+        ],
+      };
+
+      const result = chart2txt(customData, { displayMode: 'symbols' });
+
+      expect(result).toContain('Ceres: 5°00\'00" ♉'); // Falls back to name
+      expect(result).toContain('☉: 0°00\'00" ♌'); // Uses symbol
+    });
+
+    test('handles signs correctly in all display modes', () => {
+      const signTestData: ChartData = {
+        name: 'Sign Test',
+        planets: [
+          { name: 'Sun', degree: 0 }, // Aries
+          { name: 'Moon', degree: 30 }, // Taurus
+          { name: 'Mercury', degree: 60 }, // Gemini
+          { name: 'Venus', degree: 90 }, // Cancer
+          { name: 'Mars', degree: 120 }, // Leo
+          { name: 'Jupiter', degree: 150 }, // Virgo
+          { name: 'Saturn', degree: 180 }, // Libra
+          { name: 'Uranus', degree: 210 }, // Scorpio
+          { name: 'Neptune', degree: 240 }, // Sagittarius
+          { name: 'Pluto', degree: 270 }, // Capricorn
+        ],
+      };
+
+      const symbolsResult = chart2txt(signTestData, { displayMode: 'symbols' });
+      const bothResult = chart2txt(signTestData, { displayMode: 'both' });
+
+      // Check all zodiac symbols are present
+      expect(symbolsResult).toContain('♈'); // Aries
+      expect(symbolsResult).toContain('♉'); // Taurus
+      expect(symbolsResult).toContain('♊'); // Gemini
+      expect(symbolsResult).toContain('♋'); // Cancer
+      expect(symbolsResult).toContain('♌'); // Leo
+      expect(symbolsResult).toContain('♍'); // Virgo
+      expect(symbolsResult).toContain('♎'); // Libra
+      expect(symbolsResult).toContain('♏'); // Scorpio
+      expect(symbolsResult).toContain('♐'); // Sagittarius
+      expect(symbolsResult).toContain('♑'); // Capricorn
+
+      // Check both mode includes both names and symbols
+      expect(bothResult).toContain('Aries ♈');
+      expect(bothResult).toContain('Taurus ♉');
+      expect(bothResult).toContain('Leo ♌');
+      expect(bothResult).toContain('Libra ♎');
+    });
+
+    test('houses show compact format when symbols are selected', () => {
+      const result = chart2txt(testData, { displayMode: 'symbols' });
+
+      expect(result).toContain('1H: 0°00\'00" ♈');
+      expect(result).toContain('2H: 30°00\'00" ♉');
+      expect(result).toContain('3H: 60°00\'00" ♊');
+      expect(result).toContain('12H: 330°00\'00" ♓');
+      
+      // Verify house references in planet descriptions use compact format
+      expect(result).toContain('☉: 5°00\'00" ♉, 2H');
+    });
+
+    test('planetary dignities work with symbol display modes', () => {
+      const dignityData: ChartData = {
+        name: 'Dignity Symbols Test',
+        planets: [
+          { name: 'Sun', degree: 120 }, // Leo (rulership)
+          { name: 'Moon', degree: 30 }, // Taurus (exaltation)
+        ],
+      };
+
+      const symbolsResult = chart2txt(dignityData, { displayMode: 'symbols' });
+      const bothResult = chart2txt(dignityData, { displayMode: 'both' });
+
+      expect(symbolsResult).toContain('☉: 0°00\'00" ♌ (R)');
+      expect(symbolsResult).toContain('☽: 0°00\'00" ♉ (E)');
+      
+      expect(bothResult).toContain('Sun ☉: 0°00\'00" Leo ♌ (R)');
+      expect(bothResult).toContain('Moon ☽: 0°00\'00" Taurus ♉ (E)');
+    });
+
+    test('retrograde indicators work with symbol display modes', () => {
+      const retrogradeData: ChartData = {
+        name: 'Retrograde Symbols Test',
+        planets: [
+          { name: 'Mercury', degree: 75, speed: -1.2 }, // Retrograde
+          { name: 'Venus', degree: 35, speed: 1.0 }, // Direct
+        ],
+      };
+
+      const symbolsResult = chart2txt(retrogradeData, { displayMode: 'symbols', includePlanetaryDignities: false });
+      const bothResult = chart2txt(retrogradeData, { displayMode: 'both', includePlanetaryDignities: false });
+
+      expect(symbolsResult).toContain('☿: 15°00\'00" ♊ Rx');
+      expect(symbolsResult).toContain('♀: 5°00\'00" ♉');
+      
+      expect(bothResult).toContain('Mercury ☿: 15°00\'00" Gemini ♊ Rx');
+      expect(bothResult).toContain('Venus ♀: 5°00\'00" Taurus ♉');
     });
   });
 });

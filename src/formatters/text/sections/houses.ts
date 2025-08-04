@@ -1,6 +1,6 @@
 import { Point } from '../../../types';
 import { ChartSettings } from '../../../config/ChartSettings';
-import { getDegreeSign, formatDegreeConditional } from '../../../core/astrology';
+import { getDegreeSign, formatDegreeConditional, formatZodiacSign, formatPlanetName, formatHouseNumber } from '../../../core/astrology';
 
 function getHouseForPoint(pointDegree: number, houseCusps: number[]): number {
   if (!houseCusps || houseCusps.length !== 12) {
@@ -76,8 +76,10 @@ export function generateHousesOutput(
     const cuspDegree = houseCusps[i];
     const sign = getDegreeSign(cuspDegree);
     const formattedDegree = formatDegreeConditional(cuspDegree, settings.useDegreesOnly);
+    const formattedSign = formatZodiacSign(sign, settings.displayMode);
+    const formattedHouse = formatHouseNumber(houseNumber, settings.displayMode);
     
-    output.push(`House ${houseNumber}: ${formattedDegree} ${sign}`);
+    output.push(`${formattedHouse}: ${formattedDegree} ${formattedSign}`);
     
     const planetsInHouse = planets.filter(planet => 
       getHouseForPoint(planet.degree, houseCusps) === houseNumber
@@ -87,7 +89,8 @@ export function generateHousesOutput(
       planetsInHouse.forEach(planet => {
         const degreesWithin = getDegreesWithinHouse(planet.degree, houseCusps, houseNumber);
         const formattedDegreesWithin = formatDegreeConditional(degreesWithin, settings.useDegreesOnly);
-        output.push(`  ${planet.name}: ${formattedDegreesWithin} into house`);
+        const formattedPlanet = formatPlanetName(planet.name, settings.displayMode);
+        output.push(`  ${formattedPlanet}: ${formattedDegreesWithin} into house`);
       });
     }
   }

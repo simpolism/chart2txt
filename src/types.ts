@@ -44,6 +44,8 @@ export interface AspectCategory {
   maxOrb: number; // Maximum orb for this category (inclusive)
 }
 
+export type DisplayMode = 'words' | 'symbols' | 'both';
+
 export interface Settings {
   // sign settings
   includeSignDegree: boolean; // For planets list, if degree in sign is shown
@@ -66,6 +68,9 @@ export interface Settings {
   
   // degree formatting settings
   useDegreesOnly: boolean; // If true, show only degrees (e.g., "15°"), if false show degrees/minutes/seconds (e.g., "15°42'30")
+  
+  // symbol display settings
+  displayMode: DisplayMode; // Whether to show symbols, words, or both
 }
 
 export type PartialSettings = Partial<Settings>;

@@ -1,4 +1,5 @@
-import { ZODIAC_SIGNS, PLANETARY_DIGNITIES } from '../constants';
+import { ZODIAC_SIGNS, PLANETARY_DIGNITIES, ZODIAC_SYMBOLS, PLANET_SYMBOLS, ASPECT_SYMBOLS } from '../constants';
+import { DisplayMode } from '../types';
 
 /**
  * Determines the zodiac sign for a given degree.
@@ -100,4 +101,80 @@ export function getDignitySymbol(dignity: DignityType): string {
     case 'fall': return ' (F)';
     case 'none': return '';
   }
+}
+
+/**
+ * Formats a zodiac sign name based on the display mode.
+ * @param sign The zodiac sign name.
+ * @param displayMode How to display the sign (words, symbols, or both).
+ * @returns Formatted sign string.
+ */
+export function formatZodiacSign(sign: string, displayMode: DisplayMode): string {
+  const signIndex = ZODIAC_SIGNS.indexOf(sign);
+  if (signIndex === -1) return sign; // fallback for unknown signs
+  
+  const symbol = ZODIAC_SYMBOLS[signIndex];
+  
+  switch (displayMode) {
+    case 'symbols':
+      return symbol;
+    case 'both':
+      return `${sign} ${symbol}`;
+    case 'words':
+    default:
+      return sign;
+  }
+}
+
+/**
+ * Formats a planet name based on the display mode.
+ * @param planetName The planet name.
+ * @param displayMode How to display the planet (words, symbols, or both).
+ * @returns Formatted planet string.
+ */
+export function formatPlanetName(planetName: string, displayMode: DisplayMode): string {
+  const symbol = PLANET_SYMBOLS[planetName];
+  
+  switch (displayMode) {
+    case 'symbols':
+      return symbol || planetName; // fallback to name if no symbol
+    case 'both':
+      return symbol ? `${planetName} ${symbol}` : planetName;
+    case 'words':
+    default:
+      return planetName;
+  }
+}
+
+/**
+ * Formats an aspect name based on the display mode.
+ * @param aspectName The aspect name.
+ * @param displayMode How to display the aspect (words, symbols, or both).
+ * @returns Formatted aspect string.
+ */
+export function formatAspectName(aspectName: string, displayMode: DisplayMode): string {
+  const symbol = ASPECT_SYMBOLS[aspectName];
+  
+  switch (displayMode) {
+    case 'symbols':
+      return symbol || aspectName; // fallback to name if no symbol
+    case 'both':
+      return symbol ? `${aspectName} ${symbol}` : aspectName;
+    case 'words':
+    default:
+      return aspectName;
+  }
+}
+
+/**
+ * Formats a house number based on the display mode.
+ * @param houseNumber The house number (1-12).
+ * @param displayMode How to display the house.
+ * @returns Formatted house string.
+ */
+export function formatHouseNumber(houseNumber: number, displayMode: DisplayMode): string {
+  if (displayMode === 'symbols') {
+    return `${houseNumber}H`;
+  }
+  return `House ${houseNumber}`;
 }

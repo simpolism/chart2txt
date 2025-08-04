@@ -1,6 +1,6 @@
 import { Point } from '../../../types';
 import { ChartSettings } from '../../../config/ChartSettings';
-import { getDegreeSign, formatDegreeInSign, getPlanetaryDignity, getDignitySymbol } from '../../../core/astrology';
+import { getDegreeSign, formatDegreeInSign, getPlanetaryDignity, getDignitySymbol, formatZodiacSign, formatPlanetName, formatHouseNumber } from '../../../core/astrology';
 
 // Helper function to determine which house a point falls into
 // (Copied from houseOverlays.ts - consider moving to a shared util if used in more places)
@@ -46,7 +46,10 @@ export function generatePlanetsOutput(
     const retrogradeIndicator =
       planet.speed !== undefined && planet.speed < 0 ? ' Rx' : '';
     
-    let line = `${planet.name}: ${degInSign} ${sign}`;
+    const formattedPlanet = formatPlanetName(planet.name, settings.displayMode);
+    const formattedSign = formatZodiacSign(sign, settings.displayMode);
+    
+    let line = `${formattedPlanet}: ${degInSign} ${formattedSign}`;
     
     if (settings.includePlanetaryDignities) {
       const dignity = getPlanetaryDignity(planet.name, sign);
@@ -59,7 +62,8 @@ export function generatePlanetsOutput(
     if (houseCusps && houseCusps.length === 12) {
       const houseNumber = getHouseForPoint(planet.degree, houseCusps);
       if (houseNumber > 0) {
-        line += `, House ${houseNumber}`;
+        const formattedHouse = formatHouseNumber(houseNumber, settings.displayMode);
+        line += `, ${formattedHouse}`;
       }
     }
     output.push(line);

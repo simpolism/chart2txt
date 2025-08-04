@@ -1,4 +1,4 @@
-import { getDegreeSign, formatDegreeInSign } from '../../../core/astrology';
+import { getDegreeSign, formatDegreeInSign, formatZodiacSign, formatPlanetName } from '../../../core/astrology';
 import { ChartSettings } from '../../../config/ChartSettings';
 
 /**
@@ -16,21 +16,30 @@ export function generateAnglesOutput(
   const output: string[] = ['[ANGLES]'];
 
   const useDegreesOnly = settings?.useDegreesOnly ?? false;
+  const displayMode = settings?.displayMode ?? 'words';
 
   if (ascDegree !== undefined) {
+    const ascSign = getDegreeSign(ascDegree);
+    const formattedAsc = formatPlanetName('Ascendant', displayMode);
+    const formattedSign = formatZodiacSign(ascSign, displayMode);
     output.push(
-      `ASC: ${formatDegreeInSign(ascDegree, useDegreesOnly)} ${getDegreeSign(ascDegree)}`
+      `${formattedAsc}: ${formatDegreeInSign(ascDegree, useDegreesOnly)} ${formattedSign}`
     );
   } else {
-    output.push('ASC: Not available');
+    const formattedAsc = formatPlanetName('Ascendant', displayMode);
+    output.push(`${formattedAsc}: Not available`);
   }
 
   if (mcDegree !== undefined) {
+    const mcSign = getDegreeSign(mcDegree);
+    const formattedMc = formatPlanetName('Midheaven', displayMode);
+    const formattedSign = formatZodiacSign(mcSign, displayMode);
     output.push(
-      `MC: ${formatDegreeInSign(mcDegree, useDegreesOnly)} ${getDegreeSign(mcDegree)}`
+      `${formattedMc}: ${formatDegreeInSign(mcDegree, useDegreesOnly)} ${formattedSign}`
     );
   } else {
-    output.push('MC: Not available');
+    const formattedMc = formatPlanetName('Midheaven', displayMode);
+    output.push(`${formattedMc}: Not available`);
   }
 
   return output;

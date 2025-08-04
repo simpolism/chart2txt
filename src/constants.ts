@@ -15,6 +15,56 @@ export const ZODIAC_SIGNS = [
   'Pisces',
 ];
 
+export const ZODIAC_SYMBOLS = [
+  '♈', // Aries
+  '♉', // Taurus
+  '♊', // Gemini
+  '♋', // Cancer
+  '♌', // Leo
+  '♍', // Virgo
+  '♎', // Libra
+  '♏', // Scorpio
+  '♐', // Sagittarius
+  '♑', // Capricorn
+  '♒', // Aquarius
+  '♓', // Pisces
+];
+
+export const PLANET_SYMBOLS: Record<string, string> = {
+  Sun: '☉',
+  Moon: '☽',
+  Mercury: '☿',
+  Venus: '♀',
+  Mars: '♂',
+  Jupiter: '♃',
+  Saturn: '♄',
+  Uranus: '♅',
+  Neptune: '♆',
+  Pluto: '♇',
+  'North Node': '☊',
+  'South Node': '☋',
+  Chiron: '⚷',
+  Ascendant: 'AC',
+  Midheaven: 'MC',
+  'MC': 'MC',
+  'AC': 'AC',
+  Asc: 'AC',
+  Desc: 'DC',
+  IC: 'IC'
+};
+
+export const ASPECT_SYMBOLS: Record<string, string> = {
+  conjunction: '☌',
+  opposition: '☍',
+  trine: '△',
+  square: '□',
+  sextile: '⚹',
+  quincunx: '⚻',
+  semisextile: '⚺',
+  semisquare: '∠',
+  sesquiquadrate: '⚼'
+};
+
 export const PLANETARY_DIGNITIES: Record<string, {
   rulership: string[];
   exaltation: string[];
@@ -68,4 +118,7 @@ export const DEFAULT_SETTINGS: Settings = {
   
   // degree formatting settings
   useDegreesOnly: false, // Use full degrees/minutes/seconds by default
+  
+  // symbol display settings
+  displayMode: 'words', // Default to words for compatibility
 };
