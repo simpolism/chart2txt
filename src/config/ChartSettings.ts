@@ -15,6 +15,8 @@ export class ChartSettings implements Settings {
   aspectDefinitions: Aspect[];
   aspectCategories: AspectCategory[];
   dateFormat: string;
+  includePlanetaryDignities: boolean;
+  useDegreesOnly: boolean;
 
   constructor(customSettings: PartialSettings = {}) {
     const mergedSettings = { ...DEFAULT_SETTINGS, ...customSettings };
@@ -29,5 +31,7 @@ export class ChartSettings implements Settings {
       mergedSettings.aspectCategories || DEFAULT_ASPECT_CATEGORIES; // Ensure array is not undefined
     this.skipOutOfSignAspects = mergedSettings.skipOutOfSignAspects;
     this.dateFormat = mergedSettings.dateFormat;
+    this.includePlanetaryDignities = mergedSettings.includePlanetaryDignities;
+    this.useDegreesOnly = mergedSettings.useDegreesOnly;
   }
 }

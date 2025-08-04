@@ -1,5 +1,6 @@
 import { ChartData } from '../../../types';
 import { ChartSettings } from '../../../config/ChartSettings';
+import { formatDegreeConditional } from '../../../core/astrology';
 
 // Helper function to determine which house a point falls into
 function getHouseForPoint(pointDegree: number, houseCusps: number[]): number {
@@ -29,6 +30,35 @@ function getHouseForPoint(pointDegree: number, houseCusps: number[]): number {
   return 0; // Should ideally not be reached if cusps correctly cover 360 degrees
 }
 
+// Helper function to calculate degrees into house
+function getDegreesWithinHouse(pointDegree: number, houseCusps: number[], houseNumber: number): number {
+  if (!houseCusps || houseCusps.length !== 12 || houseNumber < 1 || houseNumber > 12) {
+    return 0;
+  }
+
+  const cuspStart = houseCusps[houseNumber - 1];
+  let degreeFromCusp: number;
+
+  if (houseNumber === 12) {
+    const cuspEnd = houseCusps[0];
+    if (cuspStart < cuspEnd) {
+      degreeFromCusp = pointDegree >= cuspStart ? pointDegree - cuspStart : (360 - cuspStart) + pointDegree;
+    } else {
+      degreeFromCusp = pointDegree - cuspStart;
+      if (degreeFromCusp < 0) degreeFromCusp += 360;
+    }
+  } else {
+    const cuspEnd = houseCusps[houseNumber];
+    if (cuspStart <= cuspEnd) {
+      degreeFromCusp = pointDegree - cuspStart;
+    } else {
+      degreeFromCusp = pointDegree >= cuspStart ? pointDegree - cuspStart : (360 - cuspStart) + pointDegree;
+    }
+  }
+
+  return degreeFromCusp;
+}
+
 /**
  * Generates the [HOUSE OVERLAYS] section for synastry.
  * @param chart1 The first chart data.
@@ -52,7 +82,9 @@ export function generateHouseOverlaysOutput(
       chart1.planets.forEach((planet) => {
         const houseNumber = getHouseForPoint(planet.degree, chart2.houseCusps!);
         if (houseNumber > 0) {
-          output.push(`${planet.name}: House ${houseNumber}`);
+          const degreesWithin = getDegreesWithinHouse(planet.degree, chart2.houseCusps!, houseNumber);
+          const formattedDegrees = formatDegreeConditional(degreesWithin, settings.useDegreesOnly);
+          output.push(`${planet.name}: House ${houseNumber}, ${formattedDegrees} into house`);
         } else {
           output.push(
             `${planet.name}: (Could not determine house in ${c2Name})`
@@ -77,7 +109,9 @@ export function generateHouseOverlaysOutput(
       chart2.planets.forEach((planet) => {
         const houseNumber = getHouseForPoint(planet.degree, chart1.houseCusps!);
         if (houseNumber > 0) {
-          output.push(`${planet.name}: House ${houseNumber}`);
+          const degreesWithin = getDegreesWithinHouse(planet.degree, chart1.houseCusps!, houseNumber);
+          const formattedDegrees = formatDegreeConditional(degreesWithin, settings.useDegreesOnly);
+          output.push(`${planet.name}: House ${houseNumber}, ${formattedDegrees} into house`);
         } else {
           output.push(
             `${planet.name}: (Could not determine house in ${c1Name})`

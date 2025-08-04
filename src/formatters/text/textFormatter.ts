@@ -8,6 +8,9 @@ import { ChartSettings } from '../../config/ChartSettings';
 import {
   calculateAspects,
   calculateMultichartAspects,
+  detectTSquares,
+  detectGrandTrines,
+  detectStelliums,
 } from '../../core/aspects';
 
 import { generateMetadataOutput } from './sections/metadata';
@@ -15,7 +18,8 @@ import { generateChartHeaderOutput } from './sections/chartHeader';
 import { generateBirthdataOutput } from './sections/birthdata';
 import { generateAnglesOutput } from './sections/angles';
 import { generatePlanetsOutput } from './sections/planets';
-import { generateAspectsOutput } from './sections/aspects';
+import { generateHousesOutput } from './sections/houses';
+import { generateAspectsOutput, generateAdvancedPatternsOutput } from './sections/aspects';
 import { generateHouseOverlaysOutput } from './sections/houseOverlays';
 
 const processSingleChartOutput = (
@@ -35,10 +39,13 @@ const processSingleChartOutput = (
     )
   );
   outputLines.push(
-    ...generateAnglesOutput(chartData.ascendant, chartData.midheaven)
+    ...generateAnglesOutput(chartData.ascendant, chartData.midheaven, settings)
   );
   outputLines.push(
     ...generatePlanetsOutput(chartData.planets, chartData.houseCusps, settings)
+  );
+  outputLines.push(
+    ...generateHousesOutput(chartData.houseCusps, chartData.planets, settings)
   );
 
   const aspects = calculateAspects(
@@ -48,6 +55,17 @@ const processSingleChartOutput = (
   );
   // For single chart, p1ChartName and p2ChartName are not needed for aspect string generation
   outputLines.push(...generateAspectsOutput('[ASPECTS]', aspects, settings));
+  
+  // Detect and display advanced aspect patterns
+  const tSquares = detectTSquares(aspects, chartData.planets);
+  const grandTrines = detectGrandTrines(aspects, chartData.planets);
+  const stelliums = detectStelliums(chartData.planets);
+  const allPatterns = [...tSquares, ...grandTrines, ...stelliums];
+  
+  if (allPatterns.length > 0) {
+    outputLines.push(...generateAdvancedPatternsOutput(allPatterns));
+  }
+  
   outputLines.push('');
   return outputLines;
 };

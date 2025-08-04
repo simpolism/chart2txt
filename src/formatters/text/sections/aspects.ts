@@ -1,5 +1,6 @@
 import { AspectData } from '../../../types';
 import { ChartSettings } from '../../../config/ChartSettings';
+import { AdvancedAspectPattern } from '../../../core/aspects';
 
 /**
  * Generates aspect sections (e.g., [ASPECTS], [PLANET-PLANET ASPECTS], [TRANSIT ASPECTS: Name]).
@@ -76,5 +77,27 @@ export function generateAspectsOutput(
   } else if (aspects.length === 0) {
     output.push('None');
   }
+  return output;
+}
+
+/**
+ * Generates the [ADVANCED PATTERNS] section for aspect patterns.
+ * @param patterns Array of advanced aspect patterns.
+ * @returns An array of strings for the output.
+ */
+export function generateAdvancedPatternsOutput(
+  patterns: AdvancedAspectPattern[]
+): string[] {
+  const output: string[] = ['[ADVANCED PATTERNS]'];
+  
+  if (patterns.length === 0) {
+    output.push('None detected');
+    return output;
+  }
+  
+  patterns.forEach(pattern => {
+    output.push(pattern.description);
+  });
+  
   return output;
 }

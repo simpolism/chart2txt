@@ -15,6 +15,24 @@ export const ZODIAC_SIGNS = [
   'Pisces',
 ];
 
+export const PLANETARY_DIGNITIES: Record<string, {
+  rulership: string[];
+  exaltation: string[];
+  detriment: string[];
+  fall: string[];
+}> = {
+  Sun: { rulership: ['Leo'], exaltation: ['Aries'], detriment: ['Aquarius'], fall: ['Libra'] },
+  Moon: { rulership: ['Cancer'], exaltation: ['Taurus'], detriment: ['Capricorn'], fall: ['Scorpio'] },
+  Mercury: { rulership: ['Gemini', 'Virgo'], exaltation: ['Virgo'], detriment: ['Sagittarius', 'Pisces'], fall: ['Pisces'] },
+  Venus: { rulership: ['Taurus', 'Libra'], exaltation: ['Pisces'], detriment: ['Aries', 'Scorpio'], fall: ['Virgo'] },
+  Mars: { rulership: ['Aries', 'Scorpio'], exaltation: ['Capricorn'], detriment: ['Libra', 'Taurus'], fall: ['Cancer'] },
+  Jupiter: { rulership: ['Sagittarius', 'Pisces'], exaltation: ['Cancer'], detriment: ['Gemini', 'Virgo'], fall: ['Capricorn'] },
+  Saturn: { rulership: ['Capricorn', 'Aquarius'], exaltation: ['Libra'], detriment: ['Cancer', 'Leo'], fall: ['Aries'] },
+  Uranus: { rulership: ['Aquarius'], exaltation: [], detriment: ['Leo'], fall: [] },
+  Neptune: { rulership: ['Pisces'], exaltation: [], detriment: ['Virgo'], fall: [] },
+  Pluto: { rulership: ['Scorpio'], exaltation: [], detriment: ['Taurus'], fall: [] }
+};
+
 export const DEFAULT_ASPECTS: Aspect[] = [
   { name: 'conjunction', angle: 0, orb: 5 }, // Max orb for this aspect to be considered
   { name: 'opposition', angle: 180, orb: 5 },
@@ -34,7 +52,7 @@ export const DEFAULT_SETTINGS: Settings = {
 
   // house settings
   houseSystemName: 'whole_sign',
-  includeHouseDegree: false, // New format shows "House X", not degree in house for planets list
+  includeHouseDegree: true, // Show degree in house for planets list
 
   // point settings
   includeAscendant: true, // Legacy, ASC/MC now have dedicated [ANGLES] section
@@ -44,4 +62,10 @@ export const DEFAULT_SETTINGS: Settings = {
   aspectCategories: DEFAULT_ASPECT_CATEGORIES,
   skipOutOfSignAspects: true,
   dateFormat: 'MM/DD/YYYY', // As per example output
+  
+  // dignity settings
+  includePlanetaryDignities: true, // Show planetary dignities by default
+  
+  // degree formatting settings
+  useDegreesOnly: false, // Use full degrees/minutes/seconds by default
 };

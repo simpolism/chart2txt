@@ -15,9 +15,9 @@ describe('chart2txt', () => {
       const result = chart2txt(data);
 
       expect(result).toContain('[PLANETS]');
-      expect(result).toContain('Sun: 5° Taurus');
-      expect(result).toContain('Moon: 0° Leo');
-      expect(result).toContain('Mercury: 15° Gemini');
+      expect(result).toContain('Sun: 5°00\'00" Taurus');
+      expect(result).toContain('Moon: 0°00\'00" Leo');
+      expect(result).toContain('Mercury: 15°00\'00" Gemini');
     });
 
     test('formats planets in signs correctly without degrees', () => {
@@ -33,8 +33,8 @@ describe('chart2txt', () => {
 
       // The includeSignDegree setting doesn't actually remove degrees, it's always shown
       expect(result).toContain('[PLANETS]');
-      expect(result).toContain('Sun: 5° Taurus');
-      expect(result).toContain('Moon: 0° Leo');
+      expect(result).toContain('Sun: 5°00\'00" Taurus');
+      expect(result).toContain('Moon: 0°00\'00" Leo');
     });
 
     test.skip('omits signs when disabled via settings', () => {
@@ -70,8 +70,8 @@ describe('chart2txt', () => {
       expect(result).toContain('house_system: equal');
       expect(result).toContain('[PLANETS]');
       // Note: House positions are not shown without houseCusps data in current implementation
-      expect(result).toContain('Sun: 5° Taurus');
-      expect(result).toContain('Moon: 0° Leo');
+      expect(result).toContain('Sun: 5°00\'00" Taurus');
+      expect(result).toContain('Moon: 0°00\'00" Leo');
     });
 
     test('includes whole sign house positions', () => {
@@ -91,8 +91,8 @@ describe('chart2txt', () => {
       expect(result).toContain('house_system: whole_sign');
       expect(result).toContain('[PLANETS]');
       // With this ASC at 6° Aries and these house cusps, actual house positions are different
-      expect(result).toContain('Sun: 5° Taurus, House 1');
-      expect(result).toContain('Moon: 0° Leo, House 4');
+      expect(result).toContain('Sun: 5°00\'00" Taurus, House 1');
+      expect(result).toContain('Moon: 0°00\'00" Leo, House 4');
     });
 
     test('includes equal house positions correctly with degree', () => {
@@ -110,8 +110,8 @@ describe('chart2txt', () => {
 
       expect(result).toContain('[PLANETS]');
       // includeHouseDegree doesn't seem to affect the current format
-      expect(result).toContain('Sun: 5° Taurus, House 1');
-      expect(result).toContain('Moon: 0° Leo, House 4');
+      expect(result).toContain('Sun: 5°00\'00" Taurus, House 1');
+      expect(result).toContain('Moon: 0°00\'00" Leo, House 4');
     });
 
     test('includes whole sign house positions correctly with degree', () => {
@@ -131,8 +131,8 @@ describe('chart2txt', () => {
       });
 
       expect(result).toContain('[PLANETS]');
-      expect(result).toContain('Sun: 5° Taurus, House 2');
-      expect(result).toContain('Moon: 0° Leo, House 5');
+      expect(result).toContain('Sun: 5°00\'00" Taurus, House 2');
+      expect(result).toContain('Moon: 0°00\'00" Leo, House 5');
     });
 
     test.skip('omits house positions when disabled via settings', () => {
@@ -164,7 +164,7 @@ describe('chart2txt', () => {
       const result = chart2txt(data);
 
       expect(result).toContain('[ANGLES]');
-      expect(result).toContain('ASC: 6° Aries');
+      expect(result).toContain('ASC: 6°00\'00" Aries');
     });
 
     test('omits ascendant when disabled via settings', () => {
@@ -180,7 +180,7 @@ describe('chart2txt', () => {
 
       expect(result).toContain('[ANGLES]');
       // The includeAscendant setting is legacy, it still shows the ASC if provided
-      expect(result).toContain('ASC: 6° Aries');
+      expect(result).toContain('ASC: 6°00\'00" Aries');
     });
 
     test('formats midheaven correctly', () => {
@@ -196,8 +196,8 @@ describe('chart2txt', () => {
       const result = chart2txt(data);
 
       expect(result).toContain('[ANGLES]');
-      expect(result).toContain('ASC: 6° Aries');
-      expect(result).toContain('MC: 0° Leo');
+      expect(result).toContain('ASC: 6°00\'00" Aries');
+      expect(result).toContain('MC: 0°00\'00" Leo');
     });
 
     test('omits midheaven when not provided', () => {
@@ -212,7 +212,7 @@ describe('chart2txt', () => {
       const result = chart2txt(data);
 
       expect(result).toContain('[ANGLES]');
-      expect(result).toContain('ASC: 6° Aries');
+      expect(result).toContain('ASC: 6°00\'00" Aries');
       expect(result).toContain('MC: Not available');
     });
 
@@ -429,6 +429,205 @@ describe('chart2txt', () => {
 
       expect(result).toContain('[CHART: test]');
       expect(result).toContain('[BIRTHDATA] San Francisco, 12/31/1969, 07:00:00 PM');
+    });
+  });
+
+  describe('advanced aspects', () => {
+    test('detects T-Square patterns', () => {
+      const data: ChartData = {
+        name: 'T-Square Test',
+        planets: [
+          { name: 'Sun', degree: 0 }, // 0° Aries
+          { name: 'Moon', degree: 180 }, // 0° Libra (opposition to Sun)
+          { name: 'Mars', degree: 90 }, // 0° Cancer (square to both Sun and Moon)
+        ],
+      };
+
+      const result = chart2txt(data);
+
+      expect(result).toContain('[ADVANCED PATTERNS]');
+      expect(result).toContain('T-Square: Mars (apex) squares Sun and Moon (opposition base)');
+    });
+
+    test('detects Grand Trine patterns', () => {
+      const data: ChartData = {
+        name: 'Grand Trine Test',
+        planets: [
+          { name: 'Sun', degree: 0 }, // 0° Aries
+          { name: 'Moon', degree: 120 }, // 0° Leo (trine to Sun)
+          { name: 'Jupiter', degree: 240 }, // 0° Sagittarius (trine to both Sun and Moon)
+        ],
+      };
+
+      const result = chart2txt(data);
+
+      expect(result).toContain('[ADVANCED PATTERNS]');
+      expect(result).toContain('Grand Trine: Sun, Moon, Jupiter');
+    });
+
+    test('detects Stellium patterns', () => {
+      const data: ChartData = {
+        name: 'Stellium Test',
+        planets: [
+          { name: 'Sun', degree: 35 }, // 5° Taurus
+          { name: 'Moon', degree: 37 }, // 7° Taurus
+          { name: 'Mercury', degree: 39 }, // 9° Taurus
+          { name: 'Venus', degree: 45 }, // 15° Taurus
+        ],
+      };
+
+      const result = chart2txt(data);
+
+      expect(result).toContain('[ADVANCED PATTERNS]');
+      expect(result).toContain('Stellium in Taurus: Sun, Moon, Mercury, Venus');
+    });
+
+    test('shows no advanced patterns when none detected', () => {
+      const data: ChartData = {
+        name: 'No Patterns Test',
+        planets: [
+          { name: 'Sun', degree: 0 }, // 0° Aries
+          { name: 'Moon', degree: 50 }, // 20° Taurus
+        ],
+      };
+
+      const result = chart2txt(data);
+
+      // Should not have advanced patterns section for basic chart
+      expect(result).not.toContain('[ADVANCED PATTERNS]');
+    });
+  });
+
+  describe('planetary dignities', () => {
+    test('shows planetary dignities by default', () => {
+      const data: ChartData = {
+        name: 'Dignities Test',
+        planets: [
+          { name: 'Sun', degree: 120 }, // 0° Leo (rulership)
+          { name: 'Moon', degree: 30 }, // 0° Taurus (exaltation)
+          { name: 'Mars', degree: 180 }, // 0° Libra (detriment)
+          { name: 'Saturn', degree: 0 }, // 0° Aries (fall)
+        ],
+      };
+
+      const result = chart2txt(data);
+
+      expect(result).toContain('Sun: 0°00\'00" Leo (R)'); // Rulership
+      expect(result).toContain('Moon: 0°00\'00" Taurus (E)'); // Exaltation
+      expect(result).toContain('Mars: 0°00\'00" Libra (D)'); // Detriment
+      expect(result).toContain('Saturn: 0°00\'00" Aries (F)'); // Fall
+    });
+
+    test('can disable planetary dignities', () => {
+      const data: ChartData = {
+        name: 'No Dignities Test',
+        planets: [
+          { name: 'Sun', degree: 120 }, // 0° Leo (rulership)
+          { name: 'Moon', degree: 30 }, // 0° Taurus (exaltation)
+        ],
+      };
+
+      const result = chart2txt(data, { includePlanetaryDignities: false });
+
+      expect(result).toContain('Sun: 0°00\'00" Leo'); // No dignity symbol
+      expect(result).toContain('Moon: 0°00\'00" Taurus'); // No dignity symbol
+      expect(result).not.toContain('(R)');
+      expect(result).not.toContain('(E)');
+    });
+  });
+
+  describe('houses section', () => {
+    test('shows house cusps and planets within houses', () => {
+      const data: ChartData = {
+        name: 'Houses Test',
+        planets: [
+          { name: 'Sun', degree: 35 }, // 5° Taurus
+          { name: 'Moon', degree: 125 }, // 5° Leo
+        ],
+        houseCusps: [0, 30, 60, 90, 120, 150, 180, 210, 240, 270, 300, 330], // Whole sign houses
+      };
+
+      const result = chart2txt(data);
+
+      expect(result).toContain('[HOUSES]');
+      expect(result).toContain('House 1: 0°00\'00" Aries');
+      expect(result).toContain('House 2: 30°00\'00" Taurus');
+      expect(result).toContain('Sun: 5°00\'00" into house');
+      expect(result).toContain('Moon: 5°00\'00" into house');
+    });
+
+    test('handles missing house cusps gracefully', () => {
+      const data: ChartData = {
+        name: 'No Houses Test',
+        planets: [
+          { name: 'Sun', degree: 35 }, // 5° Taurus
+        ],
+      };
+
+      const result = chart2txt(data);
+
+      expect(result).toContain('[HOUSES]');
+      expect(result).toContain('House cusps not available.');
+    });
+  });
+
+  describe('degree formatting options', () => {
+    test('uses degrees/minutes/seconds by default', () => {
+      const data: ChartData = {
+        name: 'Default Format Test',
+        planets: [
+          { name: 'Sun', degree: 35.5 }, // 5.5° Taurus
+        ],
+        ascendant: 6.25, // 6.25° Aries
+      };
+
+      const result = chart2txt(data);
+
+      expect(result).toContain('Sun: 5°30\'00" Taurus');
+      expect(result).toContain('ASC: 6°15\'00" Aries');
+    });
+
+    test('can use degrees only when useDegreesOnly is true', () => {
+      const data: ChartData = {
+        name: 'Degrees Only Test',
+        planets: [
+          { name: 'Sun', degree: 35.7 }, // 5.7° Taurus
+          { name: 'Moon', degree: 120.3 }, // 0.3° Leo
+        ],
+        ascendant: 6.8, // 6.8° Aries
+        houseCusps: [0, 30, 60, 90, 120, 150, 180, 210, 240, 270, 300, 330],
+      };
+
+      const result = chart2txt(data, { useDegreesOnly: true });
+
+      expect(result).toContain('Sun: 5° Taurus');
+      expect(result).toContain('Moon: 0° Leo'); 
+      expect(result).toContain('ASC: 6° Aries');
+      expect(result).toContain('House 1: 0° Aries');
+      expect(result).toContain('House 2: 30° Taurus');
+      expect(result).toContain('Sun: 5° into house');
+      expect(result).toContain('Moon: 0° into house');
+    });
+
+    test('applies degrees only setting to all sections', () => {
+      const data: ChartData = {
+        name: 'Complete Test',
+        planets: [
+          { name: 'Sun', degree: 35.75 }, // 5.75° Taurus
+        ],
+        ascendant: 6.5, // 6.5° Aries
+        midheaven: 95.25, // 5.25° Cancer
+        houseCusps: [0, 30, 60, 90, 120, 150, 180, 210, 240, 270, 300, 330],
+      };
+
+      const result = chart2txt(data, { useDegreesOnly: true });
+
+      // Check all sections use degrees only format
+      expect(result).toContain('ASC: 6° Aries');
+      expect(result).toContain('MC: 5° Cancer');
+      expect(result).toContain('Sun: 5° Taurus');
+      expect(result).toContain('House 1: 0° Aries');
+      expect(result).toContain('Sun: 5° into house');
     });
   });
 });

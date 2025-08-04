@@ -60,6 +60,12 @@ export interface Settings {
   aspectCategories: AspectCategory[];
   skipOutOfSignAspects: boolean;
   dateFormat: string; // e.g., "MM/DD/YYYY", "YYYY-MM-DD"
+  
+  // dignity settings
+  includePlanetaryDignities: boolean;
+  
+  // degree formatting settings
+  useDegreesOnly: boolean; // If true, show only degrees (e.g., "15°"), if false show degrees/minutes/seconds (e.g., "15°42'30")
 }
 
 export type PartialSettings = Partial<Settings>;
