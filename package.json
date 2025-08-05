@@ -12,6 +12,7 @@
     "test": "jest",
     "test:config": "ts-node test-configurations.ts",
     "lint": "eslint src/**/*.ts",
+    "lint:fix": "eslint src/**/*.ts --fix",
     "format": "prettier --write \"src/**/*.ts\" \"tests/**/*.ts\""
   },
   "keywords": [

@@ -48,9 +48,9 @@ export function generatePlanetsOutput(
     const retrogradeIndicator =
       planet.speed !== undefined && planet.speed < 0 ? ' Retrograde' : '';
     const dignities = formatPlanetWithDignities(planet, houseCusps);
-    
+
     let line = `${planet.name}: ${degInSign}° ${sign}${retrogradeIndicator}`;
-    
+
     if (dignities) {
       line += ` ${dignities}`;
     }

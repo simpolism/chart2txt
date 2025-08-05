@@ -91,7 +91,10 @@ export interface Yod {
 
 export interface MysticRectangle {
   type: 'Mystic Rectangle';
-  oppositions: [[PlanetPosition, PlanetPosition], [PlanetPosition, PlanetPosition]];
+  oppositions: [
+    [PlanetPosition, PlanetPosition],
+    [PlanetPosition, PlanetPosition]
+  ];
   averageOrb: number;
 }
 
@@ -102,7 +105,14 @@ export interface Kite {
   averageOrb: number;
 }
 
-export type AspectPattern = TSquare | GrandTrine | Stellium | GrandCross | Yod | MysticRectangle | Kite;
+export type AspectPattern =
+  | TSquare
+  | GrandTrine
+  | Stellium
+  | GrandCross
+  | Yod
+  | MysticRectangle
+  | Kite;
 
 export interface Settings {
   // sign settings
@@ -119,10 +129,10 @@ export interface Settings {
   aspectDefinitions: Aspect[];
   aspectCategories: AspectCategory[];
   skipOutOfSignAspects: boolean;
-  
+
   // pattern settings
   includeAspectPatterns: boolean; // Whether to detect and display aspect patterns
-  
+
   dateFormat: string; // e.g., "MM/DD/YYYY", "YYYY-MM-DD"
 }
 

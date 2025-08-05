@@ -24,7 +24,9 @@ export function generateAnglesOutput(
 
   if (mcDegree !== undefined) {
     output.push(
-      `Midheaven: ${Math.floor(getDegreeInSign(mcDegree))}° ${getDegreeSign(mcDegree)}`
+      `Midheaven: ${Math.floor(getDegreeInSign(mcDegree))}° ${getDegreeSign(
+        mcDegree
+      )}`
     );
   } else {
     output.push('Midheaven: Not available');

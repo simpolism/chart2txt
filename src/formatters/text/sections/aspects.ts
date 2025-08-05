@@ -64,11 +64,14 @@ export function generateAspectsOutput(
         }
         // If neither p2IsTransit nor p2ChartName, it's a natal chart aspect, e.g. "Venus opposition Pluto: 1.2°"
 
-        const applicationStr = asp.application && asp.application !== 'exact' 
-          ? ` (${asp.application})` 
-          : '';
+        const applicationStr =
+          asp.application && asp.application !== 'exact'
+            ? ` (${asp.application})`
+            : '';
         output.push(
-          `${p1NameStr} ${asp.aspectType} ${p2NameStr}: ${asp.orb.toFixed(1)}°${applicationStr}`
+          `${p1NameStr} ${asp.aspectType} ${p2NameStr}: ${asp.orb.toFixed(
+            1
+          )}°${applicationStr}`
         );
       });
     }

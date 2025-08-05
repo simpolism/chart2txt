@@ -1,5 +1,8 @@
 import { Point } from '../../../types';
-import { analyzeDispositors, formatDispositorAnalysis } from '../../../core/dispositors';
+import {
+  analyzeDispositors,
+  formatDispositorAnalysis,
+} from '../../../core/dispositors';
 
 /**
  * Generates the [DISPOSITOR TREE] section of the chart output.
@@ -16,8 +19,8 @@ export function generateDispositorsOutput(planets: Point[]): string[] {
 
   const analysis = analyzeDispositors(planets);
   const formattedAnalysis = formatDispositorAnalysis(analysis);
-  
+
   output.push(...formattedAnalysis);
-  
+
   return output;
 }

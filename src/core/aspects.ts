@@ -19,7 +19,7 @@ function determineAspectApplication(
 
   const speedA = planetA.speed;
   const speedB = planetB.speed;
-  
+
   // Calculate current angular distance
   let currentDistance = Math.abs(planetA.degree - planetB.degree);
   if (currentDistance > 180) {
@@ -34,12 +34,13 @@ function determineAspectApplication(
 
   // Calculate relative speed (how fast the angle between planets is changing)
   const relativeSpeed = speedA - speedB;
-  
+
   // Determine if the distance to the exact aspect is decreasing (applying) or increasing (separating)
   // This is a simplified calculation - in reality, the geometry is more complex
-  const isGettingCloser = relativeSpeed !== 0 && 
-    ((currentDistance < aspectAngle && relativeSpeed > 0) || 
-     (currentDistance > aspectAngle && relativeSpeed < 0));
+  const isGettingCloser =
+    relativeSpeed !== 0 &&
+    ((currentDistance < aspectAngle && relativeSpeed > 0) ||
+      (currentDistance > aspectAngle && relativeSpeed < 0));
 
   return isGettingCloser ? 'applying' : 'separating';
 }
@@ -48,7 +49,7 @@ function findTightestAspect(
   aspectDefinitions: Aspect[],
   planetA: Point,
   planetB: Point,
-  skipOutOfSignAspects: boolean,
+  skipOutOfSignAspects: boolean
 ): AspectData | null {
   let diff = Math.abs(planetA.degree - planetB.degree);
   if (diff > 180) diff = 360 - diff;
@@ -70,7 +71,11 @@ function findTightestAspect(
 
     if (orb <= aspectType.orb) {
       if (!tightestAspect || orb < tightestAspect.orb) {
-        const application = determineAspectApplication(planetA, planetB, aspectType.angle);
+        const application = determineAspectApplication(
+          planetA,
+          planetB,
+          aspectType.angle
+        );
         tightestAspect = {
           planetA: planetA.name,
           planetB: planetB.name,
@@ -93,7 +98,7 @@ function findTightestAspect(
 export function calculateAspects(
   aspectDefinitions: Aspect[],
   planets: Point[],
-  skipOutOfSignAspects = true,
+  skipOutOfSignAspects = true
 ): AspectData[] {
   const aspects: AspectData[] = [];
   if (!planets || planets.length < 2) return aspects;
@@ -102,7 +107,12 @@ export function calculateAspects(
     for (let j = i + 1; j < planets.length; j++) {
       const planetA = planets[i];
       const planetB = planets[j];
-      const aspect = findTightestAspect(aspectDefinitions, planetA, planetB, skipOutOfSignAspects);
+      const aspect = findTightestAspect(
+        aspectDefinitions,
+        planetA,
+        planetB,
+        skipOutOfSignAspects
+      );
       if (aspect) {
         aspects.push(aspect);
       }
@@ -123,7 +133,7 @@ export function calculateMultichartAspects(
   aspectDefinitions: Aspect[],
   chart1Planets: Point[],
   chart2Planets: Point[],
-  skipOutOfSignAspects = true,
+  skipOutOfSignAspects = true
 ): AspectData[] {
   const aspects: AspectData[] = [];
   if (
@@ -137,7 +147,12 @@ export function calculateMultichartAspects(
 
   for (const p1 of chart1Planets) {
     for (const p2 of chart2Planets) {
-      const aspect = findTightestAspect(aspectDefinitions, p1, p2, skipOutOfSignAspects);
+      const aspect = findTightestAspect(
+        aspectDefinitions,
+        p1,
+        p2,
+        skipOutOfSignAspects
+      );
       if (aspect) {
         aspects.push(aspect);
       }

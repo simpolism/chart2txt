@@ -21,10 +21,10 @@ import { generateDispositorsOutput } from './sections/dispositors';
 import { generateAspectsOutput } from './sections/aspects';
 import { generateAspectPatternsOutput } from './sections/aspectPatterns';
 import { generateHouseOverlaysOutput } from './sections/houseOverlays';
-import { 
-  generateElementDistributionOutput, 
-  generateModalityDistributionOutput, 
-  generatePolarityOutput 
+import {
+  generateElementDistributionOutput,
+  generateModalityDistributionOutput,
+  generatePolarityOutput,
 } from './sections/signDistributions';
 
 const processSingleChartOutput = (
@@ -46,20 +46,24 @@ const processSingleChartOutput = (
   outputLines.push(
     ...generateAnglesOutput(chartData.ascendant, chartData.midheaven)
   );
-  outputLines.push(
-    ...generateHousesOutput(chartData.houseCusps)
-  );
+  outputLines.push(...generateHousesOutput(chartData.houseCusps));
   outputLines.push(
     ...generatePlanetsOutput(chartData.planets, chartData.houseCusps, settings)
   );
+  outputLines.push(...generateDispositorsOutput(chartData.planets));
   outputLines.push(
-    ...generateDispositorsOutput(chartData.planets)
+    ...generateElementDistributionOutput(
+      chartData.planets,
+      undefined,
+      chartData.ascendant
+    )
   );
   outputLines.push(
-    ...generateElementDistributionOutput(chartData.planets, undefined, chartData.ascendant)
-  );
-  outputLines.push(
-    ...generateModalityDistributionOutput(chartData.planets, undefined, chartData.ascendant)
+    ...generateModalityDistributionOutput(
+      chartData.planets,
+      undefined,
+      chartData.ascendant
+    )
   );
   outputLines.push(
     ...generatePolarityOutput(chartData.planets, undefined, chartData.ascendant)
@@ -72,10 +76,13 @@ const processSingleChartOutput = (
   );
   // For single chart, p1ChartName and p2ChartName are not needed for aspect string generation
   outputLines.push(...generateAspectsOutput('[ASPECTS]', aspects, settings));
-  
+
   // Detect and display aspect patterns (if enabled)
   if (settings.includeAspectPatterns) {
-    const aspectPatterns = detectAspectPatterns(chartData.planets, chartData.houseCusps);
+    const aspectPatterns = detectAspectPatterns(
+      chartData.planets,
+      chartData.houseCusps
+    );
     outputLines.push(...generateAspectPatternsOutput(aspectPatterns));
   }
   outputLines.push('');
@@ -123,9 +130,7 @@ const processTransitChartInfoOutput = (
   transitData: ChartData
 ): string[] => {
   const outputLines: string[] = [];
-  outputLines.push(
-    ...generateChartHeaderOutput(transitData.name, 'TRANSIT')
-  );
+  outputLines.push(...generateChartHeaderOutput(transitData.name, 'TRANSIT'));
   outputLines.push(
     ...generateBirthdataOutput(
       transitData.location,

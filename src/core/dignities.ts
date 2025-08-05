@@ -15,69 +15,69 @@ const SIGN_DIGNITIES: Record<string, DignityInfo> = {
     rulers: ['Mars'],
     exaltation: 'Sun',
     detriment: 'Venus',
-    fall: 'Saturn'
+    fall: 'Saturn',
   },
   Taurus: {
     rulers: ['Venus'],
     exaltation: 'Moon',
     detriment: 'Mars',
-    fall: 'Uranus'
+    fall: 'Uranus',
   },
   Gemini: {
     rulers: ['Mercury'],
     detriment: 'Jupiter',
-    fall: ''
+    fall: '',
   },
   Cancer: {
     rulers: ['Moon'],
     exaltation: 'Jupiter',
     detriment: 'Saturn',
-    fall: 'Mars'
+    fall: 'Mars',
   },
   Leo: {
     rulers: ['Sun'],
     detriment: 'Saturn',
-    fall: 'Neptune'
+    fall: 'Neptune',
   },
   Virgo: {
     rulers: ['Mercury'],
     exaltation: 'Mercury',
     detriment: 'Jupiter',
-    fall: 'Venus'
+    fall: 'Venus',
   },
   Libra: {
     rulers: ['Venus'],
     exaltation: 'Saturn',
     detriment: 'Mars',
-    fall: 'Sun'
+    fall: 'Sun',
   },
   Scorpio: {
     rulers: ['Mars'],
     detriment: 'Venus',
-    fall: 'Moon'
+    fall: 'Moon',
   },
   Sagittarius: {
     rulers: ['Jupiter'],
     detriment: 'Mercury',
-    fall: ''
+    fall: '',
   },
   Capricorn: {
     rulers: ['Saturn'],
     exaltation: 'Mars',
     detriment: 'Moon',
-    fall: 'Jupiter'
+    fall: 'Jupiter',
   },
   Aquarius: {
     rulers: ['Saturn'],
     detriment: 'Sun',
-    fall: 'Neptune'
+    fall: 'Neptune',
   },
   Pisces: {
     rulers: ['Jupiter'],
     exaltation: 'Venus',
     detriment: 'Mercury',
-    fall: 'Mercury'
-  }
+    fall: 'Mercury',
+  },
 };
 
 /**
@@ -89,7 +89,7 @@ const SIGN_DIGNITIES: Record<string, DignityInfo> = {
 export function getPlanetDignities(planetName: string, sign: string): string[] {
   const dignities: string[] = [];
   const signInfo = SIGN_DIGNITIES[sign];
-  
+
   if (!signInfo) return dignities;
 
   // Check for rulership (domicile)
@@ -132,13 +132,13 @@ export function getSignRulers(sign: string): string[] {
  * @returns Formatted string with dignities
  */
 export function formatPlanetWithDignities(
-  planet: Point, 
+  planet: Point,
   houseCusps?: number[]
 ): string {
   const sign = getDegreeSign(planet.degree);
   const dignities = getPlanetDignities(planet.name, sign);
   const rulers = getSignRulers(sign);
-  
+
   let dignitiesStr = '';
   if (dignities.length > 0 && dignities.includes('Domicile')) {
     dignitiesStr = `[${dignities.join(', ')}]`;

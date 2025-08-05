@@ -43,9 +43,9 @@ export const DEFAULT_SETTINGS: Settings = {
   aspectDefinitions: DEFAULT_ASPECTS,
   aspectCategories: DEFAULT_ASPECT_CATEGORIES,
   skipOutOfSignAspects: true,
-  
+
   // pattern settings
   includeAspectPatterns: false, // Aspect patterns disabled by default
-  
+
   dateFormat: 'MM/DD/YYYY', // As per example output
 };

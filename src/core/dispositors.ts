@@ -21,15 +21,15 @@ export interface DispositorAnalysis {
 export function analyzeDispositors(planets: Point[]): DispositorAnalysis {
   const dispositorMap = new Map<string, string[]>();
   const disposedByMap = new Map<string, string[]>();
-  
+
   // Build the dispositor relationships
-  planets.forEach(planet => {
+  planets.forEach((planet) => {
     const sign = getDegreeSign(planet.degree);
     const rulers = getSignRulers(sign);
-    
+
     dispositorMap.set(planet.name, rulers);
-    
-    rulers.forEach(ruler => {
+
+    rulers.forEach((ruler) => {
       if (!disposedByMap.has(ruler)) {
         disposedByMap.set(ruler, []);
       }
@@ -39,13 +39,14 @@ export function analyzeDispositors(planets: Point[]): DispositorAnalysis {
 
   // Find final dispositors - these are the roots of dispositor trees
   const finalDispositors: string[] = [];
-  const planetNames = new Set(planets.map(p => p.name));
-  
-  planets.forEach(planet => {
+  const planetNames = new Set(planets.map((p) => p.name));
+
+  planets.forEach((planet) => {
     const rulers = dispositorMap.get(planet.name) || [];
     const isRuledBySelf = rulers.includes(planet.name);
-    const isRuledByPlanetNotInChart = rulers.length > 0 && !rulers.some(ruler => planetNames.has(ruler));
-    
+    const isRuledByPlanetNotInChart =
+      rulers.length > 0 && !rulers.some((ruler) => planetNames.has(ruler));
+
     // A planet is a final dispositor if:
     // 1. It rules itself (traditional dignity)
     // 2. It's ruled by a planet not in the chart
@@ -55,15 +56,15 @@ export function analyzeDispositors(planets: Point[]): DispositorAnalysis {
   });
 
   // Build chains
-  const chains: DispositorChain[] = planets.map(planet => ({
+  const chains: DispositorChain[] = planets.map((planet) => ({
     planet: planet.name,
     disposedBy: dispositorMap.get(planet.name) || [],
-    disposes: disposedByMap.get(planet.name) || []
+    disposes: disposedByMap.get(planet.name) || [],
   }));
 
   return {
     chains,
-    finalDispositors
+    finalDispositors,
   };
 }
 
@@ -95,13 +96,13 @@ function findDispositorCycles(chains: DispositorChain[]): string[][] {
     path.add(planet);
     currentPath.push(planet);
 
-    const chain = chains.find(c => c.planet === planet);
+    const chain = chains.find((c) => c.planet === planet);
     if (chain) {
       // Follow the dispositor chain (only follow planets in the chart)
-      const inChartRulers = chain.disposedBy.filter(ruler => 
-        chains.some(c => c.planet === ruler)
+      const inChartRulers = chain.disposedBy.filter((ruler) =>
+        chains.some((c) => c.planet === ruler)
       );
-      
+
       for (const ruler of inChartRulers) {
         dfs(ruler, [...currentPath]);
       }
@@ -112,7 +113,7 @@ function findDispositorCycles(chains: DispositorChain[]): string[][] {
   }
 
   // Start DFS from each planet
-  chains.forEach(chain => {
+  chains.forEach((chain) => {
     if (!visited.has(chain.planet)) {
       dfs(chain.planet, []);
     }
@@ -128,15 +129,19 @@ function findDispositorCycles(chains: DispositorChain[]): string[][] {
  * @param pathSoFar Array to track the current path (prevents infinite loops)
  * @returns Array of planets in the chain (excluding the starting planet)
  */
-function buildDispositorChain(planet: string, chains: DispositorChain[], pathSoFar: string[] = []): string[] {
-  const chain = chains.find(c => c.planet === planet);
+function buildDispositorChain(
+  planet: string,
+  chains: DispositorChain[],
+  pathSoFar: string[] = []
+): string[] {
+  const chain = chains.find((c) => c.planet === planet);
   if (!chain || chain.disposedBy.length === 0) {
     return ['(final)'];
   }
 
   // Get the first in-chart ruler
-  const inChartRulers = chain.disposedBy.filter(ruler => 
-    chains.some(c => c.planet === ruler)
+  const inChartRulers = chain.disposedBy.filter((ruler) =>
+    chains.some((c) => c.planet === ruler)
   );
 
   if (inChartRulers.length === 0) {
@@ -144,12 +149,12 @@ function buildDispositorChain(planet: string, chains: DispositorChain[], pathSoF
   }
 
   const ruler = inChartRulers[0];
-  
+
   // If the ruler is the same as the planet (self-ruler), it's final
   if (ruler === planet) {
     return ['(final)'];
   }
-  
+
   // If we've seen this ruler in the current path, we have a cycle
   if (pathSoFar.includes(ruler)) {
     return ['(cycle)'];
@@ -158,7 +163,7 @@ function buildDispositorChain(planet: string, chains: DispositorChain[], pathSoF
   // Continue the chain
   const newPath = [...pathSoFar, planet];
   const nextChain = buildDispositorChain(ruler, chains, newPath);
-  
+
   // If the next chain ends in (final), this whole chain ends in (final)
   // If the next chain ends in (cycle), this chain also ends in (cycle)
   return [ruler, ...nextChain];
@@ -169,11 +174,13 @@ function buildDispositorChain(planet: string, chains: DispositorChain[], pathSoF
  * @param analysis The dispositor analysis
  * @returns Array of formatted strings
  */
-export function formatDispositorAnalysis(analysis: DispositorAnalysis): string[] {
+export function formatDispositorAnalysis(
+  analysis: DispositorAnalysis
+): string[] {
   const output: string[] = [];
 
   // Build and format chains for each planet
-  analysis.chains.forEach(chainInfo => {
+  analysis.chains.forEach((chainInfo) => {
     const chainRest = buildDispositorChain(chainInfo.planet, analysis.chains);
     const chainString = chainRest.join(' → ');
     output.push(`${chainInfo.planet} → ${chainString}`);

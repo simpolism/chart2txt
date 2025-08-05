@@ -1,9 +1,9 @@
 import { Point } from '../../../types';
-import { 
-  analyzeSignDistributions, 
-  formatElementDistribution, 
-  formatModalityDistribution, 
-  formatPolarityDistribution 
+import {
+  analyzeSignDistributions,
+  formatElementDistribution,
+  formatModalityDistribution,
+  formatPolarityDistribution,
 } from '../../../core/signDistributions';
 
 /**
@@ -14,11 +14,13 @@ import {
  * @returns An array of strings for the output.
  */
 export function generateElementDistributionOutput(
-  planets: Point[], 
-  chartName?: string, 
+  planets: Point[],
+  chartName?: string,
   ascendant?: number
 ): string[] {
-  const header = chartName ? `[ELEMENT DISTRIBUTION: ${chartName}]` : '[ELEMENT DISTRIBUTION]';
+  const header = chartName
+    ? `[ELEMENT DISTRIBUTION: ${chartName}]`
+    : '[ELEMENT DISTRIBUTION]';
   const output: string[] = [header];
 
   if (planets.length === 0) {
@@ -28,9 +30,9 @@ export function generateElementDistributionOutput(
 
   const distributions = analyzeSignDistributions(planets, ascendant);
   const formattedElements = formatElementDistribution(distributions.elements);
-  
+
   output.push(...formattedElements);
-  
+
   return output;
 }
 
@@ -42,11 +44,13 @@ export function generateElementDistributionOutput(
  * @returns An array of strings for the output.
  */
 export function generateModalityDistributionOutput(
-  planets: Point[], 
-  chartName?: string, 
+  planets: Point[],
+  chartName?: string,
   ascendant?: number
 ): string[] {
-  const header = chartName ? `[MODALITY DISTRIBUTION: ${chartName}]` : '[MODALITY DISTRIBUTION]';
+  const header = chartName
+    ? `[MODALITY DISTRIBUTION: ${chartName}]`
+    : '[MODALITY DISTRIBUTION]';
   const output: string[] = [header];
 
   if (planets.length === 0) {
@@ -55,10 +59,12 @@ export function generateModalityDistributionOutput(
   }
 
   const distributions = analyzeSignDistributions(planets, ascendant);
-  const formattedModalities = formatModalityDistribution(distributions.modalities);
-  
+  const formattedModalities = formatModalityDistribution(
+    distributions.modalities
+  );
+
   output.push(...formattedModalities);
-  
+
   return output;
 }
 
@@ -70,8 +76,8 @@ export function generateModalityDistributionOutput(
  * @returns An array of strings for the output.
  */
 export function generatePolarityOutput(
-  planets: Point[], 
-  chartName?: string, 
+  planets: Point[],
+  chartName?: string,
   ascendant?: number
 ): string[] {
   const header = chartName ? `[POLARITY: ${chartName}]` : '[POLARITY]';
@@ -83,9 +89,11 @@ export function generatePolarityOutput(
   }
 
   const distributions = analyzeSignDistributions(planets, ascendant);
-  const formattedPolarities = formatPolarityDistribution(distributions.polarities);
-  
+  const formattedPolarities = formatPolarityDistribution(
+    distributions.polarities
+  );
+
   output.push(...formattedPolarities);
-  
+
   return output;
 }
