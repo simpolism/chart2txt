@@ -14,20 +14,22 @@ export function generateAnglesOutput(
 
   if (ascDegree !== undefined) {
     output.push(
-      `ASC: ${Math.floor(getDegreeInSign(ascDegree))}° ${getDegreeSign(
+      `Ascendant: ${Math.floor(getDegreeInSign(ascDegree))}° ${getDegreeSign(
         ascDegree
       )}`
     );
   } else {
-    output.push('ASC: Not available');
+    output.push('Ascendant: Not available');
   }
 
   if (mcDegree !== undefined) {
     output.push(
-      `MC: ${Math.floor(getDegreeInSign(mcDegree))}° ${getDegreeSign(mcDegree)}`
+      `Midheaven: ${Math.floor(getDegreeInSign(mcDegree))}° ${getDegreeSign(
+        mcDegree
+      )}`
     );
   } else {
-    output.push('MC: Not available');
+    output.push('Midheaven: Not available');
   }
 
   return output;

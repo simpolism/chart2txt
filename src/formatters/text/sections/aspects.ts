@@ -33,17 +33,17 @@ export function generateAspectsOutput(
 
     if (categoryAspects.length > 0) {
       aspectsFoundInAnyCategory = true;
-      let orbRangeStr = `orb < ${category.maxOrb.toFixed(1)}°`;
+      let orbRangeStr = `orb under ${category.maxOrb.toFixed(1)}°`;
       if (category.minOrb !== undefined) {
         // Ensure minOrb is less than maxOrb for sensible range string
         orbRangeStr =
           category.minOrb < category.maxOrb
             ? `orb ${category.minOrb.toFixed(1)}-${category.maxOrb.toFixed(1)}°`
-            : `orb > ${category.minOrb.toFixed(
+            : `orb over ${category.minOrb.toFixed(
                 1
-              )}° & < ${category.maxOrb.toFixed(1)}°`; // Fallback for unusual category def
+              )}° & under ${category.maxOrb.toFixed(1)}°`; // Fallback for unusual category def
       }
-      output.push(`[${category.name.toUpperCase()}: ${orbRangeStr}]`);
+      output.push(`[${category.name}: ${orbRangeStr}]`);
 
       categoryAspects.sort((a, b) => a.orb - b.orb); // Sort by orb tightness
 
@@ -64,8 +64,14 @@ export function generateAspectsOutput(
         }
         // If neither p2IsTransit nor p2ChartName, it's a natal chart aspect, e.g. "Venus opposition Pluto: 1.2°"
 
+        const applicationStr =
+          asp.application && asp.application !== 'exact'
+            ? ` (${asp.application})`
+            : '';
         output.push(
-          `${p1NameStr} ${asp.aspectType} ${p2NameStr}: ${asp.orb.toFixed(1)}°`
+          `${p1NameStr} ${asp.aspectType} ${p2NameStr}: ${asp.orb.toFixed(
+            1
+          )}°${applicationStr}`
         );
       });
     }

@@ -1,6 +1,6 @@
 {
   "name": "chart2txt",
-  "version": "0.5.2",
+  "version": "0.6.0",
   "description": "Convert astrological chart data to human-readable text",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -12,6 +12,7 @@
     "test": "jest",
     "test:config": "ts-node test-configurations.ts",
     "lint": "eslint src/**/*.ts",
+    "lint:fix": "eslint src/**/*.ts --fix",
     "format": "prettier --write \"src/**/*.ts\" \"tests/**/*.ts\""
   },
   "keywords": [

@@ -14,6 +14,7 @@ export class ChartSettings implements Settings {
   skipOutOfSignAspects: boolean;
   aspectDefinitions: Aspect[];
   aspectCategories: AspectCategory[];
+  includeAspectPatterns: boolean;
   dateFormat: string;
 
   constructor(customSettings: PartialSettings = {}) {
@@ -28,6 +29,7 @@ export class ChartSettings implements Settings {
     this.aspectCategories =
       mergedSettings.aspectCategories || DEFAULT_ASPECT_CATEGORIES; // Ensure array is not undefined
     this.skipOutOfSignAspects = mergedSettings.skipOutOfSignAspects;
+    this.includeAspectPatterns = mergedSettings.includeAspectPatterns;
     this.dateFormat = mergedSettings.dateFormat;
   }
 }
