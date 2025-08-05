@@ -12,8 +12,9 @@ import {
   MysticRectangle,
   Kite,
 } from '../types';
-import { getDegreeSign, getDegreeInSign } from './astrology';
+import { getDegreeSign, getDegreeInSign, normalizeDegree } from './astrology';
 import { calculateAspects } from './aspects';
+import { getHouseForPoint } from '../utils/houseCalculations';
 
 /**
  * Helper function to calculate orb between two planets for a specific aspect angle
@@ -23,37 +24,11 @@ function calculateOrb(
   planet2: Point,
   aspectAngle: number
 ): number {
-  let diff = Math.abs(planet1.degree - planet2.degree);
+  const degree1 = normalizeDegree(planet1.degree);
+  const degree2 = normalizeDegree(planet2.degree);
+  let diff = Math.abs(degree1 - degree2);
   if (diff > 180) diff = 360 - diff;
   return Math.abs(diff - aspectAngle);
-}
-
-/**
- * Helper function to get house for a planet
- */
-function getHouseForPoint(
-  pointDegree: number,
-  houseCusps: number[]
-): number | undefined {
-  if (!houseCusps || houseCusps.length !== 12) {
-    return undefined;
-  }
-
-  for (let i = 0; i < 12; i++) {
-    const cuspStart = houseCusps[i];
-    const cuspEnd = houseCusps[(i + 1) % 12];
-
-    if (cuspStart < cuspEnd) {
-      if (pointDegree >= cuspStart && pointDegree < cuspEnd) {
-        return i + 1;
-      }
-    } else {
-      if (pointDegree >= cuspStart || pointDegree < cuspEnd) {
-        return i + 1;
-      }
-    }
-  }
-  return undefined;
 }
 
 /**
@@ -65,7 +40,7 @@ function pointToPlanetPosition(
 ): PlanetPosition {
   const sign = getDegreeSign(point.degree);
   const house = houseCusps
-    ? getHouseForPoint(point.degree, houseCusps)
+    ? getHouseForPoint(point.degree, houseCusps) || undefined
     : undefined;
 
   return {

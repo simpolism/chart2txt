@@ -3,13 +3,29 @@ import {
   isMultiChartData,
   MultiChartData,
   PartialSettings,
+  Point,
 } from '../../types';
 import { ChartSettings } from '../../config/ChartSettings';
+import { validateInputData } from '../../utils/validation';
 import {
   calculateAspects,
   calculateMultichartAspects,
 } from '../../core/aspects';
 import { detectAspectPatterns } from '../../core/aspectPatterns';
+
+/**
+ * Helper function to get all points (planets + angles) from a chart for aspect calculation
+ */
+function getAllPointsFromChart(chartData: ChartData): Point[] {
+  const allPoints: Point[] = [...chartData.planets];
+  if (chartData.ascendant !== undefined) {
+    allPoints.push({ name: 'Ascendant', degree: chartData.ascendant });
+  }
+  if (chartData.midheaven !== undefined) {
+    allPoints.push({ name: 'Midheaven', degree: chartData.midheaven });
+  }
+  return allPoints;
+}
 
 import { generateMetadataOutput } from './sections/metadata';
 import { generateChartHeaderOutput } from './sections/chartHeader';
@@ -71,7 +87,7 @@ const processSingleChartOutput = (
 
   const aspects = calculateAspects(
     settings.aspectDefinitions,
-    chartData.planets,
+    getAllPointsFromChart(chartData),
     settings.skipOutOfSignAspects
   );
   // For single chart, p1ChartName and p2ChartName are not needed for aspect string generation
@@ -106,8 +122,8 @@ const processChartPairOutput = (
   );
   const synastryAspects = calculateMultichartAspects(
     settings.aspectDefinitions,
-    chart1.planets,
-    chart2.planets,
+    getAllPointsFromChart(chart1),
+    getAllPointsFromChart(chart2),
     settings.skipOutOfSignAspects
   );
   outputLines.push(
@@ -212,6 +228,12 @@ export function formatChartToText(
   data: ChartData | MultiChartData,
   partialSettings: PartialSettings = {}
 ): string {
+  // Validate input data
+  const validationError = validateInputData(data);
+  if (validationError) {
+    throw new Error(`Invalid chart data: ${validationError}`);
+  }
+
   const settings = new ChartSettings(partialSettings);
   const houseSystemName = settings.houseSystemName;
   const outputLines: string[] = [];
@@ -271,8 +293,8 @@ export function formatChartToText(
       // Transit Aspects to Chart 1
       const transitAspectsC1 = calculateMultichartAspects(
         settings.aspectDefinitions,
-        chart.planets,
-        transitChart.planets,
+        getAllPointsFromChart(chart),
+        getAllPointsFromChart(transitChart),
         settings.skipOutOfSignAspects
       );
       outputLines.push(

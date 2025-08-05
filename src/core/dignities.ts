@@ -26,7 +26,6 @@ const SIGN_DIGNITIES: Record<string, DignityInfo> = {
   Gemini: {
     rulers: ['Mercury'],
     detriment: 'Jupiter',
-    fall: '',
   },
   Cancer: {
     rulers: ['Moon'],
@@ -59,7 +58,6 @@ const SIGN_DIGNITIES: Record<string, DignityInfo> = {
   Sagittarius: {
     rulers: ['Jupiter'],
     detriment: 'Mercury',
-    fall: '',
   },
   Capricorn: {
     rulers: ['Saturn'],
@@ -88,7 +86,8 @@ const SIGN_DIGNITIES: Record<string, DignityInfo> = {
  */
 export function getPlanetDignities(planetName: string, sign: string): string[] {
   const dignities: string[] = [];
-  const signInfo = SIGN_DIGNITIES[sign];
+  const normalizedSign = sign.trim();
+  const signInfo = SIGN_DIGNITIES[normalizedSign];
 
   if (!signInfo) return dignities;
 
@@ -108,7 +107,7 @@ export function getPlanetDignities(planetName: string, sign: string): string[] {
   }
 
   // Check for fall
-  if (signInfo.fall === planetName) {
+  if (signInfo.fall && signInfo.fall === planetName) {
     dignities.push(`Fall`);
   }
 
@@ -121,7 +120,8 @@ export function getPlanetDignities(planetName: string, sign: string): string[] {
  * @returns Array of ruling planets
  */
 export function getSignRulers(sign: string): string[] {
-  const signInfo = SIGN_DIGNITIES[sign];
+  const normalizedSign = sign.trim();
+  const signInfo = SIGN_DIGNITIES[normalizedSign];
   return signInfo ? signInfo.rulers : [];
 }
 

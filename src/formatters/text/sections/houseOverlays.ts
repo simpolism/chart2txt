@@ -1,34 +1,7 @@
 import { ChartData } from '../../../types';
 import { ChartSettings } from '../../../config/ChartSettings';
 import { getOrdinal } from '../../../utils/formatting';
-
-// Helper function to determine which house a point falls into
-function getHouseForPoint(pointDegree: number, houseCusps: number[]): number {
-  if (!houseCusps || houseCusps.length !== 12) {
-    // console.error("Invalid or missing houseCusps array for getHouseForPoint.");
-    return 0; // Indicate failure or inability to calculate
-  }
-
-  for (let i = 0; i < 12; i++) {
-    const cuspStart = houseCusps[i]; // Cusp of current house (e.g., for House 1, i=0, cuspStart = Cusp 1)
-    const cuspEnd = houseCusps[(i + 1) % 12]; // Cusp of next house (e.g., for House 1, cuspEnd = Cusp 2)
-
-    // Check if the point degree falls between cuspStart and cuspEnd
-    if (cuspStart < cuspEnd) {
-      // Normal case: e.g., Cusp1=10, Cusp2=40. Point is between 10 and 40.
-      if (pointDegree >= cuspStart && pointDegree < cuspEnd) {
-        return i + 1; // House number is i+1 (cusps are 0-indexed, houses 1-indexed)
-      }
-    } else {
-      // Wrap-around case: e.g., Cusp12=330, Cusp1=20. Point is >=330 OR <20.
-      if (pointDegree >= cuspStart || pointDegree < cuspEnd) {
-        return i + 1; // House number is i+1
-      }
-    }
-  }
-  // console.warn(`Point ${pointDegree} did not fall into any house with cusps: ${houseCusps.join(', ')}.`);
-  return 0; // Should ideally not be reached if cusps correctly cover 360 degrees
-}
+import { getHouseForPoint } from '../../../utils/houseCalculations';
 
 /**
  * Generates the [HOUSE OVERLAYS] section for synastry.
@@ -52,7 +25,7 @@ export function generateHouseOverlaysOutput(
     if (chart1.planets && chart1.planets.length > 0) {
       chart1.planets.forEach((planet) => {
         const houseNumber = getHouseForPoint(planet.degree, chart2.houseCusps!);
-        if (houseNumber > 0) {
+        if (houseNumber) {
           output.push(`- ${planet.name}: ${getOrdinal(houseNumber)}`);
         } else {
           output.push(
@@ -77,7 +50,7 @@ export function generateHouseOverlaysOutput(
     if (chart2.planets && chart2.planets.length > 0) {
       chart2.planets.forEach((planet) => {
         const houseNumber = getHouseForPoint(planet.degree, chart1.houseCusps!);
-        if (houseNumber > 0) {
+        if (houseNumber) {
           output.push(`- ${planet.name}: ${getOrdinal(houseNumber)}`);
         } else {
           output.push(

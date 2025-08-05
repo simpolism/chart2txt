@@ -1158,4 +1158,512 @@ describe('chart2txt', () => {
       expect(result).toContain('- Sign: Leo');
     });
   });
+
+  // Tests for critical bug fixes
+  describe('degree normalization fixes', () => {
+    test('handles negative degrees correctly', () => {
+      const data: ChartData = {
+        name: 'test',
+        planets: [
+          { name: 'Sun', degree: -30 }, // Should normalize to 330° (0° Pisces)
+          { name: 'Moon', degree: -90 }, // Should normalize to 270° (0° Capricorn)
+        ],
+      };
+
+      const result = chart2txt(data);
+
+      expect(result).toContain('Sun: 0° Pisces'); // -30° + 360° = 330° = 0° Pisces
+      expect(result).toContain('Moon: 0° Capricorn'); // -90° + 360° = 270° = 0° Capricorn
+    });
+
+    test('handles degrees >= 360 correctly', () => {
+      const data: ChartData = {
+        name: 'test',
+        planets: [
+          { name: 'Sun', degree: 390 }, // Should normalize to 30° (0° Taurus)
+          { name: 'Moon', degree: 450 }, // Should normalize to 90° (0° Cancer)
+        ],
+      };
+
+      const result = chart2txt(data);
+
+      expect(result).toContain('Sun: 0° Taurus');
+      expect(result).toContain('Moon: 0° Cancer');
+    });
+
+    test('handles extreme degree values correctly', () => {
+      const data: ChartData = {
+        name: 'test',
+        planets: [
+          { name: 'Sun', degree: 1080 }, // Multiple rotations: should normalize to 0° (0° Aries)
+          { name: 'Moon', degree: -720 }, // Multiple negative rotations: should normalize to 0° (0° Aries)
+        ],
+      };
+
+      const result = chart2txt(data);
+
+      expect(result).toContain('Sun: 0° Aries');
+      expect(result).toContain('Moon: 0° Aries');
+    });
+  });
+
+  describe('input validation fixes', () => {
+    test('throws error for NaN degree values', () => {
+      const data: ChartData = {
+        name: 'test',
+        planets: [{ name: 'Sun', degree: NaN }],
+      };
+
+      expect(() => chart2txt(data)).toThrow('Invalid chart data');
+      expect(() => chart2txt(data)).toThrow('invalid degree value');
+    });
+
+    test('throws error for Infinity degree values', () => {
+      const data: ChartData = {
+        name: 'test',
+        planets: [{ name: 'Sun', degree: Infinity }],
+      };
+
+      expect(() => chart2txt(data)).toThrow('Invalid chart data');
+      expect(() => chart2txt(data)).toThrow('invalid degree value');
+    });
+
+    test('throws error for empty planet names', () => {
+      const data: ChartData = {
+        name: 'test',
+        planets: [{ name: '', degree: 30 }],
+      };
+
+      expect(() => chart2txt(data)).toThrow('Invalid chart data');
+      expect(() => chart2txt(data)).toThrow('non-empty string');
+    });
+
+    test('throws error for invalid house cusps array length', () => {
+      const data: ChartData = {
+        name: 'test',
+        planets: [{ name: 'Sun', degree: 30 }],
+        houseCusps: [0, 30, 60, 90, 120], // Only 5 cusps instead of 12
+      };
+
+      expect(() => chart2txt(data)).toThrow('Invalid chart data');
+      expect(() => chart2txt(data)).toThrow('exactly 12 values');
+    });
+
+    test('throws error for invalid house cusp values', () => {
+      const data: ChartData = {
+        name: 'test',
+        planets: [{ name: 'Sun', degree: 30 }],
+        houseCusps: [0, 30, 60, 90, 120, 150, 180, 210, 240, 270, 300, NaN],
+      };
+
+      expect(() => chart2txt(data)).toThrow('Invalid chart data');
+      expect(() => chart2txt(data)).toThrow('invalid value');
+    });
+
+    test('throws error for duplicate planet names', () => {
+      const data: ChartData = {
+        name: 'test',
+        planets: [
+          { name: 'Sun', degree: 30 },
+          { name: 'Sun', degree: 60 }, // Duplicate name
+        ],
+      };
+
+      expect(() => chart2txt(data)).toThrow('Invalid chart data');
+      expect(() => chart2txt(data)).toThrow('Duplicate point names');
+    });
+
+    test('validates invalid speed values', () => {
+      const data: ChartData = {
+        name: 'test',
+        planets: [{ name: 'Sun', degree: 30, speed: NaN }],
+      };
+
+      expect(() => chart2txt(data)).toThrow('Invalid chart data');
+      expect(() => chart2txt(data)).toThrow('invalid speed value');
+    });
+  });
+
+  describe('house calculation consistency fixes', () => {
+    test('handles planets exactly on house cusps consistently', () => {
+      const data: ChartData = {
+        name: 'test',
+        planets: [
+          { name: 'Sun', degree: 30.0 }, // Exactly on 2nd house cusp
+          { name: 'Moon', degree: 60.0 }, // Exactly on 3rd house cusp
+        ],
+        houseCusps: [0, 30, 60, 90, 120, 150, 180, 210, 240, 270, 300, 330],
+      };
+
+      const result = chart2txt(data);
+
+      // Planets exactly on cusps should be assigned to the house starting at that cusp
+      expect(result).toContain('Sun: 0° Taurus [Ruler: Venus], 2nd house');
+      expect(result).toContain('Moon: 0° Gemini [Ruler: Mercury], 3rd house');
+    });
+
+    test('handles house wraparound at 0°/360° boundary consistently', () => {
+      const data: ChartData = {
+        name: 'test',
+        planets: [
+          { name: 'Sun', degree: 350 }, // Should be in 1st house
+          { name: 'Moon', degree: 10 }, // Should be in 2nd house
+          { name: 'Mercury', degree: 320 }, // Should be in 12th house
+        ],
+        houseCusps: [340, 10, 40, 70, 100, 130, 160, 190, 220, 250, 280, 310],
+      };
+
+      const result = chart2txt(data);
+
+      expect(result).toContain('Sun: 20° Pisces [Ruler: Jupiter], 1st house');
+      expect(result).toContain('Moon: 10° Aries [Ruler: Mars], 2nd house');
+      expect(result).toContain(
+        'Mercury: 20° Aquarius [Ruler: Saturn], 12th house'
+      );
+    });
+  });
+
+  describe('dignity mapping fixes', () => {
+    test('shows Mercury as having both detriment and fall in Pisces', () => {
+      const data: ChartData = {
+        name: 'test',
+        planets: [
+          { name: 'Mercury', degree: 330 }, // 0° Pisces
+        ],
+      };
+
+      const result = chart2txt(data);
+
+      // Mercury should show both detriment and fall in Pisces
+      expect(result).toContain(
+        'Mercury: 0° Pisces [Detriment, Fall | Ruler: Jupiter]'
+      );
+    });
+
+    test('handles signs with no fall values correctly', () => {
+      const data: ChartData = {
+        name: 'test',
+        planets: [
+          { name: 'Sun', degree: 60 }, // 0° Gemini (no fall planet defined)
+          { name: 'Moon', degree: 240 }, // 0° Sagittarius (no fall planet defined)
+        ],
+      };
+
+      const result = chart2txt(data);
+
+      // Should not show fall information for signs that don't have it
+      expect(result).toContain('Sun: 0° Gemini [Ruler: Mercury]');
+      expect(result).toContain('Moon: 0° Sagittarius [Ruler: Jupiter]');
+      expect(result).not.toContain('Fall:');
+    });
+  });
+
+  describe('aspect calculation fixes', () => {
+    test('out-of-sign aspect filtering works correctly', () => {
+      const data: ChartData = {
+        name: 'test',
+        planets: [
+          { name: 'Sun', degree: 29 }, // 29° Aries
+          { name: 'Moon', degree: 121 }, // 1° Leo - should be trine (120°) but out of sign
+        ],
+      };
+
+      const result = chart2txt(data, { skipOutOfSignAspects: true });
+
+      // With skipOutOfSignAspects=true, this 119° aspect should be filtered out
+      // because Sun in Aries and Moon in Leo are 3 signs apart (not 4 as expected for trine)
+      expect(result).toContain('[ASPECTS]');
+      expect(result).not.toContain('Sun trine Moon');
+    });
+
+    test('includes out-of-sign aspects when setting is disabled', () => {
+      const data: ChartData = {
+        name: 'test',
+        planets: [
+          { name: 'Sun', degree: 29 }, // 29° Aries
+          { name: 'Moon', degree: 149 }, // 29° Leo - should be trine (120°) but out of sign
+        ],
+      };
+
+      const result = chart2txt(data, { skipOutOfSignAspects: false });
+
+      // With skipOutOfSignAspects=false, this 120° aspect should be included
+      expect(result).toContain('[ASPECTS]');
+      expect(result).toContain('Sun trine Moon');
+    });
+  });
+
+  describe('applying vs separating aspect detection fixes', () => {
+    test('correctly identifies applying aspects', () => {
+      const data: ChartData = {
+        name: 'test',
+        planets: [
+          { name: 'Sun', degree: 0.0, speed: 1.0 }, // 0° Aries, moving forward
+          { name: 'Moon', degree: 123.0, speed: 13.0 }, // 3° Leo, moving faster forward
+        ],
+      };
+
+      const result = chart2txt(data, {
+        aspectCategories: [{ name: 'WIDE', maxOrb: 10 }], // Allow wider orbs
+        skipOutOfSignAspects: false, // Allow out-of-sign aspects for this test
+      });
+
+      expect(result).toContain('[ASPECTS]');
+      expect(result).toContain('Sun trine Moon');
+      // Moon at 123° is ahead of exact trine (120°) but moving faster forward, so it's separating
+      expect(result).toContain('(separating)');
+    });
+
+    test('correctly identifies separating aspects', () => {
+      const data: ChartData = {
+        name: 'test',
+        planets: [
+          { name: 'Sun', degree: 0.0, speed: 1.0 }, // 0° Aries, moving forward
+          { name: 'Moon', degree: 117.0, speed: 13.0 }, // 27° Cancer, moving faster forward
+        ],
+      };
+
+      const result = chart2txt(data, {
+        aspectCategories: [{ name: 'WIDE', maxOrb: 10 }], // Allow wider orbs
+        skipOutOfSignAspects: false, // Allow out-of-sign aspects for this test
+      });
+
+      expect(result).toContain('[ASPECTS]');
+      expect(result).toContain('Sun trine Moon');
+      // Moon at 117° is behind exact trine (120°) but moving faster forward, so it's applying
+      expect(result).toContain('(applying)');
+    });
+
+    test('correctly handles retrograde planets in aspect application', () => {
+      const data: ChartData = {
+        name: 'test',
+        planets: [
+          { name: 'Sun', degree: 0.0, speed: 1.0 }, // 0° Aries, direct
+          { name: 'Mars', degree: 93.0, speed: -0.5 }, // 3° Cancer, retrograde
+        ],
+      };
+
+      const result = chart2txt(data, {
+        aspectCategories: [{ name: 'WIDE', maxOrb: 10 }], // Allow wider orbs
+        skipOutOfSignAspects: false, // Allow out-of-sign aspects for this test
+      });
+
+      expect(result).toContain('[ASPECTS]');
+      expect(result).toContain('Sun square Mars');
+      // Mars is retrograde and moving toward exact square (90°) - should be applying
+      expect(result).toContain('(applying)');
+    });
+
+    test('handles complex boundary case with 0°/360° wraparound', () => {
+      const data: ChartData = {
+        name: 'test',
+        planets: [
+          { name: 'Sun', degree: 358.0, speed: 1.0 }, // 28° Pisces, moving forward
+          { name: 'Moon', degree: 2.0, speed: 13.0 }, // 2° Aries, moving faster forward
+        ],
+      };
+
+      const result = chart2txt(data, {
+        aspectDefinitions: [{ name: 'conjunction', angle: 0, orb: 10 }], // Wider orb for conjunction
+        aspectCategories: [{ name: 'WIDE', maxOrb: 10 }], // Allow wider orbs
+        skipOutOfSignAspects: false, // Allow out-of-sign aspects for this test
+      });
+
+      expect(result).toContain('[ASPECTS]');
+      expect(result).toContain('Sun conjunction Moon');
+      // Moon is faster and moving away from the conjunction (4° → 5.28° in 0.1 days) - should be separating
+      expect(result).toContain('(separating)');
+    });
+
+    test('correctly identifies exact aspects when speeds are equal', () => {
+      const data: ChartData = {
+        name: 'test',
+        planets: [
+          { name: 'Sun', degree: 0.0, speed: 1.0 }, // 0° Aries
+          { name: 'Moon', degree: 120.0, speed: 1.0 }, // 0° Leo, same speed
+        ],
+      };
+
+      const result = chart2txt(data, {
+        aspectCategories: [{ name: 'TIGHT', maxOrb: 10 }], // Allow wider orbs
+      });
+
+      expect(result).toContain('[ASPECTS]');
+      expect(result).toContain('Sun trine Moon');
+      // Same speeds - should not show application status (exact aspects don't show parens)
+      expect(result).not.toContain('(applying)');
+      expect(result).not.toContain('(separating)');
+    });
+
+    test('handles fast-moving Moon vs slow Mercury correctly', () => {
+      const data: ChartData = {
+        name: 'test',
+        planets: [
+          { name: 'Moon', degree: 235.99, speed: 13.76 }, // 25°59' Scorpio, fast-moving
+          { name: 'Mercury', degree: 118.21, speed: 0.08 }, // 28°13' Cancer, slow-moving
+        ],
+      };
+
+      const result = chart2txt(data, {
+        aspectDefinitions: [{ name: 'trine', angle: 120, orb: 10 }], // Wide orb to catch this aspect
+        aspectCategories: [{ name: 'WIDE', maxOrb: 10 }],
+        skipOutOfSignAspects: false,
+      });
+
+      expect(result).toContain('[ASPECTS]');
+      expect(result).toContain('Moon trine Mercury');
+      // With time-based calculation, this should be applying (Moon catching up to exact trine)
+      expect(result).toContain('(applying)');
+    });
+  });
+
+  describe('aspects to angles (Ascendant and Midheaven)', () => {
+    test('calculates aspects between planets and Ascendant', () => {
+      const data: ChartData = {
+        name: 'test',
+        planets: [
+          { name: 'Sun', degree: 0.0, speed: 1.0 }, // 0° Aries
+          { name: 'Moon', degree: 90.0, speed: 13.0 }, // 0° Cancer
+        ],
+        ascendant: 180.0, // 0° Libra
+      };
+
+      const result = chart2txt(data, {
+        aspectCategories: [{ name: 'WIDE', maxOrb: 10 }],
+      });
+
+      expect(result).toContain('[ASPECTS]');
+      expect(result).toContain('Sun opposition Ascendant');
+      expect(result).toContain('Moon square Ascendant');
+    });
+
+    test('calculates aspects between planets and Midheaven', () => {
+      const data: ChartData = {
+        name: 'test',
+        planets: [
+          { name: 'Venus', degree: 60.0, speed: 1.2 }, // 0° Gemini
+          { name: 'Mars', degree: 300.0, speed: 0.7 }, // 0° Aquarius
+        ],
+        midheaven: 120.0, // 0° Leo
+      };
+
+      const result = chart2txt(data, {
+        aspectCategories: [{ name: 'WIDE', maxOrb: 10 }],
+      });
+
+      expect(result).toContain('[ASPECTS]');
+      expect(result).toContain('Venus sextile Midheaven');
+      // Mars at 300° to Midheaven at 120° = 180° = opposition
+      expect(result).toContain('Mars opposition Midheaven');
+    });
+
+    test('calculates aspects between Ascendant and Midheaven', () => {
+      const data: ChartData = {
+        name: 'test',
+        planets: [
+          { name: 'Sun', degree: 150.0 }, // 0° Virgo, no aspects to angles
+        ],
+        ascendant: 0.0, // 0° Aries
+        midheaven: 90.0, // 0° Cancer
+      };
+
+      const result = chart2txt(data, {
+        aspectCategories: [{ name: 'WIDE', maxOrb: 10 }],
+      });
+
+      expect(result).toContain('[ASPECTS]');
+      expect(result).toContain('Ascendant square Midheaven');
+    });
+
+    test('handles aspects with applying/separating for angles', () => {
+      const data: ChartData = {
+        name: 'test',
+        planets: [
+          { name: 'Moon', degree: 117.0, speed: 13.0 }, // 27° Cancer, fast-moving
+        ],
+        ascendant: 120.0, // 0° Leo
+      };
+
+      const result = chart2txt(data, {
+        aspectCategories: [{ name: 'WIDE', maxOrb: 10 }],
+        skipOutOfSignAspects: false,
+      });
+
+      expect(result).toContain('[ASPECTS]');
+      expect(result).toContain('Moon conjunction Ascendant');
+      // Angles don't have speed, so aspects to angles don't show applying/separating
+      expect(result).not.toContain('(applying)');
+      expect(result).not.toContain('(separating)');
+    });
+
+    test('works in synastry with angles from both charts', () => {
+      const chart1: ChartData = {
+        name: 'Person A',
+        planets: [
+          { name: 'Sun', degree: 30.0 }, // 0° Taurus
+        ],
+        ascendant: 0.0, // 0° Aries
+      };
+
+      const chart2: ChartData = {
+        name: 'Person B',
+        planets: [
+          { name: 'Moon', degree: 60.0 }, // 0° Gemini
+        ],
+        midheaven: 90.0, // 0° Cancer
+      };
+
+      const result = chart2txt([chart1, chart2], {
+        aspectCategories: [{ name: 'WIDE', maxOrb: 10 }],
+      });
+
+      expect(result).toContain('[SYNASTRY: Person A-Person B]');
+      expect(result).toContain('[PLANET-PLANET ASPECTS]');
+      // Check for cross-chart angle aspects with proper chart name formatting
+      expect(result).toContain("Person A's Sun sextile Person B's Midheaven"); // Sun (30°) sextile MC (90°) = 60°
+      expect(result).toContain("Person A's Ascendant sextile Person B's Moon"); // ASC (0°) sextile Moon (60°) = 60°
+      expect(result).toContain(
+        "Person A's Ascendant square Person B's Midheaven"
+      ); // ASC (0°) square MC (90°) = 90°
+    });
+  });
+
+  describe('floating point precision fixes', () => {
+    test('handles very precise degree values correctly', () => {
+      const data: ChartData = {
+        name: 'test',
+        planets: [
+          { name: 'Sun', degree: 29.999999 }, // Very close to 30°
+          { name: 'Moon', degree: 30.000001 }, // Very close to 30°
+        ],
+        houseCusps: [0, 30, 60, 90, 120, 150, 180, 210, 240, 270, 300, 330],
+      };
+
+      const result = chart2txt(data);
+
+      // Both should be handled consistently despite tiny differences
+      expect(result).toContain('Sun: 29° Aries');
+      expect(result).toContain('Moon: 0° Taurus');
+      // House assignments should be consistent
+      expect(result).toContain('1st house');
+      expect(result).toContain('2nd house');
+    });
+
+    test('handles aspects with very tight orbs consistently', () => {
+      const data: ChartData = {
+        name: 'test',
+        planets: [
+          { name: 'Sun', degree: 0.0 },
+          { name: 'Moon', degree: 120.0001 }, // Trine with tiny orb
+        ],
+      };
+
+      const result = chart2txt(data);
+
+      expect(result).toContain('[ASPECTS]');
+      expect(result).toContain('Sun trine Moon');
+      // Should show very small orb (0.0°)
+      expect(result).toContain('0.0°');
+    });
+  });
 });

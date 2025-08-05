@@ -1,4 +1,37 @@
 import { Point, Aspect, AspectData } from '../types';
+import { normalizeDegree } from './astrology';
+import { isExactAspect, roundDegrees } from '../utils/precision';
+
+/**
+ * Gets the expected sign difference for a given aspect angle
+ * @param aspectAngle The aspect angle in degrees
+ * @returns The expected sign difference
+ */
+function getExpectedSignDifference(aspectAngle: number): number {
+  // Normalize aspect angle to 0-180 range for sign difference calculation
+  const normalizedAngle = aspectAngle <= 180 ? aspectAngle : 360 - aspectAngle;
+
+  // Calculate how many 30-degree signs this aspect spans
+  switch (normalizedAngle) {
+    case 0:
+      return 0; // Conjunction: same sign
+    case 30:
+      return 1; // Semi-sextile: 1 sign apart
+    case 60:
+      return 2; // Sextile: 2 signs apart
+    case 90:
+      return 3; // Square: 3 signs apart
+    case 120:
+      return 4; // Trine: 4 signs apart
+    case 150:
+      return 5; // Quincunx: 5 signs apart
+    case 180:
+      return 6; // Opposition: 6 signs apart
+    default:
+      // For non-standard aspects, calculate based on 30-degree segments
+      return Math.round(normalizedAngle / 30);
+  }
+}
 
 /**
  * Determines if an aspect is applying or separating based on planet speeds
@@ -20,29 +53,48 @@ function determineAspectApplication(
   const speedA = planetA.speed;
   const speedB = planetB.speed;
 
-  // Calculate current angular distance
-  let currentDistance = Math.abs(planetA.degree - planetB.degree);
+  // Calculate current angular distance (handle wraparound properly)
+  const degreeA = normalizeDegree(planetA.degree);
+  const degreeB = normalizeDegree(planetB.degree);
+  let currentDistance = Math.abs(degreeA - degreeB);
   if (currentDistance > 180) {
     currentDistance = 360 - currentDistance;
   }
 
-  // If very close to exact (within 0.1°), consider it exact
+  // If very close to exact, consider it exact
   const orbFromExact = Math.abs(currentDistance - aspectAngle);
-  if (orbFromExact < 0.1) {
+  if (isExactAspect(orbFromExact)) {
     return 'exact';
   }
 
   // Calculate relative speed (how fast the angle between planets is changing)
   const relativeSpeed = speedA - speedB;
 
-  // Determine if the distance to the exact aspect is decreasing (applying) or increasing (separating)
-  // This is a simplified calculation - in reality, the geometry is more complex
-  const isGettingCloser =
-    relativeSpeed !== 0 &&
-    ((currentDistance < aspectAngle && relativeSpeed > 0) ||
-      (currentDistance > aspectAngle && relativeSpeed < 0));
+  if (relativeSpeed === 0) {
+    return 'exact'; // Planets moving at same speed
+  }
 
-  return isGettingCloser ? 'applying' : 'separating';
+  // Use a small, consistent time increment (e.g., 0.1 days) rather than degree-based increment
+  const timeIncrement = 0.1; // days
+
+  // Calculate future positions after the same time period for both planets
+  const futureA = normalizeDegree(degreeA + speedA * timeIncrement);
+  const futureB = normalizeDegree(degreeB + speedB * timeIncrement);
+
+  // Calculate current and future angular distances for this aspect
+  const currentAspectDistance = Math.abs(currentDistance - aspectAngle);
+
+  let futureSeparation = Math.abs(futureA - futureB);
+  if (futureSeparation > 180) {
+    futureSeparation = 360 - futureSeparation;
+  }
+  const futureAspectDistance = Math.abs(futureSeparation - aspectAngle);
+
+  // If future distance to exact aspect is smaller, it's applying
+  // If future distance to exact aspect is larger, it's separating
+  const isApplying = futureAspectDistance < currentAspectDistance;
+
+  return isApplying ? 'applying' : 'separating';
 }
 
 function findTightestAspect(
@@ -51,20 +103,27 @@ function findTightestAspect(
   planetB: Point,
   skipOutOfSignAspects: boolean
 ): AspectData | null {
-  let diff = Math.abs(planetA.degree - planetB.degree);
+  const degreeA = roundDegrees(normalizeDegree(planetA.degree));
+  const degreeB = roundDegrees(normalizeDegree(planetB.degree));
+  let diff = Math.abs(degreeA - degreeB);
   if (diff > 180) diff = 360 - diff;
 
   let tightestAspect: AspectData | null = null;
   for (const aspectType of aspectDefinitions) {
-    const orb = Math.abs(diff - aspectType.angle);
+    const orb = roundDegrees(Math.abs(diff - aspectType.angle));
 
     if (skipOutOfSignAspects) {
-      const planetASign = Math.floor(planetA.degree / 30);
-      const planetBSign = Math.floor(planetB.degree / 30);
-      const aspectSignDiff = Math.floor(aspectType.angle / 30);
-      let signDiff = Math.abs(planetASign - planetBSign);
-      if (signDiff > 6) signDiff = 12 - signDiff;
-      if (signDiff !== aspectSignDiff) {
+      const planetASign = Math.floor(degreeA / 30);
+      const planetBSign = Math.floor(degreeB / 30);
+
+      // Calculate expected sign difference for this aspect
+      // For major aspects: 0° = 0 signs, 60° = 2 signs, 90° = 3 signs, 120° = 4 signs, 180° = 6 signs
+      const expectedSignDiff = getExpectedSignDifference(aspectType.angle);
+
+      let actualSignDiff = Math.abs(planetASign - planetBSign);
+      if (actualSignDiff > 6) actualSignDiff = 12 - actualSignDiff;
+
+      if (actualSignDiff !== expectedSignDiff) {
         continue;
       }
     }
