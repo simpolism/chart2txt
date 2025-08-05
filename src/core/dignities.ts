@@ -143,7 +143,7 @@ export function formatPlanetWithDignities(
   if (dignities.length > 0 && dignities.includes('Domicile')) {
     dignitiesStr = `[${dignities.join(', ')}]`;
   } else if (dignities.length > 0 && rulers.length > 0) {
-    dignitiesStr = `[${dignities.join(', ')}, Ruler: ${rulers.join(', ')}]`;
+    dignitiesStr = `[${dignities.join(', ')} | Ruler: ${rulers.join(', ')}]`;
   } else if (rulers.length > 0) {
     dignitiesStr = `[Ruler: ${rulers.join(', ')}]`;
   }

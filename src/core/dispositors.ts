@@ -122,6 +122,49 @@ function findDispositorCycles(chains: DispositorChain[]): string[][] {
 }
 
 /**
+ * Builds the full dispositor chain for a planet
+ * @param planet Starting planet
+ * @param chains All dispositor chains
+ * @param pathSoFar Array to track the current path (prevents infinite loops)
+ * @returns Array of planets in the chain (excluding the starting planet)
+ */
+function buildDispositorChain(planet: string, chains: DispositorChain[], pathSoFar: string[] = []): string[] {
+  const chain = chains.find(c => c.planet === planet);
+  if (!chain || chain.disposedBy.length === 0) {
+    return ['(final)'];
+  }
+
+  // Get the first in-chart ruler
+  const inChartRulers = chain.disposedBy.filter(ruler => 
+    chains.some(c => c.planet === ruler)
+  );
+
+  if (inChartRulers.length === 0) {
+    return ['(final)'];
+  }
+
+  const ruler = inChartRulers[0];
+  
+  // If the ruler is the same as the planet (self-ruler), it's final
+  if (ruler === planet) {
+    return ['(final)'];
+  }
+  
+  // If we've seen this ruler in the current path, we have a cycle
+  if (pathSoFar.includes(ruler)) {
+    return ['(cycle)'];
+  }
+
+  // Continue the chain
+  const newPath = [...pathSoFar, planet];
+  const nextChain = buildDispositorChain(ruler, chains, newPath);
+  
+  // If the next chain ends in (final), this whole chain ends in (final)
+  // If the next chain ends in (cycle), this chain also ends in (cycle)
+  return [ruler, ...nextChain];
+}
+
+/**
  * Formats the dispositor analysis for display
  * @param analysis The dispositor analysis
  * @returns Array of formatted strings
@@ -129,34 +172,12 @@ function findDispositorCycles(chains: DispositorChain[]): string[][] {
 export function formatDispositorAnalysis(analysis: DispositorAnalysis): string[] {
   const output: string[] = [];
 
-  // Find cycles
-  const cycles = findDispositorCycles(analysis.chains);
-  const planetsInCycles = new Set(cycles.flat());
-
-  // Format final dispositors and their trees
-  if (analysis.finalDispositors.length > 0) {
-    const finalDispositorsWithDisposes = analysis.finalDispositors.map(dispositor => {
-      const chain = analysis.chains.find(c => c.planet === dispositor);
-      const disposes = chain?.disposes.filter(p => !planetsInCycles.has(p) && p !== dispositor) || [];
-      if (disposes.length > 0) {
-        return `${dispositor} (disposes ${disposes.join(', ')})`;
-      }
-      return dispositor;
-    });
-    output.push(`Final: ${finalDispositorsWithDisposes.join(', ')}`);
-  } else {
-    output.push('Final: None');
-  }
-
-  // Format cycles
-  if (cycles.length > 0) {
-    const cycleStrings = cycles.map(cycle => {
-      // Remove the duplicate planet at the end
-      const uniqueCycle = cycle.slice(0, -1);
-      return uniqueCycle.join(' ↔ ');
-    });
-    output.push(`Cycles: ${cycleStrings.join(', ')}`);
-  }
+  // Build and format chains for each planet
+  analysis.chains.forEach(chainInfo => {
+    const chainRest = buildDispositorChain(chainInfo.planet, analysis.chains);
+    const chainString = chainRest.join(' → ');
+    output.push(`${chainInfo.planet} → ${chainString}`);
+  });
 
   return output;
 }

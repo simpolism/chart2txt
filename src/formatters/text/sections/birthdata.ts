@@ -20,6 +20,6 @@ export function generateBirthdataOutput(
   const dateStr = formatDateCustom(timestamp, settings.dateFormat);
   const timeStr = formatTime(timestamp);
   return [
-    `${sectionTitle} ${location || 'Unknown Location'}, ${dateStr}, ${timeStr}`,
+    `${sectionTitle} ${location || 'Unknown Location'} | ${dateStr} | ${timeStr}`,
   ];
 }

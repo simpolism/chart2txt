@@ -21,6 +21,11 @@ import { generateDispositorsOutput } from './sections/dispositors';
 import { generateAspectsOutput } from './sections/aspects';
 import { generateAspectPatternsOutput } from './sections/aspectPatterns';
 import { generateHouseOverlaysOutput } from './sections/houseOverlays';
+import { 
+  generateElementDistributionOutput, 
+  generateModalityDistributionOutput, 
+  generatePolarityOutput 
+} from './sections/signDistributions';
 
 const processSingleChartOutput = (
   settings: ChartSettings,
@@ -49,6 +54,15 @@ const processSingleChartOutput = (
   );
   outputLines.push(
     ...generateDispositorsOutput(chartData.planets)
+  );
+  outputLines.push(
+    ...generateElementDistributionOutput(chartData.planets, undefined, chartData.ascendant)
+  );
+  outputLines.push(
+    ...generateModalityDistributionOutput(chartData.planets, undefined, chartData.ascendant)
+  );
+  outputLines.push(
+    ...generatePolarityOutput(chartData.planets, undefined, chartData.ascendant)
   );
 
   const aspects = calculateAspects(

@@ -1,5 +1,6 @@
 import { ChartData } from '../../../types';
 import { ChartSettings } from '../../../config/ChartSettings';
+import { getOrdinal } from '../../../utils/formatting';
 
 // Helper function to determine which house a point falls into
 function getHouseForPoint(pointDegree: number, houseCusps: number[]): number {
@@ -52,10 +53,10 @@ export function generateHouseOverlaysOutput(
       chart1.planets.forEach((planet) => {
         const houseNumber = getHouseForPoint(planet.degree, chart2.houseCusps!);
         if (houseNumber > 0) {
-          output.push(`${planet.name}: House ${houseNumber}`);
+          output.push(`- ${planet.name}: ${getOrdinal(houseNumber)}`);
         } else {
           output.push(
-            `${planet.name}: (Could not determine house in ${c2Name})`
+            `- ${planet.name}: (Could not determine house in ${c2Name})`
           );
         }
       });
@@ -77,10 +78,10 @@ export function generateHouseOverlaysOutput(
       chart2.planets.forEach((planet) => {
         const houseNumber = getHouseForPoint(planet.degree, chart1.houseCusps!);
         if (houseNumber > 0) {
-          output.push(`${planet.name}: House ${houseNumber}`);
+          output.push(`- ${planet.name}: ${getOrdinal(houseNumber)}`);
         } else {
           output.push(
-            `${planet.name}: (Could not determine house in ${c1Name})`
+            `- ${planet.name}: (Could not determine house in ${c1Name})`
           );
         }
       });

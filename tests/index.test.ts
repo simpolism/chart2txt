@@ -396,7 +396,7 @@ describe('chart2txt', () => {
       const result = chart2txt(data, { includeAspectPatterns: true });
 
       expect(result).toContain('[CHART: test]');
-      expect(result).toContain('[BIRTHDATA] Unknown Location, 12/31/1969, 07:00:00 PM');
+      expect(result).toContain('[BIRTHDATA] Unknown Location | 12/31/1969 | 07:00:00 PM');
     });
 
     test('displays location when provided', () => {
@@ -428,7 +428,7 @@ describe('chart2txt', () => {
       const result = chart2txt(data, { includeAspectPatterns: true });
 
       expect(result).toContain('[CHART: test]');
-      expect(result).toContain('[BIRTHDATA] San Francisco, 12/31/1969, 07:00:00 PM');
+      expect(result).toContain('[BIRTHDATA] San Francisco | 12/31/1969 | 07:00:00 PM');
     });
   });
 
@@ -548,7 +548,7 @@ describe('chart2txt', () => {
 
       expect(result).toContain('[PLANETS]');
       expect(result).toContain('Sun: 0° Capricorn [Ruler: Saturn]');
-      expect(result).toContain('Mars: 0° Cancer [Fall, Ruler: Moon]');
+      expect(result).toContain('Mars: 0° Cancer [Fall | Ruler: Moon]');
     });
 
     test('formats planets with exaltation', () => {
@@ -563,8 +563,8 @@ describe('chart2txt', () => {
       const result = chart2txt(data, { includeAspectPatterns: true });
 
       expect(result).toContain('[PLANETS]');
-      expect(result).toContain('Sun: 0° Aries [Exaltation, Ruler: Mars]');
-      expect(result).toContain('Moon: 0° Taurus [Exaltation, Ruler: Venus]');
+      expect(result).toContain('Sun: 0° Aries [Exaltation | Ruler: Mars]');
+      expect(result).toContain('Moon: 0° Taurus [Exaltation | Ruler: Venus]');
     });
 
     test('formats planets with mixed dignities and retrograde', () => {
@@ -598,8 +598,10 @@ describe('chart2txt', () => {
 
       const result = chart2txt(data, { includeAspectPatterns: true });
 
-      expect(result).toContain('[DISPOSITORS]');
-      expect(result).toContain('Final: Sun, Moon, Mercury');
+      expect(result).toContain('[DISPOSITOR TREE]');
+      expect(result).toContain('Sun → (final)');
+      expect(result).toContain('Moon → (final)');
+      expect(result).toContain('Mercury → (final)');
     });
 
     test('shows dispositor chains with dependencies', () => {
@@ -615,8 +617,11 @@ describe('chart2txt', () => {
 
       const result = chart2txt(data, { includeAspectPatterns: true });
 
-      expect(result).toContain('[DISPOSITORS]');
-      expect(result).toContain('Final: Sun (disposes Moon)');
+      expect(result).toContain('[DISPOSITOR TREE]');
+      expect(result).toContain('Sun → (final)');
+      expect(result).toContain('Mercury → Venus → Moon → Sun → (final)');
+      expect(result).toContain('Venus → Moon → Sun → (final)');
+      expect(result).toContain('Moon → Sun → (final)');
     });
 
     test('handles empty planet list', () => {
@@ -627,7 +632,7 @@ describe('chart2txt', () => {
 
       const result = chart2txt(data, { includeAspectPatterns: true });
 
-      expect(result).toContain('[DISPOSITORS]');
+      expect(result).toContain('[DISPOSITOR TREE]');
       expect(result).toContain('No planets available for dispositor analysis.');
     });
 
@@ -645,9 +650,306 @@ describe('chart2txt', () => {
 
       const result = chart2txt(data, { includeAspectPatterns: true });
 
-      expect(result).toContain('[DISPOSITORS]');
-      expect(result).toContain('Final: Sun, Mercury (disposes Moon)');
-      expect(result).toContain('Cycles: Venus ↔ Mars');
+      expect(result).toContain('[DISPOSITOR TREE]');
+      expect(result).toContain('Sun → (final)');
+      expect(result).toContain('Mercury → (final)');
+      expect(result).toContain('Venus → Mars → (cycle)');
+      expect(result).toContain('Mars → Venus → (cycle)');
+    });
+  });
+
+  describe('sign distribution formatting', () => {
+    test('formats element distribution correctly', () => {
+      const data: ChartData = {
+        name: 'test',
+        planets: [
+          { name: 'Sun', degree: 120 }, // 0° Leo - Fire
+          { name: 'Moon', degree: 90 }, // 0° Cancer - Water
+          { name: 'Mercury', degree: 35 }, // 5° Taurus - Earth
+          { name: 'Venus', degree: 210 }, // 0° Scorpio - Water
+          { name: 'Mars', degree: 60 }, // 0° Gemini - Air
+        ],
+        ascendant: 150, // 0° Virgo - Earth
+      };
+
+      const result = chart2txt(data, { includeAspectPatterns: true });
+
+      expect(result).toContain('[ELEMENT DISTRIBUTION]');
+      expect(result).toContain('Fire: 1 (Sun)');
+      expect(result).toContain('Earth: 2 (Mercury, Ascendant)');
+      expect(result).toContain('Air: 1 (Mars)');
+      expect(result).toContain('Water: 2 (Moon, Venus)');
+    });
+
+    test('formats modality distribution correctly', () => {
+      const data: ChartData = {
+        name: 'test',
+        planets: [
+          { name: 'Sun', degree: 0 }, // 0° Aries - Cardinal
+          { name: 'Moon', degree: 90 }, // 0° Cancer - Cardinal  
+          { name: 'Mercury', degree: 120 }, // 0° Leo - Fixed
+          { name: 'Venus', degree: 60 }, // 0° Gemini - Mutable
+        ],
+        ascendant: 240, // 0° Sagittarius - Mutable
+      };
+
+      const result = chart2txt(data, { includeAspectPatterns: true });
+
+      expect(result).toContain('[MODALITY DISTRIBUTION]');
+      expect(result).toContain('Cardinal: 2');
+      expect(result).toContain('Fixed: 1');
+      expect(result).toContain('Mutable: 2');
+    });
+
+    test('formats polarity distribution correctly', () => {
+      const data: ChartData = {
+        name: 'test',
+        planets: [
+          { name: 'Sun', degree: 0 }, // 0° Aries - Masculine
+          { name: 'Moon', degree: 30 }, // 0° Taurus - Feminine
+          { name: 'Mercury', degree: 60 }, // 0° Gemini - Masculine
+          { name: 'Venus', degree: 90 }, // 0° Cancer - Feminine
+          { name: 'Mars', degree: 120 }, // 0° Leo - Masculine
+        ],
+        ascendant: 150, // 0° Virgo - Feminine 
+      };
+
+      const result = chart2txt(data, { includeAspectPatterns: true });
+
+      expect(result).toContain('[POLARITY]');
+      expect(result).toContain('Masculine (Active): 3');
+      expect(result).toContain('Feminine (Receptive): 3');
+    });
+
+    test('handles empty planet list for distributions', () => {
+      const data: ChartData = {
+        name: 'test',
+        planets: [],
+      };
+
+      const result = chart2txt(data, { includeAspectPatterns: true });
+
+      expect(result).toContain('[ELEMENT DISTRIBUTION]');
+      expect(result).toContain('No planets available for element analysis.');
+      expect(result).toContain('[MODALITY DISTRIBUTION]');
+      expect(result).toContain('No planets available for modality analysis.');
+      expect(result).toContain('[POLARITY]');
+      expect(result).toContain('No planets available for polarity analysis.');
+    });
+
+    test('handles distributions without ascendant', () => {
+      const data: ChartData = {
+        name: 'test',
+        planets: [
+          { name: 'Sun', degree: 120 }, // 0° Leo - Fire, Fixed, Masculine
+          { name: 'Moon', degree: 90 }, // 0° Cancer - Water, Cardinal, Feminine
+        ],
+        // No ascendant provided
+      };
+
+      const result = chart2txt(data, { includeAspectPatterns: true });
+
+      expect(result).toContain('[ELEMENT DISTRIBUTION]');
+      expect(result).toContain('Fire: 1 (Sun)');
+      expect(result).toContain('Water: 1 (Moon)');
+      expect(result).toContain('[MODALITY DISTRIBUTION]');
+      expect(result).toContain('Cardinal: 1');
+      expect(result).toContain('Fixed: 1');
+      expect(result).toContain('[POLARITY]');
+      expect(result).toContain('Masculine (Active): 1');
+      expect(result).toContain('Feminine (Receptive): 1');
+    });
+  });
+
+  describe('synastry and multi-chart formatting', () => {
+    test('formats 2-chart synastry with house overlays', () => {
+      const chart1: ChartData = {
+        name: 'Alice',
+        planets: [
+          { name: 'Sun', degree: 120 }, // 0° Leo
+          { name: 'Moon', degree: 180 }, // 0° Libra
+          { name: 'Mercury', degree: 210 }, // 0° Scorpio
+        ],
+        houseCusps: [0, 30, 60, 90, 120, 150, 180, 210, 240, 270, 300, 330],
+      };
+
+      const chart2: ChartData = {
+        name: 'Bob',
+        planets: [
+          { name: 'Sun', degree: 90 }, // 0° Cancer
+          { name: 'Moon', degree: 240 }, // 0° Sagittarius
+          { name: 'Venus', degree: 150 }, // 0° Virgo
+        ],
+        houseCusps: [15, 45, 75, 105, 135, 165, 195, 225, 255, 285, 315, 345],
+      };
+
+      const result = chart2txt([chart1, chart2], { includeAspectPatterns: true });
+
+      // Should have individual chart sections
+      expect(result).toContain('[CHART: Alice]');
+      expect(result).toContain('[CHART: Bob]');
+      
+      // Should have synastry section
+      expect(result).toContain('[SYNASTRY: Alice-Bob]');
+      expect(result).toContain('[PLANET-PLANET ASPECTS]');
+      
+      // Should have house overlays with new format
+      expect(result).toContain('[HOUSE OVERLAYS]');
+      expect(result).toContain("Alice's planets in Bob's houses:");
+      expect(result).toContain("- Sun: 4th");
+      expect(result).toContain("- Moon: 6th");
+      expect(result).toContain("- Mercury: 7th");
+      expect(result).toContain("Bob's planets in Alice's houses:");
+      expect(result).toContain("- Sun: 4th");
+      expect(result).toContain("- Moon: 9th");
+      expect(result).toContain("- Venus: 6th");
+    });
+
+    test('formats 3-chart group synastry', () => {
+      const chart1: ChartData = {
+        name: 'Alice',
+        planets: [
+          { name: 'Sun', degree: 0 }, // 0° Aries
+          { name: 'Moon', degree: 90 }, // 0° Cancer
+        ],
+        houseCusps: [0, 30, 60, 90, 120, 150, 180, 210, 240, 270, 300, 330],
+      };
+
+      const chart2: ChartData = {
+        name: 'Bob',
+        planets: [
+          { name: 'Sun', degree: 120 }, // 0° Leo  
+          { name: 'Moon', degree: 180 }, // 0° Libra
+        ],
+        houseCusps: [30, 60, 90, 120, 150, 180, 210, 240, 270, 300, 330, 0],
+      };
+
+      const chart3: ChartData = {
+        name: 'Charlie',
+        planets: [
+          { name: 'Sun', degree: 240 }, // 0° Sagittarius
+          { name: 'Moon', degree: 300 }, // 0° Aquarius
+        ],
+        houseCusps: [60, 90, 120, 150, 180, 210, 240, 270, 300, 330, 0, 30],
+      };
+
+      const result = chart2txt([chart1, chart2, chart3], { includeAspectPatterns: true });
+
+      // Should have individual chart sections
+      expect(result).toContain('[CHART: Alice]');
+      expect(result).toContain('[CHART: Bob]');
+      expect(result).toContain('[CHART: Charlie]');
+      
+      // Should have pairwise synastry sections
+      expect(result).toContain('[SYNASTRY: Alice-Bob]');
+      expect(result).toContain('[SYNASTRY: Alice-Charlie]');
+      expect(result).toContain('[SYNASTRY: Bob-Charlie]');
+      
+      // Should have multiple house overlay sections
+      expect(result).toContain("Alice's planets in Bob's houses:");
+      expect(result).toContain("Bob's planets in Alice's houses:");
+      expect(result).toContain("Alice's planets in Charlie's houses:");
+      expect(result).toContain("Charlie's planets in Alice's houses:");
+      expect(result).toContain("Bob's planets in Charlie's houses:");
+      expect(result).toContain("Charlie's planets in Bob's houses:");
+    });
+
+    test('formats synastry with transit chart', () => {
+      const natalChart: ChartData = {
+        name: 'Alice',
+        chartType: 'natal',
+        planets: [
+          { name: 'Sun', degree: 150 }, // 0° Virgo
+          { name: 'Moon', degree: 60 }, // 0° Gemini
+        ],
+        houseCusps: [0, 30, 60, 90, 120, 150, 180, 210, 240, 270, 300, 330],
+      };
+
+      const transitChart: ChartData = {
+        name: 'Current Transits',
+        chartType: 'transit',
+        planets: [
+          { name: 'Sun', degree: 300 }, // 0° Aquarius
+          { name: 'Mars', degree: 210 }, // 0° Scorpio
+        ],
+        location: 'New York',
+        timestamp: new Date(2024, 0, 15, 12, 0, 0),
+      };
+
+      const result = chart2txt([natalChart, transitChart], { includeAspectPatterns: true });
+
+      // Should have natal chart section
+      expect(result).toContain('[CHART: Alice]');
+      
+      // Should have transit chart info
+      expect(result).toContain('[TRANSIT: Current Transits]');
+      expect(result).toContain('[DATETIME]');
+      
+      // Should have transit aspects
+      expect(result).toContain('[TRANSIT ASPECTS: Alice]');
+    });
+
+    test('formats synastry with event chart', () => {
+      const natalChart: ChartData = {
+        name: 'Alice',
+        chartType: 'natal',
+        planets: [
+          { name: 'Sun', degree: 30 }, // 0° Taurus
+          { name: 'Moon', degree: 270 }, // 0° Capricorn
+        ],
+        houseCusps: [0, 30, 60, 90, 120, 150, 180, 210, 240, 270, 300, 330],
+      };
+
+      const eventChart: ChartData = {
+        name: 'Wedding',
+        chartType: 'event',
+        planets: [
+          { name: 'Sun', degree: 180 }, // 0° Libra
+          { name: 'Venus', degree: 210 }, // 0° Scorpio
+        ],
+        houseCusps: [15, 45, 75, 105, 135, 165, 195, 225, 255, 285, 315, 345],
+        location: 'Paris',
+        timestamp: new Date(2024, 5, 21, 14, 30, 0),
+      };
+
+      const result = chart2txt([natalChart, eventChart], { includeAspectPatterns: true });
+
+      // Should have both chart sections
+      expect(result).toContain('[CHART: Alice]');
+      expect(result).toContain('[CHART: Wedding]');
+      
+      // Should have natal-event relationship
+      expect(result).toContain('[NATAL_EVENT: Alice-Wedding]');
+      
+      // Should have house overlays
+      expect(result).toContain('[HOUSE OVERLAYS]');
+      expect(result).toContain("Alice's planets in Wedding's houses:");
+      expect(result).toContain("Wedding's planets in Alice's houses:");
+    });
+
+    test('handles missing house cusps in overlays', () => {
+      const chart1: ChartData = {
+        name: 'Alice',
+        planets: [
+          { name: 'Sun', degree: 120 }, // 0° Leo
+        ],
+        // No house cusps provided
+      };
+
+      const chart2: ChartData = {
+        name: 'Bob',
+        planets: [
+          { name: 'Moon', degree: 180 }, // 0° Libra
+        ],
+        houseCusps: [0, 30, 60, 90, 120, 150, 180, 210, 240, 270, 300, 330],
+      };
+
+      const result = chart2txt([chart1, chart2], { includeAspectPatterns: true });
+
+      expect(result).toContain('[HOUSE OVERLAYS]');
+      expect(result).toContain("Alice's planets in Bob's houses:");
+      expect(result).toContain("- Sun: 5th");
+      expect(result).toContain("Bob's planets in Alice's houses: (Alice house cusps not available)");
     });
   });
 
