@@ -36,6 +36,7 @@ export interface AspectData {
   planetB: string;
   aspectType: string;
   orb: number; // Actual orb of the aspect
+  application?: 'applying' | 'separating' | 'exact'; // Optional: whether aspect is applying or separating
 }
 
 export interface AspectCategory {
@@ -43,6 +44,65 @@ export interface AspectCategory {
   minOrb?: number; // Minimum orb for this category (exclusive, e.g. 2 for 2-4°)
   maxOrb: number; // Maximum orb for this category (inclusive)
 }
+
+export interface PlanetPosition {
+  name: string;
+  degree: number;
+  sign: string;
+  house?: number;
+}
+
+export interface TSquare {
+  type: 'T-Square';
+  apex: PlanetPosition;
+  opposition: [PlanetPosition, PlanetPosition];
+  mode: 'Cardinal' | 'Fixed' | 'Mutable';
+  averageOrb: number;
+}
+
+export interface GrandTrine {
+  type: 'Grand Trine';
+  planets: [PlanetPosition, PlanetPosition, PlanetPosition];
+  element: 'Fire' | 'Earth' | 'Air' | 'Water';
+  averageOrb: number;
+}
+
+export interface Stellium {
+  type: 'Stellium';
+  planets: PlanetPosition[];
+  sign?: string;
+  houses: number[];
+  span: number;
+}
+
+export interface GrandCross {
+  type: 'Grand Cross';
+  planets: [PlanetPosition, PlanetPosition, PlanetPosition, PlanetPosition];
+  mode: 'Cardinal' | 'Fixed' | 'Mutable';
+  averageOrb: number;
+}
+
+export interface Yod {
+  type: 'Yod';
+  apex: PlanetPosition;
+  base: [PlanetPosition, PlanetPosition];
+  averageOrb: number;
+}
+
+export interface MysticRectangle {
+  type: 'Mystic Rectangle';
+  oppositions: [[PlanetPosition, PlanetPosition], [PlanetPosition, PlanetPosition]];
+  averageOrb: number;
+}
+
+export interface Kite {
+  type: 'Kite';
+  grandTrine: [PlanetPosition, PlanetPosition, PlanetPosition];
+  opposition: PlanetPosition;
+  averageOrb: number;
+}
+
+export type AspectPattern = TSquare | GrandTrine | Stellium | GrandCross | Yod | MysticRectangle | Kite;
 
 export interface Settings {
   // sign settings
@@ -59,6 +119,10 @@ export interface Settings {
   aspectDefinitions: Aspect[];
   aspectCategories: AspectCategory[];
   skipOutOfSignAspects: boolean;
+  
+  // pattern settings
+  includeAspectPatterns: boolean; // Whether to detect and display aspect patterns
+  
   dateFormat: string; // e.g., "MM/DD/YYYY", "YYYY-MM-DD"
 }
 

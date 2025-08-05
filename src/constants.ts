@@ -24,8 +24,8 @@ export const DEFAULT_ASPECTS: Aspect[] = [
 ];
 
 export const DEFAULT_ASPECT_CATEGORIES: AspectCategory[] = [
-  { name: 'MAJOR', maxOrb: 2 }, // Orb < 2°
-  { name: 'MODERATE', minOrb: 2, maxOrb: 4 }, // Orb 2-4°
+  { name: 'TIGHT ASPECTS', maxOrb: 2 }, // Orb < 2°
+  { name: 'MODERATE ASPECTS', minOrb: 2, maxOrb: 4 }, // Orb 2-4°
 ];
 
 export const DEFAULT_SETTINGS: Settings = {
@@ -43,5 +43,9 @@ export const DEFAULT_SETTINGS: Settings = {
   aspectDefinitions: DEFAULT_ASPECTS,
   aspectCategories: DEFAULT_ASPECT_CATEGORIES,
   skipOutOfSignAspects: true,
+  
+  // pattern settings
+  includeAspectPatterns: false, // Aspect patterns disabled by default
+  
   dateFormat: 'MM/DD/YYYY', // As per example output
 };

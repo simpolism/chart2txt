@@ -9,13 +9,17 @@ import {
   calculateAspects,
   calculateMultichartAspects,
 } from '../../core/aspects';
+import { detectAspectPatterns } from '../../core/aspectPatterns';
 
 import { generateMetadataOutput } from './sections/metadata';
 import { generateChartHeaderOutput } from './sections/chartHeader';
 import { generateBirthdataOutput } from './sections/birthdata';
 import { generateAnglesOutput } from './sections/angles';
+import { generateHousesOutput } from './sections/houses';
 import { generatePlanetsOutput } from './sections/planets';
+import { generateDispositorsOutput } from './sections/dispositors';
 import { generateAspectsOutput } from './sections/aspects';
+import { generateAspectPatternsOutput } from './sections/aspectPatterns';
 import { generateHouseOverlaysOutput } from './sections/houseOverlays';
 
 const processSingleChartOutput = (
@@ -38,7 +42,13 @@ const processSingleChartOutput = (
     ...generateAnglesOutput(chartData.ascendant, chartData.midheaven)
   );
   outputLines.push(
+    ...generateHousesOutput(chartData.houseCusps)
+  );
+  outputLines.push(
     ...generatePlanetsOutput(chartData.planets, chartData.houseCusps, settings)
+  );
+  outputLines.push(
+    ...generateDispositorsOutput(chartData.planets)
   );
 
   const aspects = calculateAspects(
@@ -48,6 +58,12 @@ const processSingleChartOutput = (
   );
   // For single chart, p1ChartName and p2ChartName are not needed for aspect string generation
   outputLines.push(...generateAspectsOutput('[ASPECTS]', aspects, settings));
+  
+  // Detect and display aspect patterns (if enabled)
+  if (settings.includeAspectPatterns) {
+    const aspectPatterns = detectAspectPatterns(chartData.planets, chartData.houseCusps);
+    outputLines.push(...generateAspectPatternsOutput(aspectPatterns));
+  }
   outputLines.push('');
   return outputLines;
 };
