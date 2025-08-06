@@ -1,6 +1,5 @@
 import {
   Point,
-  Aspect,
   AspectData,
   AspectPattern,
   PlanetPosition,
@@ -12,23 +11,30 @@ import {
   MysticRectangle,
   Kite,
 } from '../types';
-import { getDegreeSign, getDegreeInSign, normalizeDegree } from './astrology';
-import { calculateAspects } from './aspects';
+import { getDegreeSign, normalizeDegree } from './astrology';
 import { getHouseForPoint } from '../utils/houseCalculations';
 
+
 /**
- * Helper function to calculate orb between two planets for a specific aspect angle
+ * Create a lookup map for aspect relationships between planets
  */
-function calculateOrb(
-  planet1: Point,
-  planet2: Point,
-  aspectAngle: number
-): number {
-  const degree1 = normalizeDegree(planet1.degree);
-  const degree2 = normalizeDegree(planet2.degree);
-  let diff = Math.abs(degree1 - degree2);
-  if (diff > 180) diff = 360 - diff;
-  return Math.abs(diff - aspectAngle);
+function createAspectLookup(aspects: AspectData[]): Map<string, Map<string, AspectData>> {
+  const lookup = new Map<string, Map<string, AspectData>>();
+  
+  aspects.forEach(aspect => {
+    // Create bidirectional lookup (planetA -> planetB and planetB -> planetA)
+    if (!lookup.has(aspect.planetA)) {
+      lookup.set(aspect.planetA, new Map());
+    }
+    if (!lookup.has(aspect.planetB)) {
+      lookup.set(aspect.planetB, new Map());
+    }
+    
+    lookup.get(aspect.planetA)!.set(aspect.planetB, aspect);
+    lookup.get(aspect.planetB)!.set(aspect.planetA, aspect);
+  });
+  
+  return lookup;
 }
 
 /**
@@ -57,7 +63,6 @@ function pointToPlanetPosition(
 function getSignModality(sign: string): 'Cardinal' | 'Fixed' | 'Mutable' {
   const cardinal = ['Aries', 'Cancer', 'Libra', 'Capricorn'];
   const fixed = ['Taurus', 'Leo', 'Scorpio', 'Aquarius'];
-  const mutable = ['Gemini', 'Virgo', 'Sagittarius', 'Pisces'];
 
   if (cardinal.includes(sign)) return 'Cardinal';
   if (fixed.includes(sign)) return 'Fixed';
@@ -71,7 +76,6 @@ function getSignElement(sign: string): 'Fire' | 'Earth' | 'Air' | 'Water' {
   const fire = ['Aries', 'Leo', 'Sagittarius'];
   const earth = ['Taurus', 'Virgo', 'Capricorn'];
   const air = ['Gemini', 'Libra', 'Aquarius'];
-  const water = ['Cancer', 'Scorpio', 'Pisces'];
 
   if (fire.includes(sign)) return 'Fire';
   if (earth.includes(sign)) return 'Earth';
@@ -80,16 +84,33 @@ function getSignElement(sign: string): 'Fire' | 'Earth' | 'Air' | 'Water' {
 }
 
 /**
- * Check if two planets form a specific aspect within orb
+ * Check if two planets have a specific aspect type using the pre-calculated aspects
  */
-function hasAspect(
-  planet1: Point,
-  planet2: Point,
-  aspectAngle: number,
-  orb: number
+function hasSpecificAspect(
+  planet1Name: string,
+  planet2Name: string,
+  aspectType: string,
+  aspectLookup: Map<string, Map<string, AspectData>>
 ): boolean {
-  const calculatedOrb = calculateOrb(planet1, planet2, aspectAngle);
-  return calculatedOrb <= orb;
+  const planet1Aspects = aspectLookup.get(planet1Name);
+  if (!planet1Aspects) return false;
+  
+  const aspectData = planet1Aspects.get(planet2Name);
+  return aspectData !== undefined && aspectData.aspectType === aspectType;
+}
+
+/**
+ * Get aspect data between two planets if it exists
+ */
+function getAspectBetween(
+  planet1Name: string,
+  planet2Name: string,
+  aspectLookup: Map<string, Map<string, AspectData>>
+): AspectData | undefined {
+  const planet1Aspects = aspectLookup.get(planet1Name);
+  if (!planet1Aspects) return undefined;
+  
+  return planet1Aspects.get(planet2Name);
 }
 
 /**
@@ -97,31 +118,32 @@ function hasAspect(
  */
 function detectTSquares(
   planets: Point[],
-  houseCusps?: number[],
-  maxOrb = 8
+  aspectLookup: Map<string, Map<string, AspectData>>,
+  houseCusps?: number[]
 ): TSquare[] {
   const patterns: TSquare[] = [];
 
   for (let i = 0; i < planets.length; i++) {
     for (let j = i + 1; j < planets.length; j++) {
       // Check for opposition
-      if (hasAspect(planets[i], planets[j], 180, maxOrb)) {
+      if (hasSpecificAspect(planets[i].name, planets[j].name, 'opposition', aspectLookup)) {
         // Look for a third planet that squares both
         for (let k = 0; k < planets.length; k++) {
           if (k === i || k === j) continue;
 
           if (
-            hasAspect(planets[i], planets[k], 90, maxOrb) &&
-            hasAspect(planets[j], planets[k], 90, maxOrb)
+            hasSpecificAspect(planets[i].name, planets[k].name, 'square', aspectLookup) &&
+            hasSpecificAspect(planets[j].name, planets[k].name, 'square', aspectLookup)
           ) {
             const apex = pointToPlanetPosition(planets[k], houseCusps);
             const opp1 = pointToPlanetPosition(planets[i], houseCusps);
             const opp2 = pointToPlanetPosition(planets[j], houseCusps);
 
-            const orb1 = calculateOrb(planets[i], planets[j], 180);
-            const orb2 = calculateOrb(planets[i], planets[k], 90);
-            const orb3 = calculateOrb(planets[j], planets[k], 90);
-            const averageOrb = (orb1 + orb2 + orb3) / 3;
+            // Get actual orbs from pre-calculated aspects
+            const oppAspect = getAspectBetween(planets[i].name, planets[j].name, aspectLookup)!;
+            const square1Aspect = getAspectBetween(planets[i].name, planets[k].name, aspectLookup)!;
+            const square2Aspect = getAspectBetween(planets[j].name, planets[k].name, aspectLookup)!;
+            const averageOrb = (oppAspect.orb + square1Aspect.orb + square2Aspect.orb) / 3;
 
             // Determine modality from apex planet
             const mode = getSignModality(apex.sign);
@@ -147,8 +169,8 @@ function detectTSquares(
  */
 function detectGrandTrines(
   planets: Point[],
-  houseCusps?: number[],
-  maxOrb = 8
+  aspectLookup: Map<string, Map<string, AspectData>>,
+  houseCusps?: number[]
 ): GrandTrine[] {
   const patterns: GrandTrine[] = [];
 
@@ -157,18 +179,19 @@ function detectGrandTrines(
       for (let k = j + 1; k < planets.length; k++) {
         // Check if all three planets form trines with each other
         if (
-          hasAspect(planets[i], planets[j], 120, maxOrb) &&
-          hasAspect(planets[j], planets[k], 120, maxOrb) &&
-          hasAspect(planets[k], planets[i], 120, maxOrb)
+          hasSpecificAspect(planets[i].name, planets[j].name, 'trine', aspectLookup) &&
+          hasSpecificAspect(planets[j].name, planets[k].name, 'trine', aspectLookup) &&
+          hasSpecificAspect(planets[k].name, planets[i].name, 'trine', aspectLookup)
         ) {
           const planet1 = pointToPlanetPosition(planets[i], houseCusps);
           const planet2 = pointToPlanetPosition(planets[j], houseCusps);
           const planet3 = pointToPlanetPosition(planets[k], houseCusps);
 
-          const orb1 = calculateOrb(planets[i], planets[j], 120);
-          const orb2 = calculateOrb(planets[j], planets[k], 120);
-          const orb3 = calculateOrb(planets[k], planets[i], 120);
-          const averageOrb = (orb1 + orb2 + orb3) / 3;
+          // Get actual orbs from pre-calculated aspects
+          const trine1Aspect = getAspectBetween(planets[i].name, planets[j].name, aspectLookup)!;
+          const trine2Aspect = getAspectBetween(planets[j].name, planets[k].name, aspectLookup)!;
+          const trine3Aspect = getAspectBetween(planets[k].name, planets[i].name, aspectLookup)!;
+          const averageOrb = (trine1Aspect.orb + trine2Aspect.orb + trine3Aspect.orb) / 3;
 
           // Determine element from the planets (should be same element for proper grand trine)
           const element = getSignElement(planet1.sign);
@@ -192,6 +215,7 @@ function detectGrandTrines(
  */
 function detectStelliums(
   planets: Point[],
+  aspectLookup: Map<string, Map<string, AspectData>>,
   houseCusps?: number[],
   minPlanets = 3
 ): Stellium[] {
@@ -279,8 +303,8 @@ function detectStelliums(
  */
 function detectGrandCrosses(
   planets: Point[],
-  houseCusps?: number[],
-  maxOrb = 8
+  aspectLookup: Map<string, Map<string, AspectData>>,
+  houseCusps?: number[]
 ): GrandCross[] {
   const patterns: GrandCross[] = [];
 
@@ -303,16 +327,19 @@ function detectGrandCrosses(
           // Check for two oppositions
           let oppositions = 0;
           let squares = 0;
+          const aspectData: AspectData[] = [];
 
           pairs.forEach(([a, b]) => {
-            if (hasAspect(planets[a], planets[b], 180, maxOrb)) {
+            if (hasSpecificAspect(planets[a].name, planets[b].name, 'opposition', aspectLookup)) {
               oppositions++;
+              aspectData.push(getAspectBetween(planets[a].name, planets[b].name, aspectLookup)!);
             }
           });
 
           otherPairs.forEach(([a, b]) => {
-            if (hasAspect(planets[a], planets[b], 90, maxOrb)) {
+            if (hasSpecificAspect(planets[a].name, planets[b].name, 'square', aspectLookup)) {
               squares++;
+              aspectData.push(getAspectBetween(planets[a].name, planets[b].name, aspectLookup)!);
             }
           });
 
@@ -322,21 +349,9 @@ function detectGrandCrosses(
             const planet3 = pointToPlanetPosition(planets[k], houseCusps);
             const planet4 = pointToPlanetPosition(planets[l], houseCusps);
 
-            // Calculate average orb
-            let totalOrb = 0;
-            let aspectCount = 0;
-
-            pairs.forEach(([a, b]) => {
-              totalOrb += calculateOrb(planets[a], planets[b], 180);
-              aspectCount++;
-            });
-
-            otherPairs.forEach(([a, b]) => {
-              totalOrb += calculateOrb(planets[a], planets[b], 90);
-              aspectCount++;
-            });
-
-            const averageOrb = totalOrb / aspectCount;
+            // Calculate average orb from actual aspect data
+            const totalOrb = aspectData.reduce((sum, aspect) => sum + aspect.orb, 0);
+            const averageOrb = totalOrb / aspectData.length;
             const mode = getSignModality(planet1.sign); // Determine from first planet
 
             patterns.push({
@@ -359,31 +374,32 @@ function detectGrandCrosses(
  */
 function detectYods(
   planets: Point[],
-  houseCusps?: number[],
-  maxOrb = 5
+  aspectLookup: Map<string, Map<string, AspectData>>,
+  houseCusps?: number[]
 ): Yod[] {
   const patterns: Yod[] = [];
 
   for (let i = 0; i < planets.length; i++) {
     for (let j = i + 1; j < planets.length; j++) {
       // Check for sextile between base planets
-      if (hasAspect(planets[i], planets[j], 60, maxOrb)) {
+      if (hasSpecificAspect(planets[i].name, planets[j].name, 'sextile', aspectLookup)) {
         // Look for apex planet that forms quincunxes with both
         for (let k = 0; k < planets.length; k++) {
           if (k === i || k === j) continue;
 
           if (
-            hasAspect(planets[i], planets[k], 150, maxOrb) &&
-            hasAspect(planets[j], planets[k], 150, maxOrb)
+            hasSpecificAspect(planets[i].name, planets[k].name, 'quincunx', aspectLookup) &&
+            hasSpecificAspect(planets[j].name, planets[k].name, 'quincunx', aspectLookup)
           ) {
             const apex = pointToPlanetPosition(planets[k], houseCusps);
             const base1 = pointToPlanetPosition(planets[i], houseCusps);
             const base2 = pointToPlanetPosition(planets[j], houseCusps);
 
-            const orb1 = calculateOrb(planets[i], planets[j], 60);
-            const orb2 = calculateOrb(planets[i], planets[k], 150);
-            const orb3 = calculateOrb(planets[j], planets[k], 150);
-            const averageOrb = (orb1 + orb2 + orb3) / 3;
+            // Get actual orbs from pre-calculated aspects
+            const sextileAspect = getAspectBetween(planets[i].name, planets[j].name, aspectLookup)!;
+            const quincunx1Aspect = getAspectBetween(planets[i].name, planets[k].name, aspectLookup)!;
+            const quincunx2Aspect = getAspectBetween(planets[j].name, planets[k].name, aspectLookup)!;
+            const averageOrb = (sextileAspect.orb + quincunx1Aspect.orb + quincunx2Aspect.orb) / 3;
 
             patterns.push({
               type: 'Yod',
@@ -405,8 +421,8 @@ function detectYods(
  */
 function detectMysticRectangles(
   planets: Point[],
-  houseCusps?: number[],
-  maxOrb = 8
+  aspectLookup: Map<string, Map<string, AspectData>>,
+  houseCusps?: number[]
 ): MysticRectangle[] {
   const patterns: MysticRectangle[] = [];
 
@@ -457,19 +473,20 @@ function detectMysticRectangles(
           for (const combo of combinations) {
             let validOppositions = 0;
             let validSextiles = 0;
+            const aspectData: AspectData[] = [];
 
             combo.oppositions.forEach(([a, b]) => {
-              if (hasAspect(planets[a], planets[b], 180, maxOrb)) {
+              if (hasSpecificAspect(planets[a].name, planets[b].name, 'opposition', aspectLookup)) {
                 validOppositions++;
+                aspectData.push(getAspectBetween(planets[a].name, planets[b].name, aspectLookup)!);
               }
             });
 
             combo.sextiles.forEach(([a, b]) => {
-              if (
-                hasAspect(planets[a], planets[b], 60, maxOrb) ||
-                hasAspect(planets[a], planets[b], 120, maxOrb)
-              ) {
+              const sextileAspect = getAspectBetween(planets[a].name, planets[b].name, aspectLookup);
+              if (sextileAspect && (sextileAspect.aspectType === 'sextile' || sextileAspect.aspectType === 'trine')) {
                 validSextiles++;
+                aspectData.push(sextileAspect);
               }
             });
 
@@ -491,23 +508,9 @@ function detectMysticRectangles(
                 houseCusps
               );
 
-              // Calculate average orb
-              let totalOrb = 0;
-              let aspectCount = 0;
-
-              combo.oppositions.forEach(([a, b]) => {
-                totalOrb += calculateOrb(planets[a], planets[b], 180);
-                aspectCount++;
-              });
-
-              combo.sextiles.forEach(([a, b]) => {
-                const sextileOrb = calculateOrb(planets[a], planets[b], 60);
-                const trineOrb = calculateOrb(planets[a], planets[b], 120);
-                totalOrb += Math.min(sextileOrb, trineOrb);
-                aspectCount++;
-              });
-
-              const averageOrb = totalOrb / aspectCount;
+              // Calculate average orb from actual aspect data
+              const totalOrb = aspectData.reduce((sum, aspect) => sum + aspect.orb, 0);
+              const averageOrb = totalOrb / aspectData.length;
 
               patterns.push({
                 type: 'Mystic Rectangle',
@@ -532,11 +535,11 @@ function detectMysticRectangles(
  */
 function detectKites(
   planets: Point[],
-  houseCusps?: number[],
-  maxOrb = 8
+  aspectLookup: Map<string, Map<string, AspectData>>,
+  houseCusps?: number[]
 ): Kite[] {
   const patterns: Kite[] = [];
-  const grandTrines = detectGrandTrines(planets, houseCusps, maxOrb);
+  const grandTrines = detectGrandTrines(planets, aspectLookup, houseCusps);
 
   grandTrines.forEach((grandTrine) => {
     // For each planet in the grand trine, look for opposition to another planet
@@ -546,20 +549,10 @@ function detectKites(
           (tp) => tp.name === planet.name
         );
         if (!isPartOfTrine) {
-          const trinePointOriginal = planets.find(
-            (p) => p.name === trinePoint.name
-          );
-          if (
-            trinePointOriginal &&
-            hasAspect(trinePointOriginal, planet, 180, maxOrb)
-          ) {
+          if (hasSpecificAspect(trinePoint.name, planet.name, 'opposition', aspectLookup)) {
             const oppositionPlanet = pointToPlanetPosition(planet, houseCusps);
-            const orbToOpposition = calculateOrb(
-              trinePointOriginal,
-              planet,
-              180
-            );
-            const averageOrb = (grandTrine.averageOrb + orbToOpposition) / 2;
+            const oppositionAspect = getAspectBetween(trinePoint.name, planet.name, aspectLookup)!;
+            const averageOrb = (grandTrine.averageOrb + oppositionAspect.orb) / 2;
 
             patterns.push({
               type: 'Kite',
@@ -581,17 +574,19 @@ function detectKites(
  */
 export function detectAspectPatterns(
   planets: Point[],
+  aspects: AspectData[],
   houseCusps?: number[]
 ): AspectPattern[] {
   const patterns: AspectPattern[] = [];
+  const aspectLookup = createAspectLookup(aspects);
 
-  patterns.push(...detectTSquares(planets, houseCusps));
-  patterns.push(...detectGrandTrines(planets, houseCusps));
-  patterns.push(...detectStelliums(planets, houseCusps));
-  patterns.push(...detectGrandCrosses(planets, houseCusps));
-  patterns.push(...detectYods(planets, houseCusps));
-  patterns.push(...detectMysticRectangles(planets, houseCusps));
-  patterns.push(...detectKites(planets, houseCusps));
+  patterns.push(...detectTSquares(planets, aspectLookup, houseCusps));
+  patterns.push(...detectGrandTrines(planets, aspectLookup, houseCusps));
+  patterns.push(...detectStelliums(planets, aspectLookup, houseCusps));
+  patterns.push(...detectGrandCrosses(planets, aspectLookup, houseCusps));
+  patterns.push(...detectYods(planets, aspectLookup, houseCusps));
+  patterns.push(...detectMysticRectangles(planets, aspectLookup, houseCusps));
+  patterns.push(...detectKites(planets, aspectLookup, houseCusps));
 
   return patterns;
 }

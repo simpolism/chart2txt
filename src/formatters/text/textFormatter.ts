@@ -97,6 +97,7 @@ const processSingleChartOutput = (
   if (settings.includeAspectPatterns) {
     const aspectPatterns = detectAspectPatterns(
       chartData.planets,
+      aspects,
       chartData.houseCusps
     );
     outputLines.push(...generateAspectPatternsOutput(aspectPatterns));

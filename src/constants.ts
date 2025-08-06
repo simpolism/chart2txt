@@ -21,6 +21,7 @@ export const DEFAULT_ASPECTS: Aspect[] = [
   { name: 'trine', angle: 120, orb: 5 },
   { name: 'square', angle: 90, orb: 5 },
   { name: 'sextile', angle: 60, orb: 3 },
+  { name: 'quincunx', angle: 150, orb: 2 },
 ];
 
 export const DEFAULT_ASPECT_CATEGORIES: AspectCategory[] = [
