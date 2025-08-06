@@ -1,6 +1,7 @@
 import { Point, Aspect, AspectData } from '../types';
 import { normalizeDegree } from './astrology';
 import { isExactAspect, roundDegrees } from '../utils/precision';
+import { OrbResolver, OrbResolutionContext } from './orbResolver';
 
 /**
  * Gets the expected sign difference for a given aspect angle
@@ -101,7 +102,9 @@ function findTightestAspect(
   aspectDefinitions: Aspect[],
   planetA: Point,
   planetB: Point,
-  skipOutOfSignAspects: boolean
+  skipOutOfSignAspects: boolean,
+  orbResolver?: OrbResolver,
+  chartType?: 'natal' | 'synastry' | 'transit' | 'composite'
 ): AspectData | null {
   const degreeA = roundDegrees(normalizeDegree(planetA.degree));
   const degreeB = roundDegrees(normalizeDegree(planetB.degree));
@@ -128,7 +131,20 @@ function findTightestAspect(
       }
     }
 
-    if (orb <= aspectType.orb) {
+    // Determine the maximum allowed orb for this aspect
+    let maxAllowedOrb = aspectType.orb; // Default fallback
+    
+    if (orbResolver) {
+      const context: OrbResolutionContext = {
+        chartType: chartType || 'natal',
+        planetA,
+        planetB,
+        aspect: aspectType,
+      };
+      maxAllowedOrb = orbResolver.resolveOrb(context);
+    }
+
+    if (orb <= maxAllowedOrb) {
       if (!tightestAspect || orb < tightestAspect.orb) {
         const application = determineAspectApplication(
           planetA,
@@ -152,12 +168,15 @@ function findTightestAspect(
  * Identifies aspects between planets in a single chart.
  * @param aspectDefinitions Array of aspect types to check for.
  * @param planets Array of planet points.
+ * @param skipOutOfSignAspects Whether to skip aspects that cross sign boundaries.
+ * @param orbResolver Optional orb resolver for advanced orb calculation.
  * @returns Array of found aspects.
  */
 export function calculateAspects(
   aspectDefinitions: Aspect[],
   planets: Point[],
-  skipOutOfSignAspects = true
+  skipOutOfSignAspects = true,
+  orbResolver?: OrbResolver
 ): AspectData[] {
   const aspects: AspectData[] = [];
   if (!planets || planets.length < 2) return aspects;
@@ -170,7 +189,9 @@ export function calculateAspects(
         aspectDefinitions,
         planetA,
         planetB,
-        skipOutOfSignAspects
+        skipOutOfSignAspects,
+        orbResolver,
+        'natal'
       );
       if (aspect) {
         aspects.push(aspect);
@@ -186,13 +207,18 @@ export function calculateAspects(
  * @param aspectDefinitions Array of aspect types to check for.
  * @param chart1Planets Array of planet points for the first chart.
  * @param chart2Planets Array of planet points for the second chart.
+ * @param skipOutOfSignAspects Whether to skip aspects that cross sign boundaries.
+ * @param orbResolver Optional orb resolver for advanced orb calculation.
+ * @param chartType Type of multi-chart comparison (synastry, transit, etc.).
  * @returns Array of found aspects.
  */
 export function calculateMultichartAspects(
   aspectDefinitions: Aspect[],
   chart1Planets: Point[],
   chart2Planets: Point[],
-  skipOutOfSignAspects = true
+  skipOutOfSignAspects = true,
+  orbResolver?: OrbResolver,
+  chartType: 'synastry' | 'transit' | 'composite' = 'synastry'
 ): AspectData[] {
   const aspects: AspectData[] = [];
   if (
@@ -210,7 +236,9 @@ export function calculateMultichartAspects(
         aspectDefinitions,
         p1,
         p2,
-        skipOutOfSignAspects
+        skipOutOfSignAspects,
+        orbResolver,
+        chartType
       );
       if (aspect) {
         aspects.push(aspect);

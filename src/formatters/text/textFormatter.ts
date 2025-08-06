@@ -88,7 +88,8 @@ const processSingleChartOutput = (
   const aspects = calculateAspects(
     settings.aspectDefinitions,
     getAllPointsFromChart(chartData),
-    settings.skipOutOfSignAspects
+    settings.skipOutOfSignAspects,
+    settings.orbResolver
   );
   // For single chart, p1ChartName and p2ChartName are not needed for aspect string generation
   outputLines.push(...generateAspectsOutput('[ASPECTS]', aspects, settings));
@@ -125,7 +126,9 @@ const processChartPairOutput = (
     settings.aspectDefinitions,
     getAllPointsFromChart(chart1),
     getAllPointsFromChart(chart2),
-    settings.skipOutOfSignAspects
+    settings.skipOutOfSignAspects,
+    settings.orbResolver,
+    'synastry'
   );
   outputLines.push(
     ...generateAspectsOutput(
@@ -296,7 +299,9 @@ export function formatChartToText(
         settings.aspectDefinitions,
         getAllPointsFromChart(chart),
         getAllPointsFromChart(transitChart),
-        settings.skipOutOfSignAspects
+        settings.skipOutOfSignAspects,
+        settings.orbResolver,
+        'transit'
       );
       outputLines.push(
         ...generateAspectsOutput(

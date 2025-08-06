@@ -25,10 +25,25 @@ export function isMultiChartData(
   return Array.isArray(obj);
 }
 
+export enum AspectClassification {
+  Major = 'major',
+  Minor = 'minor',
+  Esoteric = 'esoteric',
+}
+
+export enum PlanetCategory {
+  Luminaries = 'luminaries',
+  Personal = 'personal',
+  Social = 'social',
+  Outer = 'outer',
+  Angles = 'angles',
+}
+
 export interface Aspect {
   name: string;
   angle: number; // 0-360 degrees
-  orb: number; // Maximum allowable orb for this aspect type
+  orb: number; // Maximum allowable orb for this aspect type (legacy/fallback)
+  classification?: AspectClassification; // Major, minor, or esoteric aspect
 }
 
 export interface AspectData {
@@ -43,6 +58,39 @@ export interface AspectCategory {
   name: string; // e.g., "MAJOR", "MODERATE"
   minOrb?: number; // Minimum orb for this category (exclusive, e.g. 2 for 2-4°)
   maxOrb: number; // Maximum orb for this category (inclusive)
+}
+
+export interface PlanetOrbRules {
+  defaultOrb?: number; // Default orb for this planet category
+  aspectOrbs?: { [aspectName: string]: number }; // Specific aspect orbs for this category
+}
+
+export interface OrbClassificationRules {
+  orbMultiplier?: number; // Multiplier applied to base orbs for this classification
+  minOrb?: number; // Minimum orb regardless of calculation
+  maxOrb?: number; // Maximum orb regardless of calculation
+}
+
+export interface ContextualOrbRules {
+  orbMultiplier?: number; // Multiplier applied to calculated orbs for this context
+  aspectMultipliers?: { [aspectName: string]: number }; // Per-aspect multipliers
+}
+
+export interface OrbConfiguration {
+  presetName?: string; // Name of preset being used (for reference)
+  planetCategories?: {
+    [key in PlanetCategory]?: PlanetOrbRules;
+  };
+  aspectClassification?: {
+    [key in AspectClassification]?: OrbClassificationRules;
+  };
+  contextualOrbs?: {
+    synastry?: ContextualOrbRules;
+    transits?: ContextualOrbRules;
+    composite?: ContextualOrbRules;
+  };
+  planetMapping?: { [planetName: string]: PlanetCategory }; // Override default planet categorization
+  globalFallbackOrb?: number; // Ultimate fallback orb if all else fails
 }
 
 export interface PlanetPosition {
@@ -129,6 +177,7 @@ export interface Settings {
   aspectDefinitions: Aspect[];
   aspectCategories: AspectCategory[];
   skipOutOfSignAspects: boolean;
+  orbConfiguration?: OrbConfiguration; // New enhanced orb configuration system
 
   // pattern settings
   includeAspectPatterns: boolean; // Whether to detect and display aspect patterns
