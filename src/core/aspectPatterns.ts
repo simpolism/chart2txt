@@ -5,14 +5,12 @@ import {
   PlanetPosition,
   TSquare,
   GrandTrine,
-  Stellium,
   GrandCross,
   Yod,
   MysticRectangle,
   Kite,
 } from '../types';
-import { getDegreeSign, normalizeDegree } from './astrology';
-import { getHouseForPoint } from '../utils/houseCalculations';
+import { getDegreeSign } from './astrology';
 
 
 /**
@@ -38,15 +36,38 @@ function createAspectLookup(aspects: AspectData[]): Map<string, Map<string, Aspe
 }
 
 /**
- * Convert Point to PlanetPosition
+ * Convert Point to PlanetPosition for aspect patterns
+ * Note: House information is optional for aspect patterns (except stelliums which are handled separately)
  */
 function pointToPlanetPosition(
   point: Point,
   houseCusps?: number[]
 ): PlanetPosition {
   const sign = getDegreeSign(point.degree);
-  const house = houseCusps
-    ? getHouseForPoint(point.degree, houseCusps) || undefined
+  // For multi-chart patterns, house information may not be meaningful
+  // Only calculate house if houseCusps are provided and we're dealing with a single-chart context
+  const house = houseCusps && houseCusps.length === 12
+    ? (() => {
+        // Simple house calculation without importing the utility
+        const normalizedDegree = point.degree % 360;
+        for (let i = 0; i < 12; i++) {
+          const currentCusp = houseCusps[i];
+          const nextCusp = houseCusps[(i + 1) % 12];
+          
+          if (nextCusp > currentCusp) {
+            // Normal case: house doesn't cross 0°
+            if (normalizedDegree >= currentCusp && normalizedDegree < nextCusp) {
+              return i + 1;
+            }
+          } else {
+            // House crosses 0° (e.g., 350° to 20°)
+            if (normalizedDegree >= currentCusp || normalizedDegree < nextCusp) {
+              return i + 1;
+            }
+          }
+        }
+        return undefined;
+      })()
     : undefined;
 
   return {
@@ -210,93 +231,6 @@ function detectGrandTrines(
   return patterns;
 }
 
-/**
- * Detect Stellium patterns (3+ planets in same sign or adjacent houses)
- */
-function detectStelliums(
-  planets: Point[],
-  aspectLookup: Map<string, Map<string, AspectData>>,
-  houseCusps?: number[],
-  minPlanets = 3
-): Stellium[] {
-  const patterns: Stellium[] = [];
-
-  // Group by sign
-  const signGroups = new Map<string, Point[]>();
-  planets.forEach((planet) => {
-    const sign = getDegreeSign(planet.degree);
-    if (!signGroups.has(sign)) {
-      signGroups.set(sign, []);
-    }
-    signGroups.get(sign)!.push(planet);
-  });
-
-  // Check sign-based stelliums
-  signGroups.forEach((planetsInSign, sign) => {
-    if (planetsInSign.length >= minPlanets) {
-      const planetPositions = planetsInSign.map((p) =>
-        pointToPlanetPosition(p, houseCusps)
-      );
-      const houses = planetPositions
-        .map((p) => p.house)
-        .filter((h) => h !== undefined) as number[];
-      const degrees = planetsInSign.map((p) => p.degree);
-      const span = Math.max(...degrees) - Math.min(...degrees);
-
-      patterns.push({
-        type: 'Stellium',
-        planets: planetPositions,
-        sign,
-        houses: [...new Set(houses)].sort(),
-        span,
-      });
-    }
-  });
-
-  // Check house-based stelliums (if house cusps available)
-  if (houseCusps) {
-    const houseGroups = new Map<number, Point[]>();
-    planets.forEach((planet) => {
-      const house = getHouseForPoint(planet.degree, houseCusps);
-      if (house) {
-        if (!houseGroups.has(house)) {
-          houseGroups.set(house, []);
-        }
-        houseGroups.get(house)!.push(planet);
-      }
-    });
-
-    houseGroups.forEach((planetsInHouse, house) => {
-      if (planetsInHouse.length >= minPlanets) {
-        const planetPositions = planetsInHouse.map((p) =>
-          pointToPlanetPosition(p, houseCusps)
-        );
-        const degrees = planetsInHouse.map((p) => p.degree);
-        const span = Math.max(...degrees) - Math.min(...degrees);
-
-        // Only add if not already covered by sign stellium
-        const existingSignStellium = patterns.find(
-          (p) =>
-            p.type === 'Stellium' &&
-            p.planets.some((planet) =>
-              planetPositions.some((pp) => pp.name === planet.name)
-            )
-        );
-
-        if (!existingSignStellium) {
-          patterns.push({
-            type: 'Stellium',
-            planets: planetPositions,
-            houses: [house],
-            span,
-          });
-        }
-      }
-    });
-  }
-
-  return patterns;
-}
 
 /**
  * Detect Grand Cross patterns
@@ -570,7 +504,8 @@ function detectKites(
 }
 
 /**
- * Main function to detect all aspect patterns
+ * Main function to detect aspect patterns (excluding stelliums which are handled separately)
+ * This function works with both single-chart and multi-chart scenarios
  */
 export function detectAspectPatterns(
   planets: Point[],
@@ -582,7 +517,6 @@ export function detectAspectPatterns(
 
   patterns.push(...detectTSquares(planets, aspectLookup, houseCusps));
   patterns.push(...detectGrandTrines(planets, aspectLookup, houseCusps));
-  patterns.push(...detectStelliums(planets, aspectLookup, houseCusps));
   patterns.push(...detectGrandCrosses(planets, aspectLookup, houseCusps));
   patterns.push(...detectYods(planets, aspectLookup, houseCusps));
   patterns.push(...detectMysticRectangles(planets, aspectLookup, houseCusps));

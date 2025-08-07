@@ -48,33 +48,6 @@ function formatGrandTrine(pattern: AspectPattern): string[] {
   return output;
 }
 
-/**
- * Format a Stellium pattern
- */
-function formatStellium(pattern: AspectPattern): string[] {
-  if (pattern.type !== 'Stellium') return [];
-
-  const output = ['Stellium:'];
-  const planetNames = pattern.planets.map((p) => p.name).join(', ');
-  output.push(`  - Planets: ${planetNames}`);
-
-  if (pattern.sign) {
-    output.push(`  - Sign: ${pattern.sign}`);
-  }
-
-  if (pattern.houses.length > 0) {
-    const houseStr =
-      pattern.houses.length === 1
-        ? `${getOrdinal(pattern.houses[0])}`
-        : pattern.houses.map((h) => getOrdinal(h)).join('-');
-    output.push(`  - Houses: ${houseStr}`);
-  }
-
-  output.push(`  - Span: ${pattern.span.toFixed(1)}°`);
-  output.push('');
-
-  return output;
-}
 
 /**
  * Format a Grand Cross pattern
@@ -153,15 +126,20 @@ function formatKite(pattern: AspectPattern): string[] {
 /**
  * Generates the [ASPECT PATTERNS] section of the chart output.
  * @param patterns Array of detected aspect patterns
+ * @param customTitle Optional custom title for the section
  * @returns An array of strings for the output.
  */
 export function generateAspectPatternsOutput(
-  patterns: AspectPattern[]
+  patterns: AspectPattern[],
+  customTitle?: string
 ): string[] {
-  const output: string[] = ['[ASPECT PATTERNS]'];
+  const output: string[] = [customTitle ? `[ASPECT PATTERNS: ${customTitle}]` : '[ASPECT PATTERNS]'];
 
   if (patterns.length === 0) {
+    // General statement plus explicit enumeration to prevent LLM hallucinations
     output.push('No aspect patterns detected.');
+    output.push('No T-Squares detected.');
+    output.push('No Grand Trines detected.');
     return output;
   }
 
@@ -170,7 +148,6 @@ export function generateAspectPatternsOutput(
     'T-Square',
     'Grand Trine',
     'Grand Cross',
-    'Stellium',
     'Yod',
     'Mystic Rectangle',
     'Kite',
@@ -186,9 +163,6 @@ export function generateAspectPatternsOutput(
         break;
       case 'Grand Trine':
         output.push(...formatGrandTrine(pattern));
-        break;
-      case 'Stellium':
-        output.push(...formatStellium(pattern));
         break;
       case 'Grand Cross':
         output.push(...formatGrandCross(pattern));
