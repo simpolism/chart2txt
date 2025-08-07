@@ -23,6 +23,7 @@ export class ChartSettings implements Settings {
   aspectCategories: AspectCategory[];
   orbConfiguration?: OrbConfiguration;
   includeAspectPatterns: boolean;
+  includeSignDistributions: boolean;
   dateFormat: string;
 
   // Derived properties for convenience
@@ -42,6 +43,7 @@ export class ChartSettings implements Settings {
     this.orbConfiguration = mergedSettings.orbConfiguration;
     this.skipOutOfSignAspects = mergedSettings.skipOutOfSignAspects;
     this.includeAspectPatterns = mergedSettings.includeAspectPatterns;
+    this.includeSignDistributions = mergedSettings.includeSignDistributions;
     this.dateFormat = mergedSettings.dateFormat;
 
     // Initialize orb resolver if orb configuration is provided

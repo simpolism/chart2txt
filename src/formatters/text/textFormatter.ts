@@ -101,23 +101,29 @@ const processSingleChartOutput = (
     ...generatePlanetsOutput(chartData.planets, chartData.houseCusps, settings)
   );
   outputLines.push(...generateDispositorsOutput(chartData.planets));
-  outputLines.push(
-    ...generateElementDistributionOutput(
-      chartData.planets,
-      undefined,
-      chartData.ascendant
-    )
-  );
-  outputLines.push(
-    ...generateModalityDistributionOutput(
-      chartData.planets,
-      undefined,
-      chartData.ascendant
-    )
-  );
-  outputLines.push(
-    ...generatePolarityOutput(chartData.planets, undefined, chartData.ascendant)
-  );
+  if (settings.includeSignDistributions) {
+    outputLines.push(
+      ...generateElementDistributionOutput(
+        chartData.planets,
+        undefined,
+        chartData.ascendant
+      )
+    );
+    outputLines.push(
+      ...generateModalityDistributionOutput(
+        chartData.planets,
+        undefined,
+        chartData.ascendant
+      )
+    );
+    outputLines.push(
+      ...generatePolarityOutput(
+        chartData.planets,
+        undefined,
+        chartData.ascendant
+      )
+    );
+  }
 
   const aspects = calculateAspects(
     settings.aspectDefinitions,

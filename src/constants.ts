@@ -414,5 +414,8 @@ export const DEFAULT_SETTINGS: Settings = {
   // pattern settings
   includeAspectPatterns: false, // Aspect patterns disabled by default
 
+  // sign distribution settings
+  includeSignDistributions: true, // Sign distributions enabled by default
+
   dateFormat: 'MM/DD/YYYY', // As per example output
 };

@@ -182,6 +182,9 @@ export interface Settings {
   // pattern settings
   includeAspectPatterns: boolean; // Whether to detect and display aspect patterns
 
+  // sign distribution settings
+  includeSignDistributions: boolean; // Whether to include element, modality, and polarity distributions
+
   dateFormat: string; // e.g., "MM/DD/YYYY", "YYYY-MM-DD"
 }
 

@@ -94,6 +94,7 @@ interface Settings {
   aspectCategories: AspectCategory[];      // Orb categories for aspects
   skipOutOfSignAspects: boolean;           // Skip cross-sign aspects
   includeAspectPatterns: boolean;          // Detect complex patterns
+  includeSignDistributions: boolean;       // Include element, modality, and polarity distributions
 
   // Advanced Orb System
   orbConfiguration?: OrbConfiguration;     // Hierarchical orb rules
@@ -321,6 +322,26 @@ const precisionSettings = {
 const report = chart2txt(chartData, precisionSettings);
 ```
 
+### Customizing Sign Distribution Output
+
+```typescript
+import { chart2txt } from 'chart2txt';
+
+// Disable sign distributions
+const settingsWithoutDistributions = {
+  includeSignDistributions: false
+};
+
+const reportWithoutDistributions = chart2txt(chartData, settingsWithoutDistributions);
+
+// Enable sign distributions (default behavior)
+const settingsWithDistributions = {
+  includeSignDistributions: true
+};
+
+const reportWithDistributions = chart2txt(chartData, settingsWithDistributions);
+```
+
 ## Default Configuration
 
 ### Standard Aspects (includes quincunx)
@@ -344,6 +365,7 @@ const DEFAULT_SETTINGS = {
   houseSystemName: 'Placidus',
   skipOutOfSignAspects: false,
   includeAspectPatterns: true,
+  includeSignDistributions: true,
   dateFormat: 'MMMM Do, YYYY [at] h:mm A',
   aspectDefinitions: DEFAULT_ASPECTS,
   aspectCategories: DEFAULT_ASPECT_CATEGORIES
@@ -378,6 +400,21 @@ Midheaven: 15° Cancer
 Sun: 5°30' Taurus in 2nd House
 Moon: 0°15' Leo in 5th House
 ...
+
+[ELEMENT DISTRIBUTION]
+Fire: 2 (Sun, Mars)
+Earth: 3 (Mercury, Venus, Saturn)
+Air: 2 (Moon, Ascendant)
+Water: 1 (Neptune)
+
+[MODALITY DISTRIBUTION]
+Cardinal: 3
+Fixed: 4
+Mutable: 1
+
+[POLARITY]
+Masculine (Active): 4
+Feminine (Receptive): 4
 
 [ASPECTS]
 Sun conjunction Mercury: 1°15' orb (applying)
