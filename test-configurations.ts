@@ -121,7 +121,8 @@ const CUSTOM_SETTINGS: PartialSettings = {
     { name: 'MODERATE', minOrb: 1, maxOrb: 3 },
     { name: 'WIDE', minOrb: 3, maxOrb: 6 },
   ],
-  dateFormat: 'YYYY-MM-DD'
+  dateFormat: 'YYYY-MM-DD',
+  includeAspectPatterns: true
 };
 
 // ============================================================================
@@ -164,6 +165,7 @@ function runTest(): void {
         { ...sampleEventChart, name: 'Partner Chart', chartType: 'natal' as const }, 
         sampleTransitChart
       ];
+      settings = { includeAspectPatterns: true };
       break;
 
     case TEST_SCENARIOS.CUSTOM_SETTINGS:

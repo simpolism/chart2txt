@@ -8,7 +8,8 @@ import { getOrdinal } from '../../../utils/formatting';
 function formatPlanetPosition(planet: PlanetPosition): string {
   const degInSign = Math.floor(getDegreeInSign(planet.degree));
   const houseStr = planet.house ? ` (${getOrdinal(planet.house)} house)` : '';
-  return `${planet.name} ${degInSign}° ${planet.sign}${houseStr}`;
+  const chartPrefix = planet.chartName ? `${planet.chartName}'s ` : '';
+  return `${chartPrefix}${planet.name} ${degInSign}° ${planet.sign}${houseStr}`;
 }
 
 /**

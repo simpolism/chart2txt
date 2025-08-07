@@ -58,6 +58,19 @@ function detectGlobalMultiChartPatterns(
   // But keep all points for aspect calculation (aspects can include angles)
   const allPlanets = charts.flatMap((chart) => getAllPointsFromChart(chart));
 
+  // Create mapping of planet names to chart names for ownership context
+  const planetChartMap = new Map<string, string>();
+  charts.forEach((chart) => {
+    getPointsForPatternDetection(chart).forEach((planet) => {
+      planetChartMap.set(planet.name, chart.name);
+    });
+    getAllPointsFromChart(chart).forEach((planet) => {
+      if (!planetChartMap.has(planet.name)) {
+        planetChartMap.set(planet.name, chart.name);
+      }
+    });
+  });
+
   // Calculate all aspects between all planets (both intra-chart and inter-chart)
   const allAspects = calculateAspects(
     settings.aspectDefinitions,
@@ -66,9 +79,14 @@ function detectGlobalMultiChartPatterns(
     settings.orbResolver
   );
 
-  // Detect patterns across all charts (no house cusps since it doesn't make sense across charts)
+  // Detect patterns across all charts with chart ownership context
   // Exclude angles from pattern detection but keep them in aspects
-  const globalPatterns = detectAspectPatterns(allPlanetsForPatterns, allAspects);
+  const globalPatterns = detectAspectPatterns(
+    allPlanetsForPatterns,
+    allAspects,
+    undefined, // No house cusps since it doesn't make sense across charts
+    planetChartMap
+  );
 
   // Create a descriptive name for the chart combination
   const chartNames = charts.map((c) => c.name).join('-');
@@ -263,10 +281,30 @@ const processChartPairOutput = (
       settings.orbResolver
     );
 
+    // Create mapping for chart ownership context
+    const planetChartMap = new Map<string, string>();
+    getPointsForPatternDetection(chart1).forEach((planet) => {
+      planetChartMap.set(planet.name, chart1.name);
+    });
+    getPointsForPatternDetection(chart2).forEach((planet) => {
+      planetChartMap.set(planet.name, chart2.name);
+    });
+    getAllPointsFromChart(chart1).forEach((planet) => {
+      if (!planetChartMap.has(planet.name)) {
+        planetChartMap.set(planet.name, chart1.name);
+      }
+    });
+    getAllPointsFromChart(chart2).forEach((planet) => {
+      if (!planetChartMap.has(planet.name)) {
+        planetChartMap.set(planet.name, chart2.name);
+      }
+    });
+
     const compositePatternsChart1Chart2 = detectAspectPatterns(
       combinedPlanetsForPatterns,
       allCompositeAspects,
-      chart1.houseCusps // Use chart1's house cusps for primary reference
+      chart1.houseCusps, // Use chart1's house cusps for primary reference
+      planetChartMap
     );
     if (compositePatternsChart1Chart2.length > 0) {
       outputLines.push(
@@ -489,10 +527,30 @@ export function formatChartToText(
           settings.orbResolver
         );
 
+        // Create mapping for chart ownership context (natal + transit)
+        const transitPlanetChartMap = new Map<string, string>();
+        getPointsForPatternDetection(chart).forEach((planet) => {
+          transitPlanetChartMap.set(planet.name, chart.name);
+        });
+        getPointsForPatternDetection(transitChart).forEach((planet) => {
+          transitPlanetChartMap.set(planet.name, transitChart.name);
+        });
+        getAllPointsFromChart(chart).forEach((planet) => {
+          if (!transitPlanetChartMap.has(planet.name)) {
+            transitPlanetChartMap.set(planet.name, chart.name);
+          }
+        });
+        getAllPointsFromChart(transitChart).forEach((planet) => {
+          if (!transitPlanetChartMap.has(planet.name)) {
+            transitPlanetChartMap.set(planet.name, transitChart.name);
+          }
+        });
+
         const transitPatterns = detectAspectPatterns(
           combinedTransitPlanetsForPatterns,
           allTransitAspects,
-          chart.houseCusps // Use natal chart's house cusps for reference
+          chart.houseCusps, // Use natal chart's house cusps for reference
+          transitPlanetChartMap
         );
         if (transitPatterns.length > 0) {
           outputLines.push(

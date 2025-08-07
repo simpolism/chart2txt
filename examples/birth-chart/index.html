@@ -250,8 +250,8 @@
         </footer>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/chart2txt@0.6.0/dist/chart2txt.min.js"></script>
-    <!--script src="../../dist/chart2txt.min.js"></script-->
+    <!--script src="https://cdn.jsdelivr.net/npm/chart2txt@0.6.0/dist/chart2txt.min.js"></script-->
+    <script src="../../dist/chart2txt.min.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             const MAX_CHARTS = 10;
@@ -614,7 +614,7 @@
                     // Generate text description
                     const houseSystemName = houseSystemSelect.options[houseSystemSelect.selectedIndex].innerText;
                     console.log('Chart data:', multiChartData);
-                    const textDescription = window.chart2txt(multiChartData, { houseSystemName });
+                    const textDescription = window.chart2txt(multiChartData, { houseSystemName, includeAspectPatterns: true });
                     resultDiv.textContent = textDescription;
                     copyBtn.style.display = 'block';
                     

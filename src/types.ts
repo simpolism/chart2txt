@@ -98,6 +98,7 @@ export interface PlanetPosition {
   degree: number;
   sign: string;
   house?: number;
+  chartName?: string; // Optional chart ownership for multichart patterns
 }
 
 export interface TSquare {
