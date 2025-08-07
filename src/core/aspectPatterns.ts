@@ -133,8 +133,8 @@ function hasSpecificAspect(
   aspectType: string,
   aspectLookup: Map<string, Map<string, AspectData>>
 ): boolean {
-  const key1 = createPlanetKey(p1[0].name, p1[1].name);
-  const key2 = createPlanetKey(p2[0].name, p2[1].name);
+  const key1 = createPlanetKey(p1[0].name, p1[1]);
+  const key2 = createPlanetKey(p2[0].name, p2[1]);
 
   const planet1Aspects = aspectLookup.get(key1);
   if (!planet1Aspects) return false;
@@ -151,8 +151,8 @@ function getAspectBetween(
   p2: UnionedPoint,
   aspectLookup: Map<string, Map<string, AspectData>>
 ): AspectData | undefined {
-  const key1 = createPlanetKey(p1[0].name, p1[1].name);
-  const key2 = createPlanetKey(p2[0].name, p2[1].name);
+  const key1 = createPlanetKey(p1[0].name, p1[1]);
+  const key2 = createPlanetKey(p2[0].name, p2[1]);
 
   const planet1Aspects = aspectLookup.get(key1);
   if (!planet1Aspects) return undefined;
@@ -198,9 +198,9 @@ function detectTSquares(
             const [pOpp1, cOpp1] = unionedPoints[i];
             const [pOpp2, cOpp2] = unionedPoints[j];
 
-            const apex = pointToPlanetPosition(pApex, houseCusps, cApex.name);
-            const opp1 = pointToPlanetPosition(pOpp1, houseCusps, cOpp1.name);
-            const opp2 = pointToPlanetPosition(pOpp2, houseCusps, cOpp2.name);
+            const apex = pointToPlanetPosition(pApex, houseCusps, cApex);
+            const opp1 = pointToPlanetPosition(pOpp1, houseCusps, cOpp1);
+            const opp2 = pointToPlanetPosition(pOpp2, houseCusps, cOpp2);
 
             // Get actual orbs from pre-calculated aspects
             const oppAspect = getAspectBetween(
@@ -278,9 +278,9 @@ function detectGrandTrines(
           const [p2, c2] = unionedPoints[j];
           const [p3, c3] = unionedPoints[k];
 
-          const planet1 = pointToPlanetPosition(p1, houseCusps, c1.name);
-          const planet2 = pointToPlanetPosition(p2, houseCusps, c2.name);
-          const planet3 = pointToPlanetPosition(p3, houseCusps, c3.name);
+          const planet1 = pointToPlanetPosition(p1, houseCusps, c1);
+          const planet2 = pointToPlanetPosition(p2, houseCusps, c2);
+          const planet3 = pointToPlanetPosition(p3, houseCusps, c3);
 
           // Get actual orbs from pre-calculated aspects
           const trine1Aspect = getAspectBetween(
@@ -376,10 +376,10 @@ function detectGrandCrosses(
             const [p2, c2] = group[1];
             const [p3, c3] = group[2];
             const [p4, c4] = group[3];
-            const planet1 = pointToPlanetPosition(p1, houseCusps, c1.name);
-            const planet2 = pointToPlanetPosition(p2, houseCusps, c2.name);
-            const planet3 = pointToPlanetPosition(p3, houseCusps, c3.name);
-            const planet4 = pointToPlanetPosition(p4, houseCusps, c4.name);
+            const planet1 = pointToPlanetPosition(p1, houseCusps, c1);
+            const planet2 = pointToPlanetPosition(p2, houseCusps, c2);
+            const planet3 = pointToPlanetPosition(p3, houseCusps, c3);
+            const planet4 = pointToPlanetPosition(p4, houseCusps, c4);
 
             // Calculate average orb from actual aspect data
             const totalOrb = aspectData.reduce(
@@ -441,9 +441,9 @@ function detectYods(
             const [pApex, cApex] = unionedPoints[k];
             const [pBase1, cBase1] = unionedPoints[i];
             const [pBase2, cBase2] = unionedPoints[j];
-            const apex = pointToPlanetPosition(pApex, houseCusps, cApex.name);
-            const base1 = pointToPlanetPosition(pBase1, houseCusps, cBase1.name);
-            const base2 = pointToPlanetPosition(pBase2, houseCusps, cBase2.name);
+            const apex = pointToPlanetPosition(pApex, houseCusps, cApex);
+            const base1 = pointToPlanetPosition(pBase1, houseCusps, cBase1);
+            const base2 = pointToPlanetPosition(pBase2, houseCusps, cBase2);
 
             // Get actual orbs from pre-calculated aspects
             const sextileAspect = getAspectBetween(
@@ -577,10 +577,10 @@ function detectMysticRectangles(
               const [p2, c2] = group[combo.oppositions[0][1]];
               const [p3, c3] = group[combo.oppositions[1][0]];
               const [p4, c4] = group[combo.oppositions[1][1]];
-              const pos1 = pointToPlanetPosition(p1, houseCusps, c1.name);
-              const pos2 = pointToPlanetPosition(p2, houseCusps, c2.name);
-              const pos3 = pointToPlanetPosition(p3, houseCusps, c3.name);
-              const pos4 = pointToPlanetPosition(p4, houseCusps, c4.name);
+              const pos1 = pointToPlanetPosition(p1, houseCusps, c1);
+              const pos2 = pointToPlanetPosition(p2, houseCusps, c2);
+              const pos3 = pointToPlanetPosition(p3, houseCusps, c3);
+              const pos4 = pointToPlanetPosition(p4, houseCusps, c4);
 
               // Calculate average orb from actual aspect data
               const totalOrb = aspectData.reduce(
@@ -626,14 +626,14 @@ function detectKites(
     // For each planet in the grand trine, look for opposition to another planet
     grandTrine.planets.forEach((trinePoint) => {
       unionedPoints.forEach((unionedPoint) => {
-        const [planet, chart] = unionedPoint;
+        const [planet, chartName] = unionedPoint;
         const isPartOfTrine = grandTrine.planets.some(
-          (tp) => tp.name === planet.name && tp.chartName === chart.name
+          (tp) => tp.name === planet.name && tp.chartName === chartName
         );
         if (!isPartOfTrine) {
           // Find the original UnionedPoint for this trine point
           const trineUnionedPoint = unionedPoints.find(
-            ([p, c]) => p.name === trinePoint.name && c.name === trinePoint.chartName
+            ([p, c]) => p.name === trinePoint.name && c === trinePoint.chartName
           );
           
           if (trineUnionedPoint && hasSpecificAspect(
@@ -645,7 +645,7 @@ function detectKites(
             const oppositionPlanet = pointToPlanetPosition(
               planet,
               houseCusps,
-              chart.name
+              chartName
             );
             const oppositionAspect = getAspectBetween(
               trineUnionedPoint,

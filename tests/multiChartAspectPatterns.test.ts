@@ -188,7 +188,8 @@ describe('MultiChart Aspect Pattern Detection', () => {
         includeAspectPatterns: true,
       });
 
-      expect(result).toContain('[ASPECT PATTERNS: Natal-Transit Global Transit Composite]');
+      // Transit patterns with 2 charts should appear in individual transit section, not global
+      expect(result).toContain('[ASPECT PATTERNS: Transit to Natal]');
       expect(result).toContain('T-Square:');
       expect(result).toContain('Apex: Transit\'s Pluto 0° Cancer');
     });
@@ -216,7 +217,8 @@ describe('MultiChart Aspect Pattern Detection', () => {
         includeAspectPatterns: true,
       });
 
-      expect(result).toContain('[ASPECT PATTERNS: Natal-Transit Global Transit Composite]');
+      // Transit patterns with 2 charts should appear in individual transit section, not global
+      expect(result).toContain('[ASPECT PATTERNS: Transit to Natal]');
       expect(result).toContain('Grand Trine:');
       expect(result).toContain('Element: Fire');
     });
@@ -244,9 +246,8 @@ describe('MultiChart Aspect Pattern Detection', () => {
         includeAspectPatterns: true,
       });
 
-      expect(result).toContain(
-        '[ASPECT PATTERNS: Natal-Transit Global Transit Composite]'
-      );
+      // Transit patterns with 2 charts should appear in individual transit section, not global
+      expect(result).toContain('[ASPECT PATTERNS: Transit to Natal]');
       expect(result).toContain('Grand Trine:');
       expect(result).toContain('Element: Fire');
     });

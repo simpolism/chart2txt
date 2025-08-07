@@ -189,15 +189,15 @@ export function calculateAspects(
 
   for (let i = 0; i < unionedPlanets.length; i++) {
     for (let j = i + 1; j < unionedPlanets.length; j++) {
-      const [planetA, chartA] = unionedPlanets[i];
-      const [planetB, chartB] = unionedPlanets[j];
+      const [planetA, chartNameA] = unionedPlanets[i];
+      const [planetB, chartNameB] = unionedPlanets[j];
       
       // Automatically determine chart type based on whether planets are from same chart
       let chartType: 'natal' | 'synastry' | 'transit' | 'composite';
       if (forceChartType) {
         chartType = forceChartType;
       } else {
-        chartType = chartA.name === chartB.name ? 'natal' : 'synastry';
+        chartType = chartNameA === chartNameB ? 'natal' : 'synastry';
       }
 
       const aspect = findTightestAspect(
@@ -207,8 +207,8 @@ export function calculateAspects(
         skipOutOfSignAspects,
         orbResolver,
         chartType,
-        chartA.name,
-        chartB.name
+        chartNameA,
+        chartNameB
       );
       if (aspect) {
         aspects.push(aspect);
@@ -248,8 +248,8 @@ export function calculateMultichartAspects(
   }
 
   // Only calculate aspects between planets from different charts
-  for (const [p1, c1] of chart1Points) {
-    for (const [p2, c2] of chart2Points) {
+  for (const [p1, chartName1] of chart1Points) {
+    for (const [p2, chartName2] of chart2Points) {
       const aspect = findTightestAspect(
         aspectDefinitions,
         p1,
@@ -257,8 +257,8 @@ export function calculateMultichartAspects(
         skipOutOfSignAspects,
         orbResolver,
         chartType,
-        c1.name,
-        c2.name
+        chartName1,
+        chartName2
       );
       if (aspect) {
         aspects.push(aspect);

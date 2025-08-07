@@ -25,7 +25,7 @@ export function isMultiChartData(
   return Array.isArray(obj);
 }
 
-export type UnionedPoint = [Point, ChartData];
+export type UnionedPoint = [Point, string]; // [Point, chartName]
 
 export enum AspectClassification {
   Major = 'major',
