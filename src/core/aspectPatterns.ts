@@ -14,6 +14,13 @@ import {
 import { getDegreeSign } from './astrology';
 
 /**
+ * Create a consistent key for planet+chart combinations
+ */
+function createPlanetKey(planetName: string, chartName?: string): string {
+  return chartName ? `${planetName}-${chartName}` : planetName;
+}
+
+/**
  * Create a lookup map for aspect relationships between planets
  */
 function createAspectLookup(
@@ -21,13 +28,9 @@ function createAspectLookup(
 ): Map<string, Map<string, AspectData>> {
   const lookup = new Map<string, Map<string, AspectData>>();
 
-  const getKey = (planetName: string, chartName?: string): string => {
-    return chartName ? `${planetName}-${chartName}` : planetName;
-  };
-
   aspects.forEach((aspect) => {
-    const keyA = getKey(aspect.planetA, aspect.p1ChartName);
-    const keyB = getKey(aspect.planetB, aspect.p2ChartName);
+    const keyA = createPlanetKey(aspect.planetA, aspect.p1ChartName);
+    const keyB = createPlanetKey(aspect.planetB, aspect.p2ChartName);
 
     if (!lookup.has(keyA)) {
       lookup.set(keyA, new Map());
@@ -130,10 +133,8 @@ function hasSpecificAspect(
   aspectType: string,
   aspectLookup: Map<string, Map<string, AspectData>>
 ): boolean {
-  const getKey = (planetName: string, chartName?: string): string =>
-    chartName ? `${planetName}-${chartName}` : planetName;
-  const key1 = getKey(p1[0].name, p1[1].name);
-  const key2 = getKey(p2[0].name, p2[1].name);
+  const key1 = createPlanetKey(p1[0].name, p1[1].name);
+  const key2 = createPlanetKey(p2[0].name, p2[1].name);
 
   const planet1Aspects = aspectLookup.get(key1);
   if (!planet1Aspects) return false;
@@ -150,10 +151,8 @@ function getAspectBetween(
   p2: UnionedPoint,
   aspectLookup: Map<string, Map<string, AspectData>>
 ): AspectData | undefined {
-  const getKey = (planetName: string, chartName?: string): string =>
-    chartName ? `${planetName}-${chartName}` : planetName;
-  const key1 = getKey(p1[0].name, p1[1].name);
-  const key2 = getKey(p2[0].name, p2[1].name);
+  const key1 = createPlanetKey(p1[0].name, p1[1].name);
+  const key2 = createPlanetKey(p2[0].name, p2[1].name);
 
   const planet1Aspects = aspectLookup.get(key1);
   if (!planet1Aspects) return undefined;
@@ -632,27 +631,24 @@ function detectKites(
           (tp) => tp.name === planet.name && tp.chartName === chart.name
         );
         if (!isPartOfTrine) {
-          if (
-            hasSpecificAspect(
-              [
-                { name: trinePoint.name, degree: trinePoint.degree },
-                { name: trinePoint.chartName!, planets: [] },
-              ],
-              unionedPoint,
-              'opposition',
-              aspectLookup
-            )
-          ) {
+          // Find the original UnionedPoint for this trine point
+          const trineUnionedPoint = unionedPoints.find(
+            ([p, c]) => p.name === trinePoint.name && c.name === trinePoint.chartName
+          );
+          
+          if (trineUnionedPoint && hasSpecificAspect(
+            trineUnionedPoint,
+            unionedPoint,
+            'opposition',
+            aspectLookup
+          )) {
             const oppositionPlanet = pointToPlanetPosition(
               planet,
               houseCusps,
               chart.name
             );
             const oppositionAspect = getAspectBetween(
-              [
-                { name: trinePoint.name, degree: trinePoint.degree },
-                { name: trinePoint.chartName!, planets: [] },
-              ],
+              trineUnionedPoint,
               unionedPoint,
               aspectLookup
             )!;

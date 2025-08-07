@@ -30,8 +30,8 @@ describe('MultiChart Aspect Pattern Detection', () => {
         '[ASPECT PATTERNS: Person A-Person B Composite]'
       );
       expect(result).toContain('T-Square:');
-      expect(result).toContain('Apex: Mars');
-      expect(result).toContain('Opposition: Sun');
+      expect(result).toContain('Apex: Person B\'s Mars 0° Cancer');
+      expect(result).toContain('Opposition: Person A\'s Sun 0° Aries - Person A\'s Moon 0° Libra');
     });
 
     it('should detect Grand Trine patterns in synastry', () => {
@@ -61,9 +61,9 @@ describe('MultiChart Aspect Pattern Detection', () => {
       );
       expect(result).toContain('Grand Trine:');
       expect(result).toContain('Element: Fire');
-      expect(result).toContain('Planet 1: Sun');
-      expect(result).toContain('Planet 2: Jupiter');
-      expect(result).toContain('Planet 3: Mars');
+      expect(result).toContain('Planet 1: Person A\'s Sun 0° Aries');
+      expect(result).toContain('Planet 2: Person A\'s Jupiter 0° Leo');
+      expect(result).toContain('Planet 3: Person B\'s Mars 0° Sagittarius');
     });
 
     it('should detect Yod patterns in synastry', () => {
@@ -92,9 +92,40 @@ describe('MultiChart Aspect Pattern Detection', () => {
         '[ASPECT PATTERNS: Person A-Person B Composite]'
       );
       expect(result).toContain('Yod:');
-      expect(result).toContain('Apex: Neptune');
-      expect(result).toContain('Base planet 1: Sun');
-      expect(result).toContain('Base planet 2: Moon');
+      expect(result).toContain('Apex: Person B\'s Neptune 0° Scorpio');
+      expect(result).toContain('Base planet 1: Person A\'s Sun 0° Aries');
+      expect(result).toContain('Base planet 2: Person A\'s Moon 0° Gemini');
+    });
+
+    it('should detect Kite patterns in synastry', () => {
+      const chart1: ChartData = {
+        name: 'Person A',
+        planets: [
+          { name: 'Sun', degree: 0 }, // 0° Aries (Fire)
+          { name: 'Mercury', degree: 120 }, // 0° Leo (Fire) - trine with Sun
+          { name: 'Pluto', degree: 180 }, // 0° Libra - opposition with Sun
+        ],
+        houseCusps: [0, 30, 60, 90, 120, 150, 180, 210, 240, 270, 300, 330],
+      };
+
+      const chart2: ChartData = {
+        name: 'Person B',
+        planets: [
+          { name: 'Jupiter', degree: 240 }, // 0° Sagittarius (Fire) - completes Grand Trine and forms Kite
+        ],
+        houseCusps: [0, 30, 60, 90, 120, 150, 180, 210, 240, 270, 300, 330],
+      };
+
+      const result = chart2txt([chart1, chart2], {
+        includeAspectPatterns: true,
+      });
+
+      expect(result).toContain(
+        '[ASPECT PATTERNS: Person A-Person B Composite]'
+      );
+      expect(result).toContain('Kite:');
+      expect(result).toContain('Grand Trine planets:');
+      expect(result).toContain('Opposition planet: Person A\'s Pluto 0° Libra');
     });
 
     it('should detect individual chart stelliums but not cross-chart stelliums', () => {
@@ -157,9 +188,9 @@ describe('MultiChart Aspect Pattern Detection', () => {
         includeAspectPatterns: true,
       });
 
-      expect(result).toContain('[ASPECT PATTERNS: Transit to Natal]');
+      expect(result).toContain('[ASPECT PATTERNS: Natal-Transit Global Transit Composite]');
       expect(result).toContain('T-Square:');
-      expect(result).toContain('Apex: Pluto');
+      expect(result).toContain('Apex: Transit\'s Pluto 0° Cancer');
     });
 
     it('should detect Grand Trine patterns with transits', () => {
@@ -185,7 +216,7 @@ describe('MultiChart Aspect Pattern Detection', () => {
         includeAspectPatterns: true,
       });
 
-      expect(result).toContain('[ASPECT PATTERNS: Transit to Natal]');
+      expect(result).toContain('[ASPECT PATTERNS: Natal-Transit Global Transit Composite]');
       expect(result).toContain('Grand Trine:');
       expect(result).toContain('Element: Fire');
     });
@@ -286,8 +317,8 @@ describe('MultiChart Aspect Pattern Detection', () => {
         '[ASPECT PATTERNS: Natal-Event-Transit Global Transit Composite]'
       );
       expect(result).toContain('T-Square:');
-      expect(result).toContain('Apex: Saturn');
-      expect(result).toContain('Opposition: Sun');
+      expect(result).toContain('Apex: Transit\'s Saturn 0° Cancer');
+      expect(result).toContain('Opposition: Natal\'s Sun 0° Aries - Event\'s Moon 0° Libra');
     });
   });
 
@@ -326,9 +357,9 @@ describe('MultiChart Aspect Pattern Detection', () => {
         '[ASPECT PATTERNS: Person A-Person B-Person C Global Composite]'
       );
       expect(result).toContain('Grand Trine:');
-      expect(result).toContain('Planet 1: Sun');
-      expect(result).toContain('Planet 2: Moon');
-      expect(result).toContain('Planet 3: Jupiter');
+      expect(result).toContain('Planet 1: Person A\'s Sun 0° Aries');
+      expect(result).toContain('Planet 2: Person B\'s Moon 0° Leo');
+      expect(result).toContain('Planet 3: Person C\'s Jupiter 0° Sagittarius');
       expect(result).toContain('Element: Fire');
     });
   });
@@ -423,7 +454,8 @@ describe('MultiChart Aspect Pattern Detection', () => {
       );
       // But should still contain aspects involving angles
       expect(result).toContain('Sun square Ascendant');
-      expect(result).toContain("Ascendant square Person B's Mars");
+      // The cross-chart aspect with Mars should be in synastry section
+      expect(result).toContain('Person A\'s Sun opposition Person B\'s Mars');
     });
 
     it('should handle empty planet arrays gracefully', () => {

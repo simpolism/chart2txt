@@ -190,7 +190,7 @@ const processSingleChartOutput = (
       }
 
       if (allPatterns.length > 0) {
-        const patternsOutput = generateAspectPatternsOutput(allPatterns);
+        const patternsOutput = generateAspectPatternsOutput(allPatterns, undefined, false);
         // Remove the header and extract pattern content, excluding "No ... detected" messages
         const patternContent = patternsOutput
           .slice(1)
@@ -267,7 +267,8 @@ const processChartPairOutput = (
       outputLines.push(
         ...generateAspectPatternsOutput(
           compositePatternsChart1Chart2,
-          `${chart1.name}-${chart2.name} Composite`
+          `${chart1.name}-${chart2.name} Composite`,
+          true
         )
       );
     }
@@ -445,8 +446,8 @@ export function formatChartToText(
         pairKey,
         calculateMultichartAspects(
           settings.aspectDefinitions,
-          chart1.planets.map((p): UnionedPoint => [p, chart1]),
-          chart2.planets.map((p): UnionedPoint => [p, chart2]),
+          getAllPointsFromChart(chart1).map((p): UnionedPoint => [p, chart1]),
+          getAllPointsFromChart(chart2).map((p): UnionedPoint => [p, chart2]),
           settings.skipOutOfSignAspects,
           settings.orbResolver,
           'synastry'
@@ -499,7 +500,7 @@ export function formatChartToText(
           ? `${chartNames} Global Composite`
           : // This title clarifies that it includes personal aspects in the composite view
             `${chartNames} Composite (including personal aspects)`;
-      outputLines.push(...generateAspectPatternsOutput(globalPatterns, title));
+      outputLines.push(...generateAspectPatternsOutput(globalPatterns, title, true));
       outputLines.push('');
     }
   }
@@ -551,7 +552,8 @@ export function formatChartToText(
           outputLines.push(
             ...generateAspectPatternsOutput(
               transitPatterns,
-              `Transit to ${chart.name}`
+              `Transit to ${chart.name}`,
+              true
             )
           );
         }
@@ -598,7 +600,8 @@ export function formatChartToText(
         outputLines.push(
           ...generateAspectPatternsOutput(
             globalTransitPatterns,
-            `${chartNames} Global Transit Composite`
+            `${chartNames} Global Transit Composite`,
+            true
           )
         );
         outputLines.push('');

@@ -391,9 +391,9 @@ describe('Aspects', () => {
 
       expect(result).toContain('[ASPECT PATTERNS]');
       expect(result).toContain('T-Square:');
-      expect(result).toContain('- Apex: Saturn 0° Cancer (4th house)');
+      expect(result).toContain('- Apex: Saturn 0° Cancer');
       expect(result).toContain(
-        '- Opposition: Sun 0° Aries (1st house) - Moon 0° Libra (7th house)'
+        '- Opposition: Sun 0° Aries - Moon 0° Libra'
       );
       expect(result).toContain('- Mode: Cardinal');
     });
@@ -413,9 +413,9 @@ describe('Aspects', () => {
 
       expect(result).toContain('[ASPECT PATTERNS]');
       expect(result).toContain('Grand Trine:');
-      expect(result).toContain('- Planet 1: Sun 0° Aries (1st house)');
-      expect(result).toContain('- Planet 2: Moon 0° Leo (5th house)');
-      expect(result).toContain('- Planet 3: Mars 0° Sagittarius (9th house)');
+      expect(result).toContain('- Planet 1: Sun 0° Aries');
+      expect(result).toContain('- Planet 2: Moon 0° Leo');
+      expect(result).toContain('- Planet 3: Mars 0° Sagittarius');
       expect(result).toContain('- Element: Fire');
     });
 
@@ -456,9 +456,9 @@ describe('Aspects', () => {
 
       expect(result).toContain('[ASPECT PATTERNS]');
       expect(result).toContain('Yod:');
-      expect(result).toContain('- Apex: Saturn 0° Scorpio (8th house)');
-      expect(result).toContain('- Base planet 1: Sun 0° Aries (1st house)');
-      expect(result).toContain('- Base planet 2: Moon 0° Gemini (3rd house)');
+      expect(result).toContain('- Apex: Saturn 0° Scorpio');
+      expect(result).toContain('- Base planet 1: Sun 0° Aries');
+      expect(result).toContain('- Base planet 2: Moon 0° Gemini');
     });
 
     test('handles no aspect patterns', () => {
@@ -535,7 +535,7 @@ describe('Aspects', () => {
       expect(result).toContain('[ASPECT PATTERNS]');
       expect(result).toContain('T-Square:');
       expect(result).toContain('Stellium:');
-      expect(result).toContain('- Apex: Saturn 0° Cancer (4th house)');
+      expect(result).toContain('- Apex: Saturn 0° Cancer');
       expect(result).toContain('- Planets: Mercury, Venus, Mars');
       expect(result).toContain('- Sign: Leo');
     });

@@ -169,18 +169,20 @@ function findTightestAspect(
 }
 
 /**
- * Identifies aspects between planets in a single chart.
+ * Unified aspect calculation function that handles both single-chart and multi-chart scenarios
  * @param aspectDefinitions Array of aspect types to check for.
- * @param planets Array of planet points.
+ * @param unionedPlanets Array of UnionedPoint pairs to analyze.
  * @param skipOutOfSignAspects Whether to skip aspects that cross sign boundaries.
  * @param orbResolver Optional orb resolver for advanced orb calculation.
+ * @param forceChartType Optional override for chart type determination.
  * @returns Array of found aspects.
  */
 export function calculateAspects(
   aspectDefinitions: Aspect[],
   unionedPlanets: UnionedPoint[],
   skipOutOfSignAspects = true,
-  orbResolver?: OrbResolver
+  orbResolver?: OrbResolver,
+  forceChartType?: 'natal' | 'synastry' | 'transit' | 'composite'
 ): AspectData[] {
   const aspects: AspectData[] = [];
   if (!unionedPlanets || unionedPlanets.length < 2) return aspects;
@@ -189,13 +191,22 @@ export function calculateAspects(
     for (let j = i + 1; j < unionedPlanets.length; j++) {
       const [planetA, chartA] = unionedPlanets[i];
       const [planetB, chartB] = unionedPlanets[j];
+      
+      // Automatically determine chart type based on whether planets are from same chart
+      let chartType: 'natal' | 'synastry' | 'transit' | 'composite';
+      if (forceChartType) {
+        chartType = forceChartType;
+      } else {
+        chartType = chartA.name === chartB.name ? 'natal' : 'synastry';
+      }
+
       const aspect = findTightestAspect(
         aspectDefinitions,
         planetA,
         planetB,
         skipOutOfSignAspects,
         orbResolver,
-        'natal',
+        chartType,
         chartA.name,
         chartB.name
       );
@@ -208,11 +219,10 @@ export function calculateAspects(
 }
 
 /**
- * Identifies aspects between planets across two charts.
- * PlanetA is always from chart1Planets, PlanetB always from chart2Planets.
+ * Identifies aspects between planets across multiple chart groups.
  * @param aspectDefinitions Array of aspect types to check for.
- * @param chart1Planets Array of planet points for the first chart.
- * @param chart2Planets Array of planet points for the second chart.
+ * @param chart1Points Array of planet points for the first chart.
+ * @param chart2Points Array of planet points for the second chart.
  * @param skipOutOfSignAspects Whether to skip aspects that cross sign boundaries.
  * @param orbResolver Optional orb resolver for advanced orb calculation.
  * @param chartType Type of multi-chart comparison (synastry, transit, etc.).
@@ -237,6 +247,7 @@ export function calculateMultichartAspects(
     return aspects;
   }
 
+  // Only calculate aspects between planets from different charts
   for (const [p1, c1] of chart1Points) {
     for (const [p2, c2] of chart2Points) {
       const aspect = findTightestAspect(
