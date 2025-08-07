@@ -38,7 +38,7 @@ function getPointsForPatternDetection(chartData: ChartData): Point[] {
   // Explicitly exclude angles from pattern detection
   // Note: North Node is not currently implemented but included for future compatibility
   const excludedNames = ['Ascendant', 'Midheaven', 'North Node'];
-  return allPoints.filter(point => !excludedNames.includes(point.name));
+  return allPoints.filter((point) => !excludedNames.includes(point.name));
 }
 
 /**
@@ -54,7 +54,9 @@ function detectGlobalMultiChartPatterns(
   }
 
   // Combine all planets from all charts (excluding angles for pattern detection)
-  const allPlanetsForPatterns = charts.flatMap((chart) => getPointsForPatternDetection(chart));
+  const allPlanetsForPatterns = charts.flatMap((chart) =>
+    getPointsForPatternDetection(chart)
+  );
   // But keep all points for aspect calculation (aspects can include angles)
   const allPlanets = charts.flatMap((chart) => getAllPointsFromChart(chart));
 
@@ -179,7 +181,10 @@ const processSingleChartOutput = (
 
     // Detect stelliums separately (only for single charts where house information is meaningful)
     // Exclude Ascendant, Midheaven, and North Node from stellium detection
-    const stelliums = detectStelliums(getPointsForPatternDetection(chartData), chartData.houseCusps);
+    const stelliums = detectStelliums(
+      getPointsForPatternDetection(chartData),
+      chartData.houseCusps
+    );
 
     // Combine all patterns
     const allPatterns = [...aspectPatterns];

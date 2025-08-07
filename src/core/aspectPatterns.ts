@@ -184,9 +184,21 @@ function detectTSquares(
               aspectLookup
             )
           ) {
-            const apex = pointToPlanetPosition(planets[k], houseCusps, planetChartMap?.get(planets[k].name));
-            const opp1 = pointToPlanetPosition(planets[i], houseCusps, planetChartMap?.get(planets[i].name));
-            const opp2 = pointToPlanetPosition(planets[j], houseCusps, planetChartMap?.get(planets[j].name));
+            const apex = pointToPlanetPosition(
+              planets[k],
+              houseCusps,
+              planetChartMap?.get(planets[k].name)
+            );
+            const opp1 = pointToPlanetPosition(
+              planets[i],
+              houseCusps,
+              planetChartMap?.get(planets[i].name)
+            );
+            const opp2 = pointToPlanetPosition(
+              planets[j],
+              houseCusps,
+              planetChartMap?.get(planets[j].name)
+            );
 
             // Get actual orbs from pre-calculated aspects
             const oppAspect = getAspectBetween(
@@ -261,9 +273,21 @@ function detectGrandTrines(
             aspectLookup
           )
         ) {
-          const planet1 = pointToPlanetPosition(planets[i], houseCusps, planetChartMap?.get(planets[i].name));
-          const planet2 = pointToPlanetPosition(planets[j], houseCusps, planetChartMap?.get(planets[j].name));
-          const planet3 = pointToPlanetPosition(planets[k], houseCusps, planetChartMap?.get(planets[k].name));
+          const planet1 = pointToPlanetPosition(
+            planets[i],
+            houseCusps,
+            planetChartMap?.get(planets[i].name)
+          );
+          const planet2 = pointToPlanetPosition(
+            planets[j],
+            houseCusps,
+            planetChartMap?.get(planets[j].name)
+          );
+          const planet3 = pointToPlanetPosition(
+            planets[k],
+            houseCusps,
+            planetChartMap?.get(planets[k].name)
+          );
 
           // Get actual orbs from pre-calculated aspects
           const trine1Aspect = getAspectBetween(
@@ -374,10 +398,26 @@ function detectGrandCrosses(
           });
 
           if (oppositions === 2 && squares === 4) {
-            const planet1 = pointToPlanetPosition(planets[i], houseCusps, planetChartMap?.get(planets[i].name));
-            const planet2 = pointToPlanetPosition(planets[j], houseCusps, planetChartMap?.get(planets[j].name));
-            const planet3 = pointToPlanetPosition(planets[k], houseCusps, planetChartMap?.get(planets[k].name));
-            const planet4 = pointToPlanetPosition(planets[l], houseCusps, planetChartMap?.get(planets[l].name));
+            const planet1 = pointToPlanetPosition(
+              planets[i],
+              houseCusps,
+              planetChartMap?.get(planets[i].name)
+            );
+            const planet2 = pointToPlanetPosition(
+              planets[j],
+              houseCusps,
+              planetChartMap?.get(planets[j].name)
+            );
+            const planet3 = pointToPlanetPosition(
+              planets[k],
+              houseCusps,
+              planetChartMap?.get(planets[k].name)
+            );
+            const planet4 = pointToPlanetPosition(
+              planets[l],
+              houseCusps,
+              planetChartMap?.get(planets[l].name)
+            );
 
             // Calculate average orb from actual aspect data
             const totalOrb = aspectData.reduce(
@@ -442,9 +482,21 @@ function detectYods(
               aspectLookup
             )
           ) {
-            const apex = pointToPlanetPosition(planets[k], houseCusps, planetChartMap?.get(planets[k].name));
-            const base1 = pointToPlanetPosition(planets[i], houseCusps, planetChartMap?.get(planets[i].name));
-            const base2 = pointToPlanetPosition(planets[j], houseCusps, planetChartMap?.get(planets[j].name));
+            const apex = pointToPlanetPosition(
+              planets[k],
+              houseCusps,
+              planetChartMap?.get(planets[k].name)
+            );
+            const base1 = pointToPlanetPosition(
+              planets[i],
+              houseCusps,
+              planetChartMap?.get(planets[i].name)
+            );
+            const base2 = pointToPlanetPosition(
+              planets[j],
+              houseCusps,
+              planetChartMap?.get(planets[j].name)
+            );
 
             // Get actual orbs from pre-calculated aspects
             const sextileAspect = getAspectBetween(
@@ -634,7 +686,12 @@ function detectKites(
   planetChartMap?: Map<string, string>
 ): Kite[] {
   const patterns: Kite[] = [];
-  const grandTrines = detectGrandTrines(planets, aspectLookup, houseCusps, planetChartMap);
+  const grandTrines = detectGrandTrines(
+    planets,
+    aspectLookup,
+    houseCusps,
+    planetChartMap
+  );
 
   grandTrines.forEach((grandTrine) => {
     // For each planet in the grand trine, look for opposition to another planet
@@ -652,7 +709,11 @@ function detectKites(
               aspectLookup
             )
           ) {
-            const oppositionPlanet = pointToPlanetPosition(planet, houseCusps, planetChartMap?.get(planet.name));
+            const oppositionPlanet = pointToPlanetPosition(
+              planet,
+              houseCusps,
+              planetChartMap?.get(planet.name)
+            );
             const oppositionAspect = getAspectBetween(
               trinePoint.name,
               planet.name,
@@ -676,7 +737,6 @@ function detectKites(
   return patterns;
 }
 
-
 /**
  * Main function to detect aspect patterns (excluding stelliums which are handled separately)
  * This function works with both single-chart and multi-chart scenarios
@@ -694,12 +754,24 @@ export function detectAspectPatterns(
   const patterns: AspectPattern[] = [];
   const aspectLookup = createAspectLookup(aspects);
 
-  patterns.push(...detectTSquares(planets, aspectLookup, houseCusps, planetChartMap));
-  patterns.push(...detectGrandTrines(planets, aspectLookup, houseCusps, planetChartMap));
-  patterns.push(...detectGrandCrosses(planets, aspectLookup, houseCusps, planetChartMap));
-  patterns.push(...detectYods(planets, aspectLookup, houseCusps, planetChartMap));
-  patterns.push(...detectMysticRectangles(planets, aspectLookup, houseCusps, planetChartMap));
-  patterns.push(...detectKites(planets, aspectLookup, houseCusps, planetChartMap));
+  patterns.push(
+    ...detectTSquares(planets, aspectLookup, houseCusps, planetChartMap)
+  );
+  patterns.push(
+    ...detectGrandTrines(planets, aspectLookup, houseCusps, planetChartMap)
+  );
+  patterns.push(
+    ...detectGrandCrosses(planets, aspectLookup, houseCusps, planetChartMap)
+  );
+  patterns.push(
+    ...detectYods(planets, aspectLookup, houseCusps, planetChartMap)
+  );
+  patterns.push(
+    ...detectMysticRectangles(planets, aspectLookup, houseCusps, planetChartMap)
+  );
+  patterns.push(
+    ...detectKites(planets, aspectLookup, houseCusps, planetChartMap)
+  );
 
   return patterns;
 }

@@ -423,7 +423,7 @@ describe('MultiChart Aspect Pattern Detection', () => {
       );
       // But should still contain aspects involving angles
       expect(result).toContain('Sun square Ascendant');
-      expect(result).toContain('Ascendant square Person B\'s Mars');
+      expect(result).toContain("Ascendant square Person B's Mars");
     });
 
     it('should handle empty planet arrays gracefully', () => {
