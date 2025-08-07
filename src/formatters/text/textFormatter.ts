@@ -30,6 +30,18 @@ function getAllPointsFromChart(chartData: ChartData): Point[] {
 }
 
 /**
+ * Get points from chart excluding Ascendant, Midheaven, and North Node from pattern detection
+ * These angles should not be included in stelliums or aspect patterns
+ */
+function getPointsForPatternDetection(chartData: ChartData): Point[] {
+  const allPoints: Point[] = [...chartData.planets];
+  // Explicitly exclude angles from pattern detection
+  // Note: North Node is not currently implemented but included for future compatibility
+  const excludedNames = ['Ascendant', 'Midheaven', 'North Node'];
+  return allPoints.filter(point => !excludedNames.includes(point.name));
+}
+
+/**
  * Detect aspect patterns that span across multiple charts
  * This function combines planets from all charts and detects global patterns
  */
@@ -41,7 +53,9 @@ function detectGlobalMultiChartPatterns(
     return { patterns: [], chartNames: '' };
   }
 
-  // Combine all planets from all charts
+  // Combine all planets from all charts (excluding angles for pattern detection)
+  const allPlanetsForPatterns = charts.flatMap((chart) => getPointsForPatternDetection(chart));
+  // But keep all points for aspect calculation (aspects can include angles)
   const allPlanets = charts.flatMap((chart) => getAllPointsFromChart(chart));
 
   // Calculate all aspects between all planets (both intra-chart and inter-chart)
@@ -53,7 +67,8 @@ function detectGlobalMultiChartPatterns(
   );
 
   // Detect patterns across all charts (no house cusps since it doesn't make sense across charts)
-  const globalPatterns = detectAspectPatterns(allPlanets, allAspects);
+  // Exclude angles from pattern detection but keep them in aspects
+  const globalPatterns = detectAspectPatterns(allPlanetsForPatterns, allAspects);
 
   // Create a descriptive name for the chart combination
   const chartNames = charts.map((c) => c.name).join('-');
@@ -137,14 +152,16 @@ const processSingleChartOutput = (
   // Detect and display aspect patterns (if enabled)
   if (settings.includeAspectPatterns) {
     // Detect non-stellium aspect patterns
+    // Exclude Ascendant, Midheaven, and North Node from aspect pattern detection
     const aspectPatterns = detectAspectPatterns(
-      chartData.planets,
+      getPointsForPatternDetection(chartData),
       aspects,
       chartData.houseCusps
     );
 
     // Detect stelliums separately (only for single charts where house information is meaningful)
-    const stelliums = detectStelliums(chartData.planets, chartData.houseCusps);
+    // Exclude Ascendant, Midheaven, and North Node from stellium detection
+    const stelliums = detectStelliums(getPointsForPatternDetection(chartData), chartData.houseCusps);
 
     // Combine all patterns
     const allPatterns = [...aspectPatterns];
@@ -228,6 +245,11 @@ const processChartPairOutput = (
   // Detect and display aspect patterns for synastry/multichart relationships (if enabled)
   if (settings.includeAspectPatterns) {
     // Combine planets from both charts for composite pattern detection
+    const combinedPlanetsForPatterns = [
+      ...getPointsForPatternDetection(chart1),
+      ...getPointsForPatternDetection(chart2),
+    ];
+    // But keep all points for aspect calculation
     const combinedPlanets = [
       ...getAllPointsFromChart(chart1),
       ...getAllPointsFromChart(chart2),
@@ -242,7 +264,7 @@ const processChartPairOutput = (
     );
 
     const compositePatternsChart1Chart2 = detectAspectPatterns(
-      combinedPlanets,
+      combinedPlanetsForPatterns,
       allCompositeAspects,
       chart1.houseCusps // Use chart1's house cusps for primary reference
     );
@@ -449,6 +471,11 @@ export function formatChartToText(
       // Detect and display aspect patterns for transit relationships (if enabled)
       if (settings.includeAspectPatterns) {
         // Combine planets from natal chart and transits for pattern detection
+        const combinedTransitPlanetsForPatterns = [
+          ...getPointsForPatternDetection(chart),
+          ...getPointsForPatternDetection(transitChart),
+        ];
+        // But keep all points for aspect calculation
         const combinedTransitPlanets = [
           ...getAllPointsFromChart(chart),
           ...getAllPointsFromChart(transitChart),
@@ -463,7 +490,7 @@ export function formatChartToText(
         );
 
         const transitPatterns = detectAspectPatterns(
-          combinedTransitPlanets,
+          combinedTransitPlanetsForPatterns,
           allTransitAspects,
           chart.houseCusps // Use natal chart's house cusps for reference
         );

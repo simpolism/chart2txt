@@ -395,7 +395,7 @@ describe('MultiChart Aspect Pattern Detection', () => {
   });
 
   describe('Edge Cases', () => {
-    it('should handle charts with angles in aspect patterns', () => {
+    it('should exclude angles from aspect pattern detection', () => {
       const chart1: ChartData = {
         name: 'Person A',
         planets: [
@@ -408,7 +408,7 @@ describe('MultiChart Aspect Pattern Detection', () => {
       const chart2: ChartData = {
         name: 'Person B',
         planets: [
-          { name: 'Mars', degree: 180 }, // 0° Libra - forms T-Square with Sun and Ascendant
+          { name: 'Mars', degree: 180 }, // 0° Libra - would form T-Square with Sun and Ascendant if Ascendant were included
         ],
         houseCusps: [0, 30, 60, 90, 120, 150, 180, 210, 240, 270, 300, 330],
       };
@@ -417,9 +417,13 @@ describe('MultiChart Aspect Pattern Detection', () => {
         includeAspectPatterns: true,
       });
 
-      expect(result).toContain(
+      // Should NOT contain aspect patterns since angles are excluded from pattern detection
+      expect(result).not.toContain(
         '[ASPECT PATTERNS: Person A-Person B Composite]'
       );
+      // But should still contain aspects involving angles
+      expect(result).toContain('Sun square Ascendant');
+      expect(result).toContain('Ascendant square Person B\'s Mars');
     });
 
     it('should handle empty planet arrays gracefully', () => {
