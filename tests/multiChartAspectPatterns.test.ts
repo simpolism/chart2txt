@@ -8,8 +8,8 @@ describe('MultiChart Aspect Pattern Detection', () => {
       const chart1: ChartData = {
         name: 'Person A',
         planets: [
-          { name: 'Sun', degree: 0 },     // 0° Aries
-          { name: 'Moon', degree: 180 },  // 0° Libra - forms opposition with Sun
+          { name: 'Sun', degree: 0 }, // 0° Aries
+          { name: 'Moon', degree: 180 }, // 0° Libra - forms opposition with Sun
         ],
         houseCusps: [0, 30, 60, 90, 120, 150, 180, 210, 240, 270, 300, 330],
       };
@@ -17,7 +17,7 @@ describe('MultiChart Aspect Pattern Detection', () => {
       const chart2: ChartData = {
         name: 'Person B',
         planets: [
-          { name: 'Mars', degree: 90 },   // 0° Cancer - forms squares with both Sun and Moon
+          { name: 'Mars', degree: 90 }, // 0° Cancer - forms squares with both Sun and Moon
         ],
         houseCusps: [0, 30, 60, 90, 120, 150, 180, 210, 240, 270, 300, 330],
       };
@@ -26,7 +26,9 @@ describe('MultiChart Aspect Pattern Detection', () => {
         includeAspectPatterns: true,
       });
 
-      expect(result).toContain('[ASPECT PATTERNS: Person A-Person B Composite]');
+      expect(result).toContain(
+        '[ASPECT PATTERNS: Person A-Person B Composite]'
+      );
       expect(result).toContain('T-Square:');
       expect(result).toContain('Apex: Mars');
       expect(result).toContain('Opposition: Sun');
@@ -36,7 +38,7 @@ describe('MultiChart Aspect Pattern Detection', () => {
       const chart1: ChartData = {
         name: 'Person A',
         planets: [
-          { name: 'Sun', degree: 0 },     // 0° Aries (Fire)
+          { name: 'Sun', degree: 0 }, // 0° Aries (Fire)
           { name: 'Jupiter', degree: 120 }, // 0° Leo (Fire) - trine with Sun
         ],
         houseCusps: [0, 30, 60, 90, 120, 150, 180, 210, 240, 270, 300, 330],
@@ -45,7 +47,7 @@ describe('MultiChart Aspect Pattern Detection', () => {
       const chart2: ChartData = {
         name: 'Person B',
         planets: [
-          { name: 'Mars', degree: 240 },  // 0° Sagittarius (Fire) - trine with both Sun and Jupiter
+          { name: 'Mars', degree: 240 }, // 0° Sagittarius (Fire) - trine with both Sun and Jupiter
         ],
         houseCusps: [0, 30, 60, 90, 120, 150, 180, 210, 240, 270, 300, 330],
       };
@@ -54,7 +56,9 @@ describe('MultiChart Aspect Pattern Detection', () => {
         includeAspectPatterns: true,
       });
 
-      expect(result).toContain('[ASPECT PATTERNS: Person A-Person B Composite]');
+      expect(result).toContain(
+        '[ASPECT PATTERNS: Person A-Person B Composite]'
+      );
       expect(result).toContain('Grand Trine:');
       expect(result).toContain('Element: Fire');
       expect(result).toContain('Planet 1: Sun');
@@ -66,8 +70,8 @@ describe('MultiChart Aspect Pattern Detection', () => {
       const chart1: ChartData = {
         name: 'Person A',
         planets: [
-          { name: 'Sun', degree: 0 },     // 0° Aries  
-          { name: 'Moon', degree: 60 },   // 0° Gemini - sextile (60°) with Sun
+          { name: 'Sun', degree: 0 }, // 0° Aries
+          { name: 'Moon', degree: 60 }, // 0° Gemini - sextile (60°) with Sun
         ],
         houseCusps: [0, 30, 60, 90, 120, 150, 180, 210, 240, 270, 300, 330],
       };
@@ -84,7 +88,9 @@ describe('MultiChart Aspect Pattern Detection', () => {
         includeAspectPatterns: true,
       });
 
-      expect(result).toContain('[ASPECT PATTERNS: Person A-Person B Composite]');
+      expect(result).toContain(
+        '[ASPECT PATTERNS: Person A-Person B Composite]'
+      );
       expect(result).toContain('Yod:');
       expect(result).toContain('Apex: Neptune');
       expect(result).toContain('Base planet 1: Sun');
@@ -95,9 +101,9 @@ describe('MultiChart Aspect Pattern Detection', () => {
       const chart1: ChartData = {
         name: 'Person A',
         planets: [
-          { name: 'Sun', degree: 35 },     // 5° Taurus
+          { name: 'Sun', degree: 35 }, // 5° Taurus
           { name: 'Mercury', degree: 45 }, // 15° Taurus
-          { name: 'Mars', degree: 50 },    // 20° Taurus - forms stellium within Person A's chart
+          { name: 'Mars', degree: 50 }, // 20° Taurus - forms stellium within Person A's chart
         ],
         houseCusps: [0, 30, 60, 90, 120, 150, 180, 210, 240, 270, 300, 330],
       };
@@ -105,7 +111,7 @@ describe('MultiChart Aspect Pattern Detection', () => {
       const chart2: ChartData = {
         name: 'Person B',
         planets: [
-          { name: 'Venus', degree: 55 },   // 25° Taurus
+          { name: 'Venus', degree: 55 }, // 25° Taurus
         ],
         houseCusps: [0, 30, 60, 90, 120, 150, 180, 210, 240, 270, 300, 330],
       };
@@ -119,9 +125,11 @@ describe('MultiChart Aspect Pattern Detection', () => {
       expect(result).toContain('Stellium:');
       expect(result).toContain('Sign: Taurus');
       expect(result).toContain('Sun, Mercury, Mars');
-      
+
       // Should NOT have cross-chart stellium patterns
-      expect(result).not.toContain('[ASPECT PATTERNS: Person A-Person B Composite]');
+      expect(result).not.toContain(
+        '[ASPECT PATTERNS: Person A-Person B Composite]'
+      );
     });
   });
 
@@ -130,8 +138,8 @@ describe('MultiChart Aspect Pattern Detection', () => {
       const natalChart: ChartData = {
         name: 'Natal',
         planets: [
-          { name: 'Sun', degree: 0 },     // 0° Aries
-          { name: 'Moon', degree: 180 },  // 0° Libra - opposition with Sun
+          { name: 'Sun', degree: 0 }, // 0° Aries
+          { name: 'Moon', degree: 180 }, // 0° Libra - opposition with Sun
         ],
         houseCusps: [0, 30, 60, 90, 120, 150, 180, 210, 240, 270, 300, 330],
       };
@@ -140,7 +148,7 @@ describe('MultiChart Aspect Pattern Detection', () => {
         name: 'Transit',
         chartType: 'transit',
         planets: [
-          { name: 'Pluto', degree: 90 },  // 0° Cancer - squares both natal Sun and Moon
+          { name: 'Pluto', degree: 90 }, // 0° Cancer - squares both natal Sun and Moon
         ],
         houseCusps: [0, 30, 60, 90, 120, 150, 180, 210, 240, 270, 300, 330],
       };
@@ -158,7 +166,7 @@ describe('MultiChart Aspect Pattern Detection', () => {
       const natalChart: ChartData = {
         name: 'Natal',
         planets: [
-          { name: 'Sun', degree: 0 },     // 0° Aries (Fire)
+          { name: 'Sun', degree: 0 }, // 0° Aries (Fire)
           { name: 'Jupiter', degree: 120 }, // 0° Leo (Fire)
         ],
         houseCusps: [0, 30, 60, 90, 120, 150, 180, 210, 240, 270, 300, 330],
@@ -168,7 +176,7 @@ describe('MultiChart Aspect Pattern Detection', () => {
         name: 'Transit',
         chartType: 'transit',
         planets: [
-          { name: 'Mars', degree: 240 },  // 0° Sagittarius (Fire) - completes Grand Trine
+          { name: 'Mars', degree: 240 }, // 0° Sagittarius (Fire) - completes Grand Trine
         ],
         houseCusps: [0, 30, 60, 90, 120, 150, 180, 210, 240, 270, 300, 330],
       };
@@ -186,8 +194,8 @@ describe('MultiChart Aspect Pattern Detection', () => {
       const natalChart: ChartData = {
         name: 'Natal',
         planets: [
-          { name: 'Sun', degree: 0 },      // 0° Aries (Fire)
-          { name: 'Moon', degree: 120 },   // 0° Leo (Fire) - trine with Sun
+          { name: 'Sun', degree: 0 }, // 0° Aries (Fire)
+          { name: 'Moon', degree: 120 }, // 0° Leo (Fire) - trine with Sun
         ],
         houseCusps: [0, 30, 60, 90, 120, 150, 180, 210, 240, 270, 300, 330],
       };
@@ -205,7 +213,9 @@ describe('MultiChart Aspect Pattern Detection', () => {
         includeAspectPatterns: true,
       });
 
-      expect(result).toContain('[ASPECT PATTERNS: Natal-Transit Global Transit Composite]');
+      expect(result).toContain(
+        '[ASPECT PATTERNS: Natal-Transit Global Transit Composite]'
+      );
       expect(result).toContain('Grand Trine:');
       expect(result).toContain('Element: Fire');
     });
@@ -216,7 +226,7 @@ describe('MultiChart Aspect Pattern Detection', () => {
       const natalChart: ChartData = {
         name: 'Natal',
         planets: [
-          { name: 'Sun', degree: 0 },     // 0° Aries
+          { name: 'Sun', degree: 0 }, // 0° Aries
           { name: 'Venus', degree: 120 }, // 0° Leo - trine with Sun
         ],
         houseCusps: [0, 30, 60, 90, 120, 150, 180, 210, 240, 270, 300, 330],
@@ -226,7 +236,7 @@ describe('MultiChart Aspect Pattern Detection', () => {
         name: 'Wedding',
         chartType: 'event',
         planets: [
-          { name: 'Mars', degree: 240 },  // 0° Sagittarius - forms Grand Trine with natal Sun & Venus
+          { name: 'Mars', degree: 240 }, // 0° Sagittarius - forms Grand Trine with natal Sun & Venus
         ],
         houseCusps: [0, 30, 60, 90, 120, 150, 180, 210, 240, 270, 300, 330],
       };
@@ -244,7 +254,7 @@ describe('MultiChart Aspect Pattern Detection', () => {
       const natalChart: ChartData = {
         name: 'Natal',
         planets: [
-          { name: 'Sun', degree: 0 },     // 0° Aries
+          { name: 'Sun', degree: 0 }, // 0° Aries
         ],
         houseCusps: [0, 30, 60, 90, 120, 150, 180, 210, 240, 270, 300, 330],
       };
@@ -253,7 +263,7 @@ describe('MultiChart Aspect Pattern Detection', () => {
         name: 'Event',
         chartType: 'event',
         planets: [
-          { name: 'Moon', degree: 180 },  // 0° Libra - opposition with natal Sun
+          { name: 'Moon', degree: 180 }, // 0° Libra - opposition with natal Sun
         ],
         houseCusps: [0, 30, 60, 90, 120, 150, 180, 210, 240, 270, 300, 330],
       };
@@ -272,7 +282,9 @@ describe('MultiChart Aspect Pattern Detection', () => {
       });
 
       // Should contain global transit pattern across all charts
-      expect(result).toContain('[ASPECT PATTERNS: Natal-Event-Transit Global Transit Composite]');
+      expect(result).toContain(
+        '[ASPECT PATTERNS: Natal-Event-Transit Global Transit Composite]'
+      );
       expect(result).toContain('T-Square:');
       expect(result).toContain('Apex: Saturn');
       expect(result).toContain('Opposition: Sun');
@@ -284,7 +296,7 @@ describe('MultiChart Aspect Pattern Detection', () => {
       const chart1: ChartData = {
         name: 'Person A',
         planets: [
-          { name: 'Sun', degree: 0 },     // 0° Aries
+          { name: 'Sun', degree: 0 }, // 0° Aries
         ],
         houseCusps: [0, 30, 60, 90, 120, 150, 180, 210, 240, 270, 300, 330],
       };
@@ -292,7 +304,7 @@ describe('MultiChart Aspect Pattern Detection', () => {
       const chart2: ChartData = {
         name: 'Person B',
         planets: [
-          { name: 'Moon', degree: 120 },  // 0° Leo - trine with Person A's Sun
+          { name: 'Moon', degree: 120 }, // 0° Leo - trine with Person A's Sun
         ],
         houseCusps: [0, 30, 60, 90, 120, 150, 180, 210, 240, 270, 300, 330],
       };
@@ -310,10 +322,12 @@ describe('MultiChart Aspect Pattern Detection', () => {
       });
 
       // Should have global pattern spanning all three charts
-      expect(result).toContain('[ASPECT PATTERNS: Person A-Person B-Person C Global Composite]');
+      expect(result).toContain(
+        '[ASPECT PATTERNS: Person A-Person B-Person C Global Composite]'
+      );
       expect(result).toContain('Grand Trine:');
       expect(result).toContain('Planet 1: Sun');
-      expect(result).toContain('Planet 2: Moon');  
+      expect(result).toContain('Planet 2: Moon');
       expect(result).toContain('Planet 3: Jupiter');
       expect(result).toContain('Element: Fire');
     });
@@ -324,17 +338,15 @@ describe('MultiChart Aspect Pattern Detection', () => {
       const chart1: ChartData = {
         name: 'Person A',
         planets: [
-          { name: 'Sun', degree: 0 },     
-          { name: 'Moon', degree: 90 },   
+          { name: 'Sun', degree: 0 },
+          { name: 'Moon', degree: 90 },
         ],
         houseCusps: [0, 30, 60, 90, 120, 150, 180, 210, 240, 270, 300, 330],
       };
 
       const chart2: ChartData = {
         name: 'Person B',
-        planets: [
-          { name: 'Mars', degree: 180 }, 
-        ],
+        planets: [{ name: 'Mars', degree: 180 }],
         houseCusps: [0, 30, 60, 90, 120, 150, 180, 210, 240, 270, 300, 330],
       };
 
@@ -350,8 +362,8 @@ describe('MultiChart Aspect Pattern Detection', () => {
       const chart1: ChartData = {
         name: 'Person A',
         planets: [
-          { name: 'Sun', degree: 0 },     // 0° Aries
-          { name: 'Moon', degree: 183 },  // 3° Libra - wide opposition (3° orb)
+          { name: 'Sun', degree: 0 }, // 0° Aries
+          { name: 'Moon', degree: 183 }, // 3° Libra - wide opposition (3° orb)
         ],
         houseCusps: [0, 30, 60, 90, 120, 150, 180, 210, 240, 270, 300, 330],
       };
@@ -359,7 +371,7 @@ describe('MultiChart Aspect Pattern Detection', () => {
       const chart2: ChartData = {
         name: 'Person B',
         planets: [
-          { name: 'Mars', degree: 93 },   // 3° Cancer - wide square with Sun and Moon
+          { name: 'Mars', degree: 93 }, // 3° Cancer - wide square with Sun and Moon
         ],
         houseCusps: [0, 30, 60, 90, 120, 150, 180, 210, 240, 270, 300, 330],
       };
@@ -367,13 +379,13 @@ describe('MultiChart Aspect Pattern Detection', () => {
       // Test with tight orbs (should not detect pattern)
       const resultTightOrbs = chart2txt([chart1, chart2], {
         includeAspectPatterns: true,
-        orbConfiguration: TIGHT_ORB_CONFIG
+        orbConfiguration: TIGHT_ORB_CONFIG,
       });
 
       // Test with wide orbs (should detect pattern)
       const resultWideOrbs = chart2txt([chart1, chart2], {
         includeAspectPatterns: true,
-        orbConfiguration: WIDE_ORB_CONFIG
+        orbConfiguration: WIDE_ORB_CONFIG,
       });
 
       // Wide orbs should detect the T-Square
@@ -387,16 +399,16 @@ describe('MultiChart Aspect Pattern Detection', () => {
       const chart1: ChartData = {
         name: 'Person A',
         planets: [
-          { name: 'Sun', degree: 0 },     // 0° Aries
+          { name: 'Sun', degree: 0 }, // 0° Aries
         ],
-        ascendant: 90,   // 0° Cancer - square with Sun
+        ascendant: 90, // 0° Cancer - square with Sun
         houseCusps: [90, 120, 150, 180, 210, 240, 270, 300, 330, 0, 30, 60], // Ascendant at 90°
       };
 
       const chart2: ChartData = {
         name: 'Person B',
         planets: [
-          { name: 'Mars', degree: 180 },  // 0° Libra - forms T-Square with Sun and Ascendant
+          { name: 'Mars', degree: 180 }, // 0° Libra - forms T-Square with Sun and Ascendant
         ],
         houseCusps: [0, 30, 60, 90, 120, 150, 180, 210, 240, 270, 300, 330],
       };
@@ -405,7 +417,9 @@ describe('MultiChart Aspect Pattern Detection', () => {
         includeAspectPatterns: true,
       });
 
-      expect(result).toContain('[ASPECT PATTERNS: Person A-Person B Composite]');
+      expect(result).toContain(
+        '[ASPECT PATTERNS: Person A-Person B Composite]'
+      );
     });
 
     it('should handle empty planet arrays gracefully', () => {
@@ -417,9 +431,7 @@ describe('MultiChart Aspect Pattern Detection', () => {
 
       const chart2: ChartData = {
         name: 'Person B',
-        planets: [
-          { name: 'Sun', degree: 0 },
-        ],
+        planets: [{ name: 'Sun', degree: 0 }],
         houseCusps: [0, 30, 60, 90, 120, 150, 180, 210, 240, 270, 300, 330],
       };
 

@@ -79,9 +79,6 @@ export function isOnCusp(
  * @param epsilon Tolerance in degrees (default: 0.1° = 6 arc-minutes)
  * @returns True if aspect is exact within tolerance
  */
-export function isExactAspect(
-  actualOrb: number,
-  epsilon = 0.1
-): boolean {
+export function isExactAspect(actualOrb: number, epsilon = 0.1): boolean {
   return isNearZero(actualOrb, epsilon);
 }

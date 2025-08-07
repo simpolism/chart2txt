@@ -57,7 +57,7 @@ export class OrbResolver {
    */
   resolveOrb(context: OrbResolutionContext): number {
     const cacheKey = this.generateCacheKey(context);
-    
+
     // Check cache first
     if (this.orbCache.has(cacheKey)) {
       return this.orbCache.get(cacheKey)!;
@@ -84,27 +84,29 @@ export class OrbResolver {
 
   private calculateOrb(context: OrbResolutionContext): number {
     let baseOrb = this.getBaseOrb(context);
-    
+
     // Apply aspect classification multipliers
     baseOrb = this.applyClassificationMultipliers(baseOrb, context.aspect);
-    
+
     // Apply contextual multipliers (synastry, transit, etc.)
     baseOrb = this.applyContextualMultipliers(baseOrb, context);
-    
+
     // Ensure minimum constraints
     baseOrb = this.applyConstraints(baseOrb, context.aspect);
-    
+
     // Round to reasonable precision
     return Math.round(baseOrb * 10) / 10;
   }
 
   private getBaseOrb(context: OrbResolutionContext): number {
-    const planetAName = typeof context.planetA === 'string' 
-      ? context.planetA 
-      : context.planetA.name;
-    const planetBName = typeof context.planetB === 'string' 
-      ? context.planetB 
-      : context.planetB.name;
+    const planetAName =
+      typeof context.planetA === 'string'
+        ? context.planetA
+        : context.planetA.name;
+    const planetBName =
+      typeof context.planetB === 'string'
+        ? context.planetB
+        : context.planetB.name;
 
     // Try to get planet-specific orbs
     const orbA = this.getPlanetSpecificOrb(planetAName, context.aspect);
@@ -123,11 +125,15 @@ export class OrbResolver {
     return context.aspect.orb;
   }
 
-  private getPlanetSpecificOrb(planetName: string, aspect: Aspect): number | null {
+  private getPlanetSpecificOrb(
+    planetName: string,
+    aspect: Aspect
+  ): number | null {
     const planetCategory = this.getPlanetCategory(planetName);
     if (!planetCategory) return null;
 
-    const categoryRules = this.orbConfiguration.planetCategories?.[planetCategory];
+    const categoryRules =
+      this.orbConfiguration.planetCategories?.[planetCategory];
     if (!categoryRules) return null;
 
     // Try aspect-specific orb first
@@ -141,22 +147,33 @@ export class OrbResolver {
   private applyClassificationMultipliers(orb: number, aspect: Aspect): number {
     if (!aspect.classification) return orb;
 
-    const classificationRules = this.orbConfiguration.aspectClassification?.[aspect.classification];
+    const classificationRules =
+      this.orbConfiguration.aspectClassification?.[aspect.classification];
     if (!classificationRules?.orbMultiplier) return orb;
 
     return orb * classificationRules.orbMultiplier;
   }
 
-  private applyContextualMultipliers(orb: number, context: OrbResolutionContext): number {
+  private applyContextualMultipliers(
+    orb: number,
+    context: OrbResolutionContext
+  ): number {
     if (!context.chartType || context.chartType === 'natal') return orb;
 
     // Map 'transit' to 'transits' for the configuration key
-    const configKey = context.chartType === 'transit' ? 'transits' : context.chartType;
-    const contextRules = this.orbConfiguration.contextualOrbs?.[configKey as keyof NonNullable<typeof this.orbConfiguration.contextualOrbs>];
+    const configKey =
+      context.chartType === 'transit' ? 'transits' : context.chartType;
+    const contextRules =
+      this.orbConfiguration.contextualOrbs?.[
+        configKey as keyof NonNullable<
+          typeof this.orbConfiguration.contextualOrbs
+        >
+      ];
     if (!contextRules) return orb;
 
     // Apply aspect-specific multiplier if available
-    const aspectMultiplier = contextRules.aspectMultipliers?.[context.aspect.name];
+    const aspectMultiplier =
+      contextRules.aspectMultipliers?.[context.aspect.name];
     if (aspectMultiplier) {
       return orb * aspectMultiplier;
     }
@@ -170,7 +187,7 @@ export class OrbResolver {
   }
 
   private applyConstraints(orb: number, aspect: Aspect): number {
-    const classificationRules = aspect.classification 
+    const classificationRules = aspect.classification
       ? this.orbConfiguration.aspectClassification?.[aspect.classification]
       : undefined;
 
@@ -197,13 +214,17 @@ export class OrbResolver {
   }
 
   private generateCacheKey(context: OrbResolutionContext): string {
-    const planetAName = typeof context.planetA === 'string' 
-      ? context.planetA 
-      : context.planetA.name;
-    const planetBName = typeof context.planetB === 'string' 
-      ? context.planetB 
-      : context.planetB.name;
+    const planetAName =
+      typeof context.planetA === 'string'
+        ? context.planetA
+        : context.planetA.name;
+    const planetBName =
+      typeof context.planetB === 'string'
+        ? context.planetB
+        : context.planetB.name;
 
-    return `${planetAName}-${planetBName}-${context.aspect.name}-${context.chartType || 'natal'}`;
+    return `${planetAName}-${planetBName}-${context.aspect.name}-${
+      context.chartType || 'natal'
+    }`;
   }
 }

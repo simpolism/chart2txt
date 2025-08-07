@@ -48,7 +48,6 @@ function formatGrandTrine(pattern: AspectPattern): string[] {
   return output;
 }
 
-
 /**
  * Format a Grand Cross pattern
  */
@@ -133,7 +132,9 @@ export function generateAspectPatternsOutput(
   patterns: AspectPattern[],
   customTitle?: string
 ): string[] {
-  const output: string[] = [customTitle ? `[ASPECT PATTERNS: ${customTitle}]` : '[ASPECT PATTERNS]'];
+  const output: string[] = [
+    customTitle ? `[ASPECT PATTERNS: ${customTitle}]` : '[ASPECT PATTERNS]',
+  ];
 
   if (patterns.length === 0) {
     // General statement plus explicit enumeration to prevent LLM hallucinations

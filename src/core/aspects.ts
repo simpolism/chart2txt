@@ -133,7 +133,7 @@ function findTightestAspect(
 
     // Determine the maximum allowed orb for this aspect
     let maxAllowedOrb = aspectType.orb; // Default fallback
-    
+
     if (orbResolver) {
       const context: OrbResolutionContext = {
         chartType: chartType || 'natal',

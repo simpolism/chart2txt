@@ -1,10 +1,10 @@
 import { chart2txt, ChartData } from '../src/index';
 import { AspectClassification, PlanetCategory } from '../src/types';
-import { 
-  TRADITIONAL_ORB_CONFIG, 
-  MODERN_ORB_CONFIG, 
+import {
+  TRADITIONAL_ORB_CONFIG,
+  MODERN_ORB_CONFIG,
   TIGHT_ORB_CONFIG,
-  TRADITIONAL_ASPECTS 
+  TRADITIONAL_ASPECTS,
 } from '../src/constants';
 import { OrbResolver } from '../src/core/orbResolver';
 
@@ -1679,28 +1679,33 @@ describe('chart2txt', () => {
     const testData: ChartData = {
       name: 'test',
       planets: [
-        { name: 'Sun', degree: 0 },    // 0° Aries (Luminary)
-        { name: 'Moon', degree: 6 },   // 6° Aries (Luminary) - 6° orb to Sun
+        { name: 'Sun', degree: 0 }, // 0° Aries (Luminary)
+        { name: 'Moon', degree: 6 }, // 6° Aries (Luminary) - 6° orb to Sun
         { name: 'Mercury', degree: 90 }, // 0° Cancer (Personal) - square to Sun
-        { name: 'Venus', degree: 60 },   // 0° Gemini (Personal) - sextile to Sun
-        { name: 'Mars', degree: 120 },   // 0° Leo (Personal) - trine to Sun
+        { name: 'Venus', degree: 60 }, // 0° Gemini (Personal) - sextile to Sun
+        { name: 'Mars', degree: 120 }, // 0° Leo (Personal) - trine to Sun
         { name: 'Jupiter', degree: 180 }, // 0° Libra (Social) - opposition to Sun
         { name: 'Saturn', degree: 270 }, // 0° Capricorn (Social) - square to Sun
         { name: 'Uranus', degree: 150 }, // 0° Virgo (Outer) - quincunx to Sun
         { name: 'Neptune', degree: 30 }, // 0° Taurus (Outer) - semi-sextile to Sun
-        { name: 'Pluto', degree: 45 },   // 15° Taurus (Outer) - semi-square to Sun
+        { name: 'Pluto', degree: 45 }, // 15° Taurus (Outer) - semi-square to Sun
       ],
     };
 
     describe('OrbResolver class', () => {
       test('resolves luminaries with larger orbs', () => {
         const orbResolver = new OrbResolver(TRADITIONAL_ORB_CONFIG);
-        
+
         const sunMoonContext = {
           chartType: 'natal' as const,
           planetA: 'Sun',
-          planetB: 'Moon', 
-          aspect: { name: 'conjunction', angle: 0, orb: 5, classification: AspectClassification.Major },
+          planetB: 'Moon',
+          aspect: {
+            name: 'conjunction',
+            angle: 0,
+            orb: 5,
+            classification: AspectClassification.Major,
+          },
         };
 
         const orb = orbResolver.resolveOrb(sunMoonContext);
@@ -1709,12 +1714,17 @@ describe('chart2txt', () => {
 
       test('applies aspect classification multipliers', () => {
         const orbResolver = new OrbResolver(MODERN_ORB_CONFIG);
-        
+
         const minorAspectContext = {
           chartType: 'natal' as const,
           planetA: 'Mercury',
           planetB: 'Venus',
-          aspect: { name: 'sextile', angle: 60, orb: 4, classification: AspectClassification.Minor },
+          aspect: {
+            name: 'sextile',
+            angle: 60,
+            orb: 4,
+            classification: AspectClassification.Minor,
+          },
         };
 
         const orb = orbResolver.resolveOrb(minorAspectContext);
@@ -1724,12 +1734,17 @@ describe('chart2txt', () => {
 
       test('applies contextual orb multipliers for synastry', () => {
         const orbResolver = new OrbResolver(TRADITIONAL_ORB_CONFIG);
-        
+
         const synastryContext = {
           chartType: 'synastry' as const,
           planetA: 'Sun',
           planetB: 'Moon',
-          aspect: { name: 'conjunction', angle: 0, orb: 5, classification: AspectClassification.Major },
+          aspect: {
+            name: 'conjunction',
+            angle: 0,
+            orb: 5,
+            classification: AspectClassification.Major,
+          },
         };
 
         const orb = orbResolver.resolveOrb(synastryContext);
@@ -1739,27 +1754,42 @@ describe('chart2txt', () => {
 
       test('uses planet category mapping correctly', () => {
         const orbResolver = new OrbResolver(TIGHT_ORB_CONFIG);
-        
-        expect(orbResolver.getPlanetCategory('Sun')).toBe(PlanetCategory.Luminaries);
-        expect(orbResolver.getPlanetCategory('Mercury')).toBe(PlanetCategory.Personal);
-        expect(orbResolver.getPlanetCategory('Jupiter')).toBe(PlanetCategory.Social);
-        expect(orbResolver.getPlanetCategory('Uranus')).toBe(PlanetCategory.Outer);
-        expect(orbResolver.getPlanetCategory('Ascendant')).toBe(PlanetCategory.Angles);
+
+        expect(orbResolver.getPlanetCategory('Sun')).toBe(
+          PlanetCategory.Luminaries
+        );
+        expect(orbResolver.getPlanetCategory('Mercury')).toBe(
+          PlanetCategory.Personal
+        );
+        expect(orbResolver.getPlanetCategory('Jupiter')).toBe(
+          PlanetCategory.Social
+        );
+        expect(orbResolver.getPlanetCategory('Uranus')).toBe(
+          PlanetCategory.Outer
+        );
+        expect(orbResolver.getPlanetCategory('Ascendant')).toBe(
+          PlanetCategory.Angles
+        );
       });
 
       test('handles cache correctly', () => {
         const orbResolver = new OrbResolver(MODERN_ORB_CONFIG);
-        
+
         const context = {
           chartType: 'natal' as const,
           planetA: 'Sun',
           planetB: 'Mars',
-          aspect: { name: 'trine', angle: 120, orb: 6, classification: AspectClassification.Major },
+          aspect: {
+            name: 'trine',
+            angle: 120,
+            orb: 6,
+            classification: AspectClassification.Major,
+          },
         };
 
         const orb1 = orbResolver.resolveOrb(context);
         const orb2 = orbResolver.resolveOrb(context); // Should hit cache
-        
+
         expect(orb1).toBe(orb2);
         expect(typeof orb1).toBe('number');
       });
@@ -1780,7 +1810,12 @@ describe('chart2txt', () => {
       test('gives outer planets smaller orbs', () => {
         const result = chart2txt(testData, {
           aspectDefinitions: [
-            { name: 'semi-sextile', angle: 30, orb: 6, classification: AspectClassification.Minor },
+            {
+              name: 'semi-sextile',
+              angle: 30,
+              orb: 6,
+              classification: AspectClassification.Minor,
+            },
           ],
           orbConfiguration: TRADITIONAL_ORB_CONFIG,
           aspectCategories: [{ name: 'ALL', maxOrb: 15 }], // Allow detection
@@ -1796,7 +1831,12 @@ describe('chart2txt', () => {
       test('applies minor aspect orb reductions', () => {
         const result = chart2txt(testData, {
           aspectDefinitions: [
-            { name: 'sextile', angle: 60, orb: 4, classification: AspectClassification.Minor },
+            {
+              name: 'sextile',
+              angle: 60,
+              orb: 4,
+              classification: AspectClassification.Minor,
+            },
           ],
           orbConfiguration: MODERN_ORB_CONFIG,
           aspectCategories: [{ name: 'ALL', maxOrb: 15 }], // Allow detection
@@ -1812,7 +1852,12 @@ describe('chart2txt', () => {
       test('restricts aspects with tight orbs', () => {
         const result = chart2txt(testData, {
           aspectDefinitions: [
-            { name: 'conjunction', angle: 0, orb: 5, classification: AspectClassification.Major },
+            {
+              name: 'conjunction',
+              angle: 0,
+              orb: 5,
+              classification: AspectClassification.Major,
+            },
           ],
           orbConfiguration: TIGHT_ORB_CONFIG,
           aspectCategories: [{ name: 'ALL', maxOrb: 15 }], // Allow detection
@@ -1824,12 +1869,17 @@ describe('chart2txt', () => {
 
       test('applies maximum orb constraints', () => {
         const orbResolver = new OrbResolver(TIGHT_ORB_CONFIG);
-        
+
         const context = {
           chartType: 'natal' as const,
           planetA: 'Sun',
           planetB: 'Moon',
-          aspect: { name: 'conjunction', angle: 0, orb: 8, classification: AspectClassification.Major },
+          aspect: {
+            name: 'conjunction',
+            angle: 0,
+            orb: 8,
+            classification: AspectClassification.Major,
+          },
         };
 
         const orb = orbResolver.resolveOrb(context);
@@ -1870,15 +1920,20 @@ describe('chart2txt', () => {
           name: 'Person 1',
           planets: [{ name: 'Sun', degree: 0 }],
         };
-        
+
         const chart2: ChartData = {
-          name: 'Person 2', 
+          name: 'Person 2',
           planets: [{ name: 'Moon', degree: 7 }], // 7° orb
         };
 
         const result = chart2txt([chart1, chart2], {
           aspectDefinitions: [
-            { name: 'conjunction', angle: 0, orb: 5, classification: AspectClassification.Major },
+            {
+              name: 'conjunction',
+              angle: 0,
+              orb: 5,
+              classification: AspectClassification.Major,
+            },
           ],
           orbConfiguration: TRADITIONAL_ORB_CONFIG, // Synastry multiplier: 0.9
           aspectCategories: [{ name: 'SYNASTRY', maxOrb: 15 }], // Allow detection
@@ -1894,22 +1949,27 @@ describe('chart2txt', () => {
           name: 'Natal',
           planets: [{ name: 'Sun', degree: 0 }],
         };
-        
+
         const transitChart: ChartData = {
           name: 'Transits',
-          planets: [{ name: 'Mars', degree: 8 }], // 8° orb  
+          planets: [{ name: 'Mars', degree: 8 }], // 8° orb
           chartType: 'transit',
         };
 
         const result = chart2txt([natalChart, transitChart], {
           aspectDefinitions: [
-            { name: 'conjunction', angle: 0, orb: 5, classification: AspectClassification.Major },
+            {
+              name: 'conjunction',
+              angle: 0,
+              orb: 5,
+              classification: AspectClassification.Major,
+            },
           ],
           orbConfiguration: TRADITIONAL_ORB_CONFIG, // Transit multiplier: 1.2
           aspectCategories: [{ name: 'TRANSITS', maxOrb: 15 }], // Allow detection
         });
 
-        // Luminaries: 10° * 1.2 = 12° max orb for transits  
+        // Luminaries: 10° * 1.2 = 12° max orb for transits
         // 8° actual orb should be within limits
         expect(result).toContain('conjunction');
       });
@@ -1918,12 +1978,17 @@ describe('chart2txt', () => {
     describe('Error Handling and Edge Cases', () => {
       test('handles unknown planet names gracefully', () => {
         const orbResolver = new OrbResolver(MODERN_ORB_CONFIG);
-        
+
         const context = {
           chartType: 'natal' as const,
           planetA: 'UnknownPlanet',
           planetB: 'AnotherUnknown',
-          aspect: { name: 'conjunction', angle: 0, orb: 5, classification: AspectClassification.Major },
+          aspect: {
+            name: 'conjunction',
+            angle: 0,
+            orb: 5,
+            classification: AspectClassification.Major,
+          },
         };
 
         const orb = orbResolver.resolveOrb(context);
@@ -1933,12 +1998,17 @@ describe('chart2txt', () => {
 
       test('handles missing orb configuration gracefully', () => {
         const orbResolver = new OrbResolver(); // Empty configuration
-        
+
         const context = {
           chartType: 'natal' as const,
           planetA: 'Sun',
           planetB: 'Moon',
-          aspect: { name: 'conjunction', angle: 0, orb: 6, classification: AspectClassification.Major },
+          aspect: {
+            name: 'conjunction',
+            angle: 0,
+            orb: 6,
+            classification: AspectClassification.Major,
+          },
         };
 
         const orb = orbResolver.resolveOrb(context);
@@ -1951,9 +2021,9 @@ describe('chart2txt', () => {
           ...TIGHT_ORB_CONFIG,
           globalFallbackOrb: 2,
         };
-        
+
         const orbResolver = new OrbResolver(configWithFallback);
-        
+
         const context = {
           chartType: 'natal' as const,
           planetA: 'UnknownPlanet',

@@ -1,4 +1,10 @@
-import { Settings, PartialSettings, AspectCategory, Aspect, OrbConfiguration } from '../types';
+import {
+  Settings,
+  PartialSettings,
+  AspectCategory,
+  Aspect,
+  OrbConfiguration,
+} from '../types';
 import {
   DEFAULT_SETTINGS,
   DEFAULT_ASPECT_CATEGORIES,

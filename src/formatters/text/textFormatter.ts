@@ -36,14 +36,14 @@ function getAllPointsFromChart(chartData: ChartData): Point[] {
 function detectGlobalMultiChartPatterns(
   charts: ChartData[],
   settings: ChartSettings
-): { patterns: AspectPattern[], chartNames: string } {
+): { patterns: AspectPattern[]; chartNames: string } {
   if (charts.length < 2) {
     return { patterns: [], chartNames: '' };
   }
 
   // Combine all planets from all charts
-  const allPlanets = charts.flatMap(chart => getAllPointsFromChart(chart));
-  
+  const allPlanets = charts.flatMap((chart) => getAllPointsFromChart(chart));
+
   // Calculate all aspects between all planets (both intra-chart and inter-chart)
   const allAspects = calculateAspects(
     settings.aspectDefinitions,
@@ -51,16 +51,13 @@ function detectGlobalMultiChartPatterns(
     settings.skipOutOfSignAspects,
     settings.orbResolver
   );
-  
+
   // Detect patterns across all charts (no house cusps since it doesn't make sense across charts)
-  const globalPatterns = detectAspectPatterns(
-    allPlanets,
-    allAspects
-  );
-  
+  const globalPatterns = detectAspectPatterns(allPlanets, allAspects);
+
   // Create a descriptive name for the chart combination
-  const chartNames = charts.map(c => c.name).join('-');
-  
+  const chartNames = charts.map((c) => c.name).join('-');
+
   return { patterns: globalPatterns, chartNames };
 }
 
@@ -139,19 +136,16 @@ const processSingleChartOutput = (
       aspects,
       chartData.houseCusps
     );
-    
+
     // Detect stelliums separately (only for single charts where house information is meaningful)
-    const stelliums = detectStelliums(
-      chartData.planets,
-      chartData.houseCusps
-    );
-    
+    const stelliums = detectStelliums(chartData.planets, chartData.houseCusps);
+
     // Combine all patterns
     const allPatterns = [...aspectPatterns];
-    
+
     // Always output aspect patterns section for single charts to prevent LLM hallucinations
     outputLines.push('[ASPECT PATTERNS]');
-    
+
     if (allPatterns.length === 0 && stelliums.length === 0) {
       // General statement plus explicit enumeration to prevent LLM hallucinations
       outputLines.push('No aspect patterns detected.');
@@ -161,26 +155,28 @@ const processSingleChartOutput = (
     } else {
       // Output detected patterns
       if (stelliums.length > 0) {
-        stelliums.forEach(stellium => {
+        stelliums.forEach((stellium) => {
           outputLines.push(...formatStellium(stellium));
         });
       } else {
         outputLines.push('No stelliums detected.');
       }
-      
+
       if (allPatterns.length > 0) {
         const patternsOutput = generateAspectPatternsOutput(allPatterns);
         // Remove the header and extract pattern content, excluding "No ... detected" messages
-        const patternContent = patternsOutput.slice(1).filter(line => 
-          !line.startsWith('No ') || !line.endsWith(' detected.')
-        );
+        const patternContent = patternsOutput
+          .slice(1)
+          .filter(
+            (line) => !line.startsWith('No ') || !line.endsWith(' detected.')
+          );
         outputLines.push(...patternContent);
       } else {
         outputLines.push('No T-Squares detected.');
         outputLines.push('No Grand Trines detected.');
       }
     }
-    
+
     // Remove trailing empty line if present
     if (outputLines[outputLines.length - 1] === '') {
       outputLines.pop();
@@ -228,9 +224,9 @@ const processChartPairOutput = (
     // Combine planets from both charts for composite pattern detection
     const combinedPlanets = [
       ...getAllPointsFromChart(chart1),
-      ...getAllPointsFromChart(chart2)
+      ...getAllPointsFromChart(chart2),
     ];
-    
+
     // Calculate all aspects between all planets (both intra-chart and inter-chart)
     const allCompositeAspects = calculateAspects(
       settings.aspectDefinitions,
@@ -238,17 +234,22 @@ const processChartPairOutput = (
       settings.skipOutOfSignAspects,
       settings.orbResolver
     );
-    
+
     const compositePatternsChart1Chart2 = detectAspectPatterns(
       combinedPlanets,
       allCompositeAspects,
       chart1.houseCusps // Use chart1's house cusps for primary reference
     );
     if (compositePatternsChart1Chart2.length > 0) {
-      outputLines.push(...generateAspectPatternsOutput(compositePatternsChart1Chart2, `${chart1.name}-${chart2.name} Composite`));
+      outputLines.push(
+        ...generateAspectPatternsOutput(
+          compositePatternsChart1Chart2,
+          `${chart1.name}-${chart2.name} Composite`
+        )
+      );
     }
   }
-  
+
   outputLines.push('');
   outputLines.push(...generateHouseOverlaysOutput(chart1, chart2, settings));
   outputLines.push('');
@@ -402,15 +403,14 @@ export function formatChartToText(
 
   // Global multi-chart pattern detection (for 3+ chart combinations or comprehensive 2-chart analysis)
   if (settings.includeAspectPatterns && nonTransitCharts.length >= 2) {
-    const { patterns: globalPatterns, chartNames } = detectGlobalMultiChartPatterns(
-      nonTransitCharts,
-      settings
-    );
-    
+    const { patterns: globalPatterns, chartNames } =
+      detectGlobalMultiChartPatterns(nonTransitCharts, settings);
+
     if (globalPatterns.length > 0) {
-      const title = nonTransitCharts.length > 2 
-        ? `${chartNames} Global Composite`
-        : `${chartNames} Complete Composite`;
+      const title =
+        nonTransitCharts.length > 2
+          ? `${chartNames} Global Composite`
+          : `${chartNames} Complete Composite`;
       outputLines.push(...generateAspectPatternsOutput(globalPatterns, title));
       outputLines.push('');
     }
@@ -445,9 +445,9 @@ export function formatChartToText(
         // Combine planets from natal chart and transits for pattern detection
         const combinedTransitPlanets = [
           ...getAllPointsFromChart(chart),
-          ...getAllPointsFromChart(transitChart)
+          ...getAllPointsFromChart(transitChart),
         ];
-        
+
         // Calculate all aspects between all planets (natal + transit)
         const allTransitAspects = calculateAspects(
           settings.aspectDefinitions,
@@ -455,33 +455,38 @@ export function formatChartToText(
           settings.skipOutOfSignAspects,
           settings.orbResolver
         );
-        
+
         const transitPatterns = detectAspectPatterns(
           combinedTransitPlanets,
           allTransitAspects,
           chart.houseCusps // Use natal chart's house cusps for reference
         );
         if (transitPatterns.length > 0) {
-          outputLines.push(...generateAspectPatternsOutput(transitPatterns, `Transit to ${chart.name}`));
+          outputLines.push(
+            ...generateAspectPatternsOutput(
+              transitPatterns,
+              `Transit to ${chart.name}`
+            )
+          );
         }
       }
-      
+
       outputLines.push('');
     }
 
     // Global pattern detection including transits (if enabled)
     if (settings.includeAspectPatterns) {
       const allChartsIncludingTransits = [...nonTransitCharts, transitChart];
-      const { patterns: globalTransitPatterns, chartNames } = detectGlobalMultiChartPatterns(
-        allChartsIncludingTransits,
-        settings
-      );
-      
+      const { patterns: globalTransitPatterns, chartNames } =
+        detectGlobalMultiChartPatterns(allChartsIncludingTransits, settings);
+
       if (globalTransitPatterns.length > 0) {
-        outputLines.push(...generateAspectPatternsOutput(
-          globalTransitPatterns, 
-          `${chartNames} Global Transit Composite`
-        ));
+        outputLines.push(
+          ...generateAspectPatternsOutput(
+            globalTransitPatterns,
+            `${chartNames} Global Transit Composite`
+          )
+        );
         outputLines.push('');
       }
     }
