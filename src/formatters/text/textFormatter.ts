@@ -5,6 +5,8 @@ import {
   PartialSettings,
   Point,
   AspectPattern,
+  AspectData,
+  UnionedPoint,
 } from '../../types';
 import { ChartSettings } from '../../config/ChartSettings';
 import { validateInputData } from '../../utils/validation';
@@ -47,7 +49,7 @@ function getPointsForPatternDetection(chartData: ChartData): Point[] {
  */
 function detectGlobalMultiChartPatterns(
   charts: ChartData[],
-  settings: ChartSettings
+  allAspects: AspectData[] // Use pre-calculated aspects
 ): { patterns: AspectPattern[]; chartNames: string } {
   if (charts.length < 2) {
     return { patterns: [], chartNames: '' };
@@ -57,37 +59,18 @@ function detectGlobalMultiChartPatterns(
   const allPlanetsForPatterns = charts.flatMap((chart) =>
     getPointsForPatternDetection(chart)
   );
-  // But keep all points for aspect calculation (aspects can include angles)
-  const allPlanets = charts.flatMap((chart) => getAllPointsFromChart(chart));
 
-  // Create mapping of planet names to chart names for ownership context
-  const planetChartMap = new Map<string, string>();
-  charts.forEach((chart) => {
-    getPointsForPatternDetection(chart).forEach((planet) => {
-      planetChartMap.set(planet.name, chart.name);
-    });
-    getAllPointsFromChart(chart).forEach((planet) => {
-      if (!planetChartMap.has(planet.name)) {
-        planetChartMap.set(planet.name, chart.name);
-      }
-    });
-  });
-
-  // Calculate all aspects between all planets (both intra-chart and inter-chart)
-  const allAspects = calculateAspects(
-    settings.aspectDefinitions,
-    allPlanets,
-    settings.skipOutOfSignAspects,
-    settings.orbResolver
+  const unionedPoints = charts.flatMap((chart) =>
+    getPointsForPatternDetection(chart).map(
+      (point): UnionedPoint => [point, chart]
+    )
   );
-
   // Detect patterns across all charts with chart ownership context
-  // Exclude angles from pattern detection but keep them in aspects
+  // Aspects are now pre-calculated and passed in
   const globalPatterns = detectAspectPatterns(
-    allPlanetsForPatterns,
+    unionedPoints,
     allAspects,
-    undefined, // No house cusps since it doesn't make sense across charts
-    planetChartMap
+    undefined // No house cusps for global patterns
   );
 
   // Create a descriptive name for the chart combination
@@ -115,6 +98,7 @@ import {
 const processSingleChartOutput = (
   settings: ChartSettings,
   chartData: ChartData,
+  aspects: AspectData[], // Use pre-calculated aspects
   chartTitlePrefix?: string
 ): string[] => {
   const outputLines: string[] = [];
@@ -160,12 +144,7 @@ const processSingleChartOutput = (
     );
   }
 
-  const aspects = calculateAspects(
-    settings.aspectDefinitions,
-    getAllPointsFromChart(chartData),
-    settings.skipOutOfSignAspects,
-    settings.orbResolver
-  );
+  // Aspects are now pre-calculated and passed in
   // For single chart, p1ChartName and p2ChartName are not needed for aspect string generation
   outputLines.push(...generateAspectsOutput('[ASPECTS]', aspects, settings));
 
@@ -173,10 +152,12 @@ const processSingleChartOutput = (
   if (settings.includeAspectPatterns) {
     // Detect non-stellium aspect patterns
     // Exclude Ascendant, Midheaven, and North Node from aspect pattern detection
+    const unionedPoints = getPointsForPatternDetection(chartData).map(
+      (p): UnionedPoint => [p, chartData]
+    );
     const aspectPatterns = detectAspectPatterns(
-      getPointsForPatternDetection(chartData),
-      aspects,
-      chartData.houseCusps
+      unionedPoints,
+      aspects
     );
 
     // Detect stelliums separately (only for single charts where house information is meaningful)
@@ -235,7 +216,10 @@ const processSingleChartOutput = (
 const processChartPairOutput = (
   settings: ChartSettings,
   chart1: ChartData,
-  chart2: ChartData
+  chart2: ChartData,
+  chart1Aspects: AspectData[],
+  chart2Aspects: AspectData[],
+  synastryAspects: AspectData[]
 ): string[] => {
   const outputLines: string[] = [];
   const header =
@@ -246,14 +230,6 @@ const processChartPairOutput = (
       : 'SYNASTRY';
   outputLines.push(
     ...generateChartHeaderOutput(`${chart1.name}-${chart2.name}`, header)
-  );
-  const synastryAspects = calculateMultichartAspects(
-    settings.aspectDefinitions,
-    getAllPointsFromChart(chart1),
-    getAllPointsFromChart(chart2),
-    settings.skipOutOfSignAspects,
-    settings.orbResolver,
-    'synastry'
   );
   outputLines.push(
     ...generateAspectsOutput(
@@ -267,49 +243,25 @@ const processChartPairOutput = (
 
   // Detect and display aspect patterns for synastry/multichart relationships (if enabled)
   if (settings.includeAspectPatterns) {
-    // Combine planets from both charts for composite pattern detection
-    const combinedPlanetsForPatterns = [
-      ...getPointsForPatternDetection(chart1),
-      ...getPointsForPatternDetection(chart2),
-    ];
-    // But keep all points for aspect calculation
-    const combinedPlanets = [
-      ...getAllPointsFromChart(chart1),
-      ...getAllPointsFromChart(chart2),
+    // Combine individual and synastry aspects for a complete picture for this pair
+    const allCompositeAspects = [
+      ...chart1Aspects,
+      ...chart2Aspects,
+      ...synastryAspects,
     ];
 
-    // Calculate all aspects between all planets (both intra-chart and inter-chart)
-    const allCompositeAspects = calculateAspects(
-      settings.aspectDefinitions,
-      combinedPlanets,
-      settings.skipOutOfSignAspects,
-      settings.orbResolver
-    );
-
-    // Create mapping for chart ownership context
-    const planetChartMap = new Map<string, string>();
-    getPointsForPatternDetection(chart1).forEach((planet) => {
-      planetChartMap.set(planet.name, chart1.name);
-    });
-    getPointsForPatternDetection(chart2).forEach((planet) => {
-      planetChartMap.set(planet.name, chart2.name);
-    });
-    getAllPointsFromChart(chart1).forEach((planet) => {
-      if (!planetChartMap.has(planet.name)) {
-        planetChartMap.set(planet.name, chart1.name);
-      }
-    });
-    getAllPointsFromChart(chart2).forEach((planet) => {
-      if (!planetChartMap.has(planet.name)) {
-        planetChartMap.set(planet.name, chart2.name);
-      }
-    });
+    const unionedPoints = [
+      ...getPointsForPatternDetection(chart1).map(
+        (p): UnionedPoint => [p, chart1]
+      ),
+      ...getPointsForPatternDetection(chart2).map(
+        (p): UnionedPoint => [p, chart2]
+      ),
+    ];
 
     const compositePatternsChart1Chart2 = detectAspectPatterns(
-      combinedPlanetsForPatterns,
-      allCompositeAspects,
-      chart1.houseCusps, // Use chart1's house cusps for primary reference
-      planetChartMap
+      unionedPoints,
+      allCompositeAspects
     );
     if (compositePatternsChart1Chart2.length > 0) {
       outputLines.push(
@@ -437,7 +389,19 @@ export function formatChartToText(
       )
     );
     outputLines.push(''); // Blank line after metadata
-    outputLines.push(...processSingleChartOutput(settings, data as ChartData));
+    // Pre-calculate aspects for the single chart
+    const unionedPoints = getAllPointsFromChart(data as ChartData).map(
+      (p): UnionedPoint => [p, data as ChartData]
+    );
+    const aspects = calculateAspects(
+      settings.aspectDefinitions,
+      unionedPoints,
+      settings.skipOutOfSignAspects,
+      settings.orbResolver
+    );
+    outputLines.push(
+      ...processSingleChartOutput(settings, data as ChartData, aspects)
+    );
     return outputLines.join('\n').trimEnd();
   }
 
@@ -454,34 +418,87 @@ export function formatChartToText(
   );
   const transitChart = data.find(({ chartType }) => chartType === 'transit');
 
-  // first, process each chart individually
-  for (const chart of nonTransitCharts) {
-    outputLines.push(...processSingleChartOutput(settings, chart));
-  }
+  // Pre-calculate all necessary aspects to avoid redundant calculations
+  const individualAspects = new Map<string, AspectData[]>();
+  nonTransitCharts.forEach((chart) => {
+    const unionedPoints = getAllPointsFromChart(chart).map(
+      (p): UnionedPoint => [p, chart]
+    );
+    individualAspects.set(
+      chart.name,
+      calculateAspects(
+        settings.aspectDefinitions,
+        unionedPoints,
+        settings.skipOutOfSignAspects,
+        settings.orbResolver
+      )
+    );
+  });
 
-  // then, process each pairwise chart
+  const synastryAspects = new Map<string, AspectData[]>();
   for (let i = 0; i < nonTransitCharts.length; i++) {
     for (let j = i + 1; j < nonTransitCharts.length; j++) {
-      outputLines.push(
-        ...processChartPairOutput(
-          settings,
-          nonTransitCharts[i],
-          nonTransitCharts[j]
+      const chart1 = nonTransitCharts[i];
+      const chart2 = nonTransitCharts[j];
+      const pairKey = `${chart1.name}-${chart2.name}`;
+      synastryAspects.set(
+        pairKey,
+        calculateMultichartAspects(
+          settings.aspectDefinitions,
+          chart1.planets.map((p): UnionedPoint => [p, chart1]),
+          chart2.planets.map((p): UnionedPoint => [p, chart2]),
+          settings.skipOutOfSignAspects,
+          settings.orbResolver,
+          'synastry'
         )
       );
     }
   }
 
-  // Global multi-chart pattern detection (for 3+ chart combinations or comprehensive 2-chart analysis)
-  if (settings.includeAspectPatterns && nonTransitCharts.length >= 2) {
+  // first, process each chart individually
+  for (const chart of nonTransitCharts) {
+    outputLines.push(
+      ...processSingleChartOutput(settings, chart, individualAspects.get(
+        chart.name
+      )!)
+    );
+  }
+
+  // then, process each pairwise chart
+  for (let i = 0; i < nonTransitCharts.length; i++) {
+    for (let j = i + 1; j < nonTransitCharts.length; j++) {
+      const chart1 = nonTransitCharts[i];
+      const chart2 = nonTransitCharts[j];
+      const pairKey = `${chart1.name}-${chart2.name}`;
+      outputLines.push(
+        ...processChartPairOutput(
+          settings,
+          chart1,
+          chart2,
+          individualAspects.get(chart1.name)!,
+          individualAspects.get(chart2.name)!,
+          synastryAspects.get(pairKey)!
+        )
+      );
+    }
+  }
+
+  // Global multi-chart pattern detection (for 3+ charts)
+  if (settings.includeAspectPatterns && nonTransitCharts.length > 2) {
+    // Combine all individual and synastry aspects for global analysis
+    const allIndividualAspects = Array.from(individualAspects.values()).flat();
+    const allSynastryAspects = Array.from(synastryAspects.values()).flat();
+    const allGlobalAspects = [...allIndividualAspects, ...allSynastryAspects];
+
     const { patterns: globalPatterns, chartNames } =
-      detectGlobalMultiChartPatterns(nonTransitCharts, settings);
+      detectGlobalMultiChartPatterns(nonTransitCharts, allGlobalAspects);
 
     if (globalPatterns.length > 0) {
       const title =
         nonTransitCharts.length > 2
           ? `${chartNames} Global Composite`
-          : `${chartNames} Complete Composite`;
+          : // This title clarifies that it includes personal aspects in the composite view
+            `${chartNames} Composite (including personal aspects)`;
       outputLines.push(...generateAspectPatternsOutput(globalPatterns, title));
       outputLines.push('');
     }
@@ -491,11 +508,12 @@ export function formatChartToText(
   if (transitChart) {
     outputLines.push(...processTransitChartInfoOutput(settings, transitChart));
     for (const chart of nonTransitCharts) {
-      // Transit Aspects to Chart 1
-      const transitAspectsC1 = calculateMultichartAspects(
+      const transitAspects = calculateMultichartAspects(
         settings.aspectDefinitions,
-        getAllPointsFromChart(chart),
-        getAllPointsFromChart(transitChart),
+        getAllPointsFromChart(chart).map((p): UnionedPoint => [p, chart]),
+        getAllPointsFromChart(transitChart).map(
+          (p): UnionedPoint => [p, transitChart]
+        ),
         settings.skipOutOfSignAspects,
         settings.orbResolver,
         'transit'
@@ -503,7 +521,7 @@ export function formatChartToText(
       outputLines.push(
         ...generateAspectsOutput(
           `[TRANSIT ASPECTS: ${chart.name}]`,
-          transitAspectsC1,
+          transitAspects,
           settings,
           chart.name,
           transitChart.name,
@@ -511,51 +529,23 @@ export function formatChartToText(
         )
       );
 
-      // Detect and display aspect patterns for transit relationships (if enabled)
       if (settings.includeAspectPatterns) {
-        // Combine planets from natal chart and transits for pattern detection
-        const combinedTransitPlanetsForPatterns = [
-          ...getPointsForPatternDetection(chart),
-          ...getPointsForPatternDetection(transitChart),
-        ];
-        // But keep all points for aspect calculation
-        const combinedTransitPlanets = [
-          ...getAllPointsFromChart(chart),
-          ...getAllPointsFromChart(transitChart),
-        ];
+        // For transit patterns, we must combine the natal aspects with the new transit aspects
+        const natalAspects = individualAspects.get(chart.name)!;
+        const allRelevantAspects = [...natalAspects, ...transitAspects];
 
-        // Calculate all aspects between all planets (natal + transit)
-        const allTransitAspects = calculateAspects(
-          settings.aspectDefinitions,
-          combinedTransitPlanets,
-          settings.skipOutOfSignAspects,
-          settings.orbResolver
-        );
-
-        // Create mapping for chart ownership context (natal + transit)
-        const transitPlanetChartMap = new Map<string, string>();
-        getPointsForPatternDetection(chart).forEach((planet) => {
-          transitPlanetChartMap.set(planet.name, chart.name);
-        });
-        getPointsForPatternDetection(transitChart).forEach((planet) => {
-          transitPlanetChartMap.set(planet.name, transitChart.name);
-        });
-        getAllPointsFromChart(chart).forEach((planet) => {
-          if (!transitPlanetChartMap.has(planet.name)) {
-            transitPlanetChartMap.set(planet.name, chart.name);
-          }
-        });
-        getAllPointsFromChart(transitChart).forEach((planet) => {
-          if (!transitPlanetChartMap.has(planet.name)) {
-            transitPlanetChartMap.set(planet.name, transitChart.name);
-          }
-        });
+        const unionedPoints = [
+          ...getPointsForPatternDetection(chart).map(
+            (p): UnionedPoint => [p, chart]
+          ),
+          ...getPointsForPatternDetection(transitChart).map(
+            (p): UnionedPoint => [p, transitChart]
+          ),
+        ];
 
         const transitPatterns = detectAspectPatterns(
-          combinedTransitPlanetsForPatterns,
-          allTransitAspects,
-          chart.houseCusps, // Use natal chart's house cusps for reference
-          transitPlanetChartMap
+          unionedPoints,
+          allRelevantAspects
         );
         if (transitPatterns.length > 0) {
           outputLines.push(
@@ -566,15 +556,43 @@ export function formatChartToText(
           );
         }
       }
-
       outputLines.push('');
     }
 
-    // Global pattern detection including transits (if enabled)
-    if (settings.includeAspectPatterns) {
-      const allChartsIncludingTransits = [...nonTransitCharts, transitChart];
+    // Global pattern detection including transits
+    if (settings.includeAspectPatterns && nonTransitCharts.length > 0) {
+      // Re-use all previously calculated aspects and add the new transit-related ones
+      const allIndividualAspects = Array.from(
+        individualAspects.values()
+      ).flat();
+      const allSynastryAspects = Array.from(synastryAspects.values()).flat();
+      const transitAspectsForAllCharts = nonTransitCharts
+        .map((chart) => {
+          return calculateMultichartAspects(
+            settings.aspectDefinitions,
+            getAllPointsFromChart(chart).map((p): UnionedPoint => [p, chart]),
+            getAllPointsFromChart(transitChart!).map(
+              (p): UnionedPoint => [p, transitChart!]
+            ),
+            settings.skipOutOfSignAspects,
+            settings.orbResolver,
+            'transit'
+          );
+        })
+        .flat();
+
+      const allGlobalAspectsWithTransit = [
+        ...allIndividualAspects,
+        ...allSynastryAspects,
+        ...transitAspectsForAllCharts,
+      ];
+      const allChartsForGlobalTransit = [...nonTransitCharts, transitChart];
+
       const { patterns: globalTransitPatterns, chartNames } =
-        detectGlobalMultiChartPatterns(allChartsIncludingTransits, settings);
+        detectGlobalMultiChartPatterns(
+          allChartsForGlobalTransit,
+          allGlobalAspectsWithTransit
+        );
 
       if (globalTransitPatterns.length > 0) {
         outputLines.push(

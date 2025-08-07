@@ -25,6 +25,8 @@ export function isMultiChartData(
   return Array.isArray(obj);
 }
 
+export type UnionedPoint = [Point, ChartData];
+
 export enum AspectClassification {
   Major = 'major',
   Minor = 'minor',
@@ -49,6 +51,8 @@ export interface Aspect {
 export interface AspectData {
   planetA: string;
   planetB: string;
+  p1ChartName?: string; // Optional: for multi-chart contexts
+  p2ChartName?: string; // Optional: for multi-chart contexts
   aspectType: string;
   orb: number; // Actual orb of the aspect
   application?: 'applying' | 'separating' | 'exact'; // Optional: whether aspect is applying or separating

@@ -5,9 +5,13 @@ import { getOrdinal } from '../../../utils/formatting';
 /**
  * Format a planet position for display
  */
-function formatPlanetPosition(planet: PlanetPosition): string {
+function formatPlanetPosition(
+  planet: PlanetPosition,
+  includeHouse = false
+): string {
   const degInSign = Math.floor(getDegreeInSign(planet.degree));
-  const houseStr = planet.house ? ` (${getOrdinal(planet.house)} house)` : '';
+  const houseStr =
+    includeHouse && planet.house ? ` (${getOrdinal(planet.house)} house)` : '';
   const chartPrefix = planet.chartName ? `${planet.chartName}'s ` : '';
   return `${chartPrefix}${planet.name} ${degInSign}° ${planet.sign}${houseStr}`;
 }
@@ -112,7 +116,9 @@ function formatKite(pattern: AspectPattern): string[] {
   if (pattern.type !== 'Kite') return [];
 
   const output = ['Kite:'];
-  const grandTrineStr = pattern.grandTrine.map((p) => p.name).join(', ');
+  const grandTrineStr = pattern.grandTrine
+    .map((p) => formatPlanetPosition(p))
+    .join(', ');
   output.push(`  - Grand Trine planets: ${grandTrineStr}`);
   output.push(
     `  - Opposition planet: ${formatPlanetPosition(pattern.opposition)}`

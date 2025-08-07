@@ -1,4 +1,4 @@
-import { Point, Aspect, AspectData } from '../types';
+import { Point, Aspect, AspectData, ChartData, UnionedPoint } from '../types';
 import { normalizeDegree } from './astrology';
 import { isExactAspect, roundDegrees } from '../utils/precision';
 import { OrbResolver, OrbResolutionContext } from './orbResolver';
@@ -104,7 +104,9 @@ function findTightestAspect(
   planetB: Point,
   skipOutOfSignAspects: boolean,
   orbResolver?: OrbResolver,
-  chartType?: 'natal' | 'synastry' | 'transit' | 'composite'
+  chartType?: 'natal' | 'synastry' | 'transit' | 'composite',
+  p1ChartName?: string,
+  p2ChartName?: string
 ): AspectData | null {
   const degreeA = roundDegrees(normalizeDegree(planetA.degree));
   const degreeB = roundDegrees(normalizeDegree(planetB.degree));
@@ -154,6 +156,8 @@ function findTightestAspect(
         tightestAspect = {
           planetA: planetA.name,
           planetB: planetB.name,
+          p1ChartName,
+          p2ChartName,
           aspectType: aspectType.name,
           orb,
           application,
@@ -174,24 +178,26 @@ function findTightestAspect(
  */
 export function calculateAspects(
   aspectDefinitions: Aspect[],
-  planets: Point[],
+  unionedPlanets: UnionedPoint[],
   skipOutOfSignAspects = true,
   orbResolver?: OrbResolver
 ): AspectData[] {
   const aspects: AspectData[] = [];
-  if (!planets || planets.length < 2) return aspects;
+  if (!unionedPlanets || unionedPlanets.length < 2) return aspects;
 
-  for (let i = 0; i < planets.length; i++) {
-    for (let j = i + 1; j < planets.length; j++) {
-      const planetA = planets[i];
-      const planetB = planets[j];
+  for (let i = 0; i < unionedPlanets.length; i++) {
+    for (let j = i + 1; j < unionedPlanets.length; j++) {
+      const [planetA, chartA] = unionedPlanets[i];
+      const [planetB, chartB] = unionedPlanets[j];
       const aspect = findTightestAspect(
         aspectDefinitions,
         planetA,
         planetB,
         skipOutOfSignAspects,
         orbResolver,
-        'natal'
+        'natal',
+        chartA.name,
+        chartB.name
       );
       if (aspect) {
         aspects.push(aspect);
@@ -214,31 +220,34 @@ export function calculateAspects(
  */
 export function calculateMultichartAspects(
   aspectDefinitions: Aspect[],
-  chart1Planets: Point[],
-  chart2Planets: Point[],
+  chart1Points: UnionedPoint[],
+  chart2Points: UnionedPoint[],
   skipOutOfSignAspects = true,
   orbResolver?: OrbResolver,
   chartType: 'synastry' | 'transit' | 'composite' = 'synastry'
 ): AspectData[] {
   const aspects: AspectData[] = [];
+
   if (
-    !chart1Planets ||
-    !chart2Planets ||
-    chart1Planets.length === 0 ||
-    chart2Planets.length === 0
+    !chart1Points ||
+    !chart2Points ||
+    chart1Points.length === 0 ||
+    chart2Points.length === 0
   ) {
     return aspects;
   }
 
-  for (const p1 of chart1Planets) {
-    for (const p2 of chart2Planets) {
+  for (const [p1, c1] of chart1Points) {
+    for (const [p2, c2] of chart2Points) {
       const aspect = findTightestAspect(
         aspectDefinitions,
         p1,
         p2,
         skipOutOfSignAspects,
         orbResolver,
-        chartType
+        chartType,
+        c1.name,
+        c2.name
       );
       if (aspect) {
         aspects.push(aspect);
