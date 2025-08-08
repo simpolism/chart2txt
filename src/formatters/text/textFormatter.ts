@@ -52,7 +52,7 @@ const processSingleChartOutput = (
   );
   outputLines.push(...generateAnglesOutput(chart.ascendant, chart.midheaven));
   outputLines.push(...generateHousesOutput(chart.houseCusps));
-  outputLines.push(...generatePlanetsOutput(placements.planets, settings));
+  outputLines.push(...generatePlanetsOutput(placements.planets));
   outputLines.push(...generateDispositorsOutput(dispositors));
 
   if (settings.includeSignDistributions) {
