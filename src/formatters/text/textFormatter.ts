@@ -133,26 +133,20 @@ const processGlobalPatternsOutput = (
     return outputLines;
 };
 
-
 /**
- * Orchestrates the generation of a complete astrological chart report in text format.
- * @param data The chart data, can be for a single chart or multiple charts (synastry, transits).
- * @param partialSettings Optional: Custom settings to override defaults.
+ * Formats a pre-computed AstrologicalReport into a human-readable text string.
+ * @param report The AstrologicalReport object from formatChartToJson (analyzeCharts).
  * @returns A string representing the full chart report.
  */
-export function formatChartToText(
-  data: ChartData | MultiChartData,
-  partialSettings: PartialSettings = {}
-): string {
-  const report: AstrologicalReport = analyzeCharts(data, partialSettings);
+export function formatReportToText(report: AstrologicalReport): string {
   const { chartAnalyses, pairwiseAnalyses, globalAnalysis, transitAnalyses, globalTransitAnalysis } = report;
   
   // The settings object in the report IS the ChartSettings instance.
   const settings = report.settings as ChartSettings;
   const outputLines: string[] = [];
 
-  const charts = isMultiChartData(data) ? data : [data];
-  const chartType = determineChartType(charts);
+  const originalCharts = chartAnalyses.map(ca => ca.chart);
+  const chartType = determineChartType(originalCharts);
   outputLines.push(...generateMetadataOutput(settings, chartType, settings.houseSystemName));
   outputLines.push('');
 
@@ -198,4 +192,19 @@ export function formatChartToText(
   }
 
   return outputLines.join('\n').trimEnd();
+}
+
+
+/**
+ * Orchestrates the generation of a complete astrological chart report in text format.
+ * @param data The chart data, can be for a single chart or multiple charts (synastry, transits).
+ * @param partialSettings Optional: Custom settings to override defaults.
+ * @returns A string representing the full chart report.
+ */
+export function formatChartToText(
+  data: ChartData | MultiChartData,
+  partialSettings: PartialSettings = {}
+): string {
+  const report: AstrologicalReport = analyzeCharts(data, partialSettings);
+  return formatReportToText(report);
 }
