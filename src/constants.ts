@@ -398,15 +398,8 @@ export const WIDE_ORB_CONFIG: OrbConfiguration = {
 };
 
 export const DEFAULT_SETTINGS: Settings = {
-  // sign settings
-  includeSignDegree: true, // For planets list: "Sun: 8° Cancer" vs "Sun: Cancer"
-
   // house settings
   houseSystemName: 'whole_sign',
-  includeHouseDegree: false, // New format shows "House X", not degree in house for planets list
-
-  // point settings
-  includeAscendant: true, // Legacy, ASC/MC now have dedicated [ANGLES] section
 
   // orb + aspect settings
   aspectDefinitions: DEFAULT_ASPECTS,

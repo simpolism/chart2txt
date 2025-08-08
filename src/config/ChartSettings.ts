@@ -13,10 +13,7 @@ import { OrbResolver } from '../core/orbResolver';
 export class ChartSettings implements Settings {
   // Properties from Settings interface are dynamically assigned
   [key: string]: any; // Allow dynamic properties
-  includeSignDegree!: boolean;
-  includeAscendant!: boolean;
   houseSystemName!: string;
-  includeHouseDegree!: boolean;
   skipOutOfSignAspects!: boolean;
   aspectDefinitions!: Aspect[];
   aspectCategories!: AspectCategory[];

@@ -84,9 +84,6 @@ type MultiChartData = ChartData[];  // Array of 2+ charts for synastry/transit a
 ```typescript
 interface Settings {
   // Display Options
-  includeSignDegree: boolean;              // Show degrees within signs
-  includeAscendant: boolean;               // Include ascendant in output
-  includeHouseDegree: boolean;             // Show house cusp degrees
   dateFormat: string;                      // Date format string
 
   // Aspect Configuration
@@ -359,9 +356,6 @@ const DEFAULT_ASPECTS = [
 ### Default Settings
 ```typescript
 const DEFAULT_SETTINGS = {
-  includeSignDegree: true,
-  includeAscendant: true, 
-  includeHouseDegree: false,
   houseSystemName: 'Placidus',
   skipOutOfSignAspects: false,
   includeAspectPatterns: true,

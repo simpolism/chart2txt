@@ -104,10 +104,7 @@ type TestScenario = typeof TEST_SCENARIOS[keyof typeof TEST_SCENARIOS];
 const CURRENT_SCENARIO: TestScenario = TEST_SCENARIOS.SYNASTRY_WITH_TRANSITS;
 
 const CUSTOM_SETTINGS: PartialSettings = {
-  includeSignDegree: true,
-  includeAscendant: true,
   houseSystemName: 'Placidus',
-  includeHouseDegree: false,
   aspectDefinitions: [
     { name: 'conjunction', angle: 0, orb: 8 },
     { name: 'opposition', angle: 180, orb: 8 },

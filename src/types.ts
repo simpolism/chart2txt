@@ -218,15 +218,8 @@ export interface AstrologicalReport {
 }
 
 export interface Settings {
-  // sign settings
-  includeSignDegree: boolean; // For planets list, if degree in sign is shown
-
-  // point settings
-  includeAscendant: boolean; // Legacy, angles now have their own section
-
   // house settings
   houseSystemName: string; // Name of house system used in computations
-  includeHouseDegree: boolean; // For planets list, if degree in house is shown (legacy)
 
   // orb + aspect settings
   aspectDefinitions: Aspect[];

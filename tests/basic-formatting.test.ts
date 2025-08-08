@@ -20,23 +20,6 @@ describe('Basic Formatting', () => {
       expect(result).toContain('Mercury: 15° Gemini');
     });
 
-    test('formats planets in signs correctly without degrees', () => {
-      const data: ChartData = {
-        name: 'test',
-        planets: [
-          { name: 'Sun', degree: 35 }, // 5° Taurus
-          { name: 'Moon', degree: 120 }, // 0° Leo
-        ],
-      };
-
-      const result = chart2txt(data, { includeSignDegree: false });
-
-      // The includeSignDegree setting doesn't actually remove degrees, it's always shown
-      expect(result).toContain('[PLANETS]');
-      expect(result).toContain('Sun: 5° Taurus');
-      expect(result).toContain('Moon: 0° Leo');
-    });
-
     test.skip('omits signs when disabled via settings', () => {
       const data: ChartData = {
         name: 'test',
@@ -106,10 +89,9 @@ describe('Basic Formatting', () => {
         houseCusps: [6, 36, 66, 96, 126, 156, 186, 216, 246, 276, 306, 336], // Equal houses from ASC
       };
 
-      const result = chart2txt(data, { includeHouseDegree: true });
+      const result = chart2txt(data);
 
       expect(result).toContain('[PLANETS]');
-      // includeHouseDegree doesn't seem to affect the current format
       expect(result).toContain('Sun: 5° Taurus [Ruler: Venus], 1st house');
       expect(result).toContain('Moon: 0° Leo [Ruler: Sun], 4th house');
     });
@@ -126,8 +108,7 @@ describe('Basic Formatting', () => {
       };
 
       const result = chart2txt(data, {
-        houseSystemName: 'whole_sign',
-        includeHouseDegree: true,
+        houseSystemName: 'whole_sign'
       });
 
       expect(result).toContain('[PLANETS]');
@@ -197,22 +178,6 @@ describe('Basic Formatting', () => {
       const result = chart2txt(data, { includeAspectPatterns: true });
 
       expect(result).toContain('[ANGLES]');
-      expect(result).toContain('Ascendant: 6° Aries');
-    });
-
-    test('omits ascendant when disabled via settings', () => {
-      const data: ChartData = {
-        name: 'test',
-        planets: [
-          { name: 'Sun', degree: 35 }, // 5° Taurus
-        ],
-        ascendant: 6, // 6° Aries
-      };
-
-      const result = chart2txt(data, { includeAscendant: false });
-
-      expect(result).toContain('[ANGLES]');
-      // The includeAscendant setting is legacy, it still shows the ASC if provided
       expect(result).toContain('Ascendant: 6° Aries');
     });
 
