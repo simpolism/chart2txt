@@ -1,4 +1,8 @@
-export interface Point {
+export interface Scorable {
+  salienceScore?: number;
+}
+
+export interface Point extends Scorable {
   name: string;
   degree: number; // 0-360 degrees
   speed?: number; // Optional: positive for direct, negative for retrograde, 0 for stationary
@@ -15,6 +19,7 @@ export interface ChartData {
   timestamp?: Date; // the time for the chart, optional
   location?: string; // the location of the chart, optional
   chartType?: 'natal' | 'event' | 'transit'; // type of chart, optional, defaults to natal
+  planetarySalienceRanking?: PlanetarySalience[];
 }
 
 export type MultiChartData = ChartData[];
@@ -48,7 +53,7 @@ export interface Aspect {
   classification?: AspectClassification; // Major, minor, or esoteric aspect
 }
 
-export interface AspectData {
+export interface AspectData extends Scorable {
   planetA: string;
   planetB: string;
   p1ChartName?: string; // Optional: for multi-chart contexts
@@ -97,7 +102,7 @@ export interface OrbConfiguration {
   globalFallbackOrb?: number; // Ultimate fallback orb if all else fails
 }
 
-export interface PlanetPosition {
+export interface PlanetPosition extends Scorable {
   name: string;
   degree: number;
   sign: string;
@@ -106,7 +111,7 @@ export interface PlanetPosition {
   chartName?: string; // Optional chart ownership for multichart patterns
 }
 
-export interface TSquare {
+export interface TSquare extends Scorable {
   type: 'T-Square';
   apex: PlanetPosition;
   opposition: [PlanetPosition, PlanetPosition];
@@ -114,14 +119,14 @@ export interface TSquare {
   averageOrb: number;
 }
 
-export interface GrandTrine {
+export interface GrandTrine extends Scorable {
   type: 'Grand Trine';
   planets: [PlanetPosition, PlanetPosition, PlanetPosition];
   element: 'Fire' | 'Earth' | 'Air' | 'Water';
   averageOrb: number;
 }
 
-export interface Stellium {
+export interface Stellium extends Scorable {
   type: 'Stellium';
   planets: PlanetPosition[];
   sign?: string;
@@ -129,21 +134,21 @@ export interface Stellium {
   span: number;
 }
 
-export interface GrandCross {
+export interface GrandCross extends Scorable {
   type: 'Grand Cross';
   planets: [PlanetPosition, PlanetPosition, PlanetPosition, PlanetPosition];
   mode: 'Cardinal' | 'Fixed' | 'Mutable';
   averageOrb: number;
 }
 
-export interface Yod {
+export interface Yod extends Scorable {
   type: 'Yod';
   apex: PlanetPosition;
   base: [PlanetPosition, PlanetPosition];
   averageOrb: number;
 }
 
-export interface MysticRectangle {
+export interface MysticRectangle extends Scorable {
   type: 'Mystic Rectangle';
   oppositions: [
     [PlanetPosition, PlanetPosition],
@@ -152,7 +157,7 @@ export interface MysticRectangle {
   averageOrb: number;
 }
 
-export interface Kite {
+export interface Kite extends Scorable {
   type: 'Kite';
   grandTrine: [PlanetPosition, PlanetPosition, PlanetPosition];
   opposition: PlanetPosition;
@@ -237,3 +242,9 @@ export interface Settings {
 }
 
 export type PartialSettings = Partial<Settings>;
+
+export interface PlanetarySalience {
+  planet: string;
+  totalScore: number;
+  rank: number;
+}

@@ -9,6 +9,8 @@ import {
 } from '../../types';
 import { analyzeCharts } from '../../core/analysis';
 import { ChartSettings } from '../../config/ChartSettings';
+import { SalienceEngine } from '../../core/salience/SalienceEngine';
+import { ReportFilterer } from '../../core/salience/ReportFilterer';
 
 import {
   generateMetadataOutput,
@@ -265,6 +267,15 @@ export function formatChartToText(
   data: ChartData | MultiChartData,
   partialSettings: PartialSettings = {}
 ): string {
-  const report: AstrologicalReport = analyzeCharts(data, partialSettings);
-  return formatReportToText(report);
+  const rawReport: AstrologicalReport = analyzeCharts(data, partialSettings);
+
+  // New Salience Pipeline
+  const salienceEngine = new SalienceEngine();
+  const annotatedReport = salienceEngine.annotate(rawReport);
+
+  // TODO: The detailLevel should be configurable via settings.
+  const reportFilterer = new ReportFilterer({ detailLevel: 'complete' });
+  const filteredReport = reportFilterer.filter(annotatedReport);
+
+  return formatReportToText(filteredReport);
 }
