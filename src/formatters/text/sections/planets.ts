@@ -1,5 +1,4 @@
 import { PlanetPosition } from '../../../types';
-import { ChartSettings } from '../../../config/ChartSettings';
 import { getOrdinal } from '../../../utils/formatting';
 import { formatPlanetWithDignities } from '../../../core/dignities';
 
@@ -9,10 +8,7 @@ import { formatPlanetWithDignities } from '../../../core/dignities';
  * @param settings The chart settings.
  * @returns An array of strings for the output.
  */
-export function generatePlanetsOutput(
-  placements: PlanetPosition[],
-  settings: ChartSettings
-): string[] {
+export function generatePlanetsOutput(placements: PlanetPosition[]): string[] {
   const output: string[] = ['[PLANETS]'];
 
   placements.forEach((planet) => {

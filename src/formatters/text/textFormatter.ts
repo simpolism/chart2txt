@@ -5,9 +5,7 @@ import {
   AstrologicalReport,
   ChartAnalysis,
   PairwiseAnalysis,
-  TransitAnalysis,
   GlobalAnalysis,
-  isMultiChartData,
 } from '../../types';
 import { analyzeCharts } from '../../core/analysis';
 import { ChartSettings } from '../../config/ChartSettings';
@@ -138,60 +136,9 @@ const processChartPairOutput = (
   return outputLines;
 };
 
-const processTransitChartInfoOutput = (
-  analysis: TransitAnalysis,
-  settings: ChartSettings
-): string[] => {
-  const outputLines: string[] = [];
-  const { transitChart, aspects, patterns } = analysis;
-
-  outputLines.push(...generateChartHeaderOutput(transitChart.name, 'TRANSIT'));
-  outputLines.push(
-    ...generateBirthdataOutput(
-      transitChart.location,
-      transitChart.timestamp,
-      settings,
-      '[DATETIME]'
-    )
-  );
-
-  const transitChartAnalysis = {
-    placements: {
-      planets: transitChart.planets.map((p) => ({ ...p, sign: '' })),
-    },
-  };
-  outputLines.push(
-    ...generatePlanetsOutput(transitChartAnalysis.placements.planets, settings)
-  );
-  outputLines.push('');
-
-  outputLines.push(
-    ...generateAspectsOutput(
-      `[TRANSIT ASPECTS: ${analysis.natalChart.name}]`,
-      aspects,
-      settings,
-      analysis.natalChart.name,
-      transitChart.name,
-      true
-    )
-  );
-
-  if (settings.includeAspectPatterns) {
-    outputLines.push(
-      ...generateAspectPatternsOutput(
-        patterns,
-        `Transit to ${analysis.natalChart.name}`,
-        true
-      )
-    );
-  }
-  outputLines.push('');
-  return outputLines;
-};
-
 const processGlobalPatternsOutput = (
   analysis: GlobalAnalysis,
-  isTransit: boolean = false
+  isTransit = false
 ): string[] => {
   const outputLines: string[] = [];
   const { charts, patterns } = analysis;
@@ -269,10 +216,7 @@ export function formatReportToText(report: AstrologicalReport): string {
         )
       );
       outputLines.push(
-        ...generatePlanetsOutput(
-          transitChartAnalysis.placements.planets,
-          settings
-        )
+        ...generatePlanetsOutput(transitChartAnalysis.placements.planets)
       );
       outputLines.push('');
     }
