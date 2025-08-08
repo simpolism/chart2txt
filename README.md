@@ -1,31 +1,21 @@
 # chart2txt
 
-An **automated text-based astrological pattern detection utility** designed primarily for LLM consumption with secondary human readability. This TypeScript library converts complex astrological chart data into structured, standardized text reports.
+An **automated text-based astrological pattern detection utility** designed primarily for LLM consumption with secondary human readability. This TypeScript library converts complex astrological chart data into structured, standardized text reports or raw JSON data.
 
 [![npm version](https://badge.fury.io/js/chart2txt.svg)](https://badge.fury.io/js/chart2txt)
 
 ## Purpose & Design Philosophy
 
-chart2txt is designed as an **automated pattern detection engine** that transforms astrological chart data into consistent, structured text format. The primary goal is **LLM consumption** - enabling AI systems to process astrological information efficiently. Human readability is a secondary consideration.
+chart2txt is designed as an **automated pattern detection engine** that transforms astrological chart data into consistent, structured formats. A primary goal is to provide a clear separation between the analysis engine (which produces a structured `AstrologicalReport` object) and the text formatter. This allows developers to either use the raw JSON for their own applications or generate an LLM-readable (and human-readable) text report.
 
 ## Features
 
-### Core Functionality
-- **Single Chart Analysis**: Natal and event chart processing
-- **Multi-Chart Analysis**: Synastry (relationship compatibility) between charts
-- **Transit Analysis**: Current planetary positions overlaid on natal charts
-- **Comprehensive Aspect Detection**: Including traditional aspects plus quincunx (150°)
-- **Advanced Aspect Patterns**: T-Square, Grand Trine, Yod, Stellium detection
-- **Hierarchical Orb System**: Planet-specific, context-aware orb calculations
-- **House System Support**: Multiple house systems with degree precision
-- **Sign Distributions**: Element, modality, and polarity analysis
-
-### Advanced Configuration
-- **Flexible Orb Configuration**: Per-planet, per-aspect, and contextual orb rules
-- **Aspect Classification**: Major, Minor, and Esoteric aspect categories
-- **Planet Categorization**: Luminaries, Personal, Social, Outer, Angles
-- **Context-Aware Orbs**: Different orb tolerances for natal, synastry, transit, and composite charts
-- **Built-in Presets**: Traditional, Modern, Tight, and Wide orb configurations
+- **Single & Multi-Chart Analysis**: Natal, event, synastry, and transit chart processing.
+- **Comprehensive Aspect Detection**: Including all major and minor aspects.
+- **Advanced Aspect Patterns**: T-Square, Grand Trine, Yod, Stellium, Kite, and more.
+- **Hierarchical Orb System**: Planet-specific, context-aware orb calculations with presets.
+- **Sign Distributions**: Element, modality, and polarity analysis.
+- **Dual Output**: Generate either a structured JSON `AstrologicalReport` or a formatted text string.
 
 ## Installation
 
@@ -35,7 +25,38 @@ npm install chart2txt
 
 ## API Reference
 
-### Main Function
+The library exposes three main functions to provide maximum flexibility.
+
+### 1. `formatChartToJson` (Analysis)
+
+This is the core analysis engine. It takes chart data and returns a structured `AstrologicalReport` object without any text formatting.
+
+```typescript
+import { formatChartToJson } from 'chart2txt';
+
+function formatChartToJson(
+  data: ChartData | MultiChartData, 
+  partialSettings?: PartialSettings
+): AstrologicalReport
+```
+
+**Alias**: `analyzeCharts()`
+
+### 2. `formatReportToText` (Formatting)
+
+This function takes a complete `AstrologicalReport` object (the output of `formatChartToJson`) and formats it into a human-readable text string.
+
+```typescript
+import { formatReportToText } from 'chart2txt';
+
+function formatReportToText(
+  report: AstrologicalReport
+): string
+```
+
+### 3. `chart2txt` (End-to-End)
+
+A convenience function that combines analysis and formatting in one step. It's the simplest way to get a text report directly from chart data.
 
 ```typescript
 import { chart2txt } from 'chart2txt';
@@ -46,391 +67,191 @@ function chart2txt(
 ): string
 ```
 
-**Alias**: `formatChartToText()` (same function, different name)
-
 ### Core Types
 
-#### ChartData
 ```typescript
 interface ChartData {
-  name: string;                    // Chart identifier
-  planets: Point[];                // Planet positions
-  houseCusps?: number[];          // House cusp degrees (12 elements)
-  ascendant?: number;             // Ascendant degree
-  midheaven?: number;             // Midheaven degree  
-  timestamp?: string;             // Birth/event timestamp
-  location?: string;              // Birth/event location
+  name: string;
+  planets: Point[];
+  houseCusps?: number[];
+  ascendant?: number;
+  midheaven?: number;
+  timestamp?: string;
+  location?: string;
   chartType?: 'natal' | 'event' | 'transit';
 }
-```
 
-#### Point
-```typescript
 interface Point {
-  name: string;                   // Planet/point name
-  degree: number;                 // Ecliptic longitude (0-359.99)
-  speed?: number;                 // Daily motion (for applying/separating aspects)
+  name: string;
+  degree: number; // 0-359.99
+  speed?: number; // For applying/separating aspects
 }
 ```
 
-#### MultiChartData
+### Configuration
+
+Configuration is handled via the `PartialSettings` object. The most common way to configure orbs is by using presets.
+
 ```typescript
-type MultiChartData = ChartData[];  // Array of 2+ charts for synastry/transit analysis
-```
+import { chart2txt, formatChartToJson } from 'chart2txt';
 
-### Configuration System
-
-#### Settings Interface
-```typescript
-interface Settings {
-  // Display Options
-  dateFormat: string;                      // Date format string
-
-  // Aspect Configuration
-  aspectDefinitions: Aspect[];             // Available aspects to detect
-  aspectCategories: AspectCategory[];      // Orb categories for aspects
-  skipOutOfSignAspects: boolean;           // Skip cross-sign aspects
-  includeAspectPatterns: boolean;          // Detect complex patterns
-  includeSignDistributions: boolean;       // Include element, modality, and polarity distributions
-
-  // Advanced Orb System
-  orbConfiguration?: OrbConfiguration;     // Hierarchical orb rules
-  
-  // House System
-  houseSystemName: string;                 // House system identifier
-}
-```
-
-#### Aspect Definition
-```typescript
-interface Aspect {
-  name: string;                           // Aspect name (e.g., 'conjunction')
-  angle: number;                          // Exact angle (e.g., 0, 60, 90, 120, 180)
-  orb: number;                           // Default orb tolerance
-  classification?: AspectClassification;   // Major/Minor/Esoteric
-}
-```
-
-#### Advanced Orb Configuration
-```typescript
-interface OrbConfiguration {
-  // Planet-specific orb rules by category
-  planetCategories?: {
-    [category in PlanetCategory]?: PlanetOrbRules;
-  };
-  
-  // Aspect classification rules
-  aspectClassification?: {
-    [classification in AspectClassification]?: OrbClassificationRules;
-  };
-  
-  // Context-specific multipliers
-  contextualOrbs?: ContextualOrbRules;
-  
-  // Custom planet mapping
-  planetMapping?: { [planetName: string]: PlanetCategory };
-  
-  // Global fallback
-  globalFallbackOrb?: number;
-}
-```
-
-#### Planet Categories
-```typescript
-enum PlanetCategory {
-  Luminaries = 'luminaries',    // Sun, Moon
-  Personal = 'personal',        // Mercury, Venus, Mars
-  Social = 'social',           // Jupiter, Saturn
-  Outer = 'outer',             // Uranus, Neptune, Pluto
-  Angles = 'angles'            // Ascendant, Midheaven, MC, ASC
-}
-```
-
-#### Aspect Classifications
-```typescript
-enum AspectClassification {
-  Major = 'major',             // Conjunction, Opposition, Trine, Square, Sextile
-  Minor = 'minor',             // Quincunx, Semi-sextile, Semi-square, Sesqui-square
-  Esoteric = 'esoteric'        // Quintile, Bi-quintile, Septile, etc.
-}
-```
-
-### Built-in Presets
-
-#### Aspect Presets
-```typescript
-import { 
-  TRADITIONAL_ASPECTS,    // Classical 5 aspects
-  MODERN_ASPECTS,         // Includes quincunx and minor aspects
-  TIGHT_ASPECTS,          // Reduced orbs for precision
-  WIDE_ASPECTS           // Expanded orbs for broader analysis
-} from 'chart2txt';
+// Example: Using a preset for tight orbs
+const report = formatChartToJson(chartData, {
+  orbConfiguration: TIGHT_ORB_CONFIG
+});
 ```
 
 #### Orb Configuration Presets
 ```typescript
 import { 
-  TRADITIONAL_ORB_CONFIG,  // Classical orb rules
-  MODERN_ORB_CONFIG,       // Contemporary orb tolerances
-  TIGHT_ORB_CONFIG,        // Precise orbs for accuracy
-  WIDE_ORB_CONFIG         // Generous orbs for comprehensive analysis
+  TRADITIONAL_ORB_CONFIG,
+  MODERN_ORB_CONFIG,
+  TIGHT_ORB_CONFIG,
+  WIDE_ORB_CONFIG
 } from 'chart2txt';
 ```
 
 ## Usage Examples
 
-### Basic Single Chart
+### Basic Text Report (End-to-End)
 ```typescript
 import { chart2txt } from 'chart2txt';
 
 const natalChart = {
   name: "John Doe",
   planets: [
-    { name: 'Sun', degree: 35.5 },      // 5°30' Taurus
-    { name: 'Moon', degree: 120.25 },   // 0°15' Leo  
-    { name: 'Mercury', degree: 45.75 }, // 15°45' Taurus
-    { name: 'Venus', degree: 60.0 },    // 0° Gemini
-    { name: 'Mars', degree: 285.5 }     // 15°30' Capricorn
+    { name: 'Sun', degree: 35.5 },
+    { name: 'Moon', degree: 120.25 },
   ],
-  ascendant: 15.0,                      // 15° Aries
-  midheaven: 105.0,                     // 15° Cancer
-  timestamp: "1990-05-15T14:30:00Z",
-  location: "New York, NY"
+  ascendant: 15.0,
+  midheaven: 105.0,
 };
 
-const report = chart2txt(natalChart);
-console.log(report);
+const reportText = chart2txt(natalChart);
+console.log(reportText);
 ```
 
-### Synastry Analysis
+### Two-Step Analysis and Formatting
+This approach is recommended for applications that need to inspect the analysis data before formatting.
+
 ```typescript
-const person1 = {
-  name: "Person A",
-  planets: [
-    { name: 'Sun', degree: 45 },    // 15° Taurus
-    { name: 'Moon', degree: 120 },  // 0° Leo
-    { name: 'Venus', degree: 60 }   // 0° Gemini
-  ]
-};
+import { formatChartToJson, formatReportToText } from 'chart2txt';
 
-const person2 = {
-  name: "Person B", 
-  planets: [
-    { name: 'Sun', degree: 225 },   // 15° Scorpio
-    { name: 'Moon', degree: 300 },  // 0° Aquarius
-    { name: 'Mars', degree: 120 }   // 0° Leo
-  ]
-};
+const synastryData = [
+  { name: "Person A", planets: [{ name: 'Sun', degree: 45 }] },
+  { name: "Person B", planets: [{ name: 'Sun', degree: 225 }] }
+];
 
-const synastryReport = chart2txt([person1, person2]);
+// 1. Generate the analysis report (JSON object)
+const reportJson = formatChartToJson(synastryData, { includeAspectPatterns: true });
+
+// 2. (Optional) Inspect or modify the report object
+console.log('Detected composite patterns:', reportJson.pairwiseAnalyses[0].compositePatterns);
+
+// 3. Format the report object into text
+const reportText = formatReportToText(reportJson);
+console.log(reportText);
 ```
 
-### Transit Analysis
+### Using Orb Presets
 ```typescript
-const natal = {
-  name: "Natal Chart",
-  chartType: 'natal' as const,
-  planets: [
-    { name: 'Sun', degree: 45 },
-    { name: 'Moon', degree: 120 }
-  ]
-};
+import { chart2txt, TIGHT_ORB_CONFIG } from 'chart2txt';
 
-const transit = {
-  name: "Current Transits",
-  chartType: 'transit' as const,
-  planets: [
-    { name: 'Jupiter', degree: 135 },   // Transiting Jupiter
-    { name: 'Saturn', degree: 315 }     // Transiting Saturn
-  ],
-  timestamp: "2024-01-15T12:00:00Z"
-};
-
-const transitReport = chart2txt([natal, transit]);
-```
-
-### Advanced Orb Configuration
-```typescript
-import { chart2txt, MODERN_ORB_CONFIG, AspectClassification, PlanetCategory } from 'chart2txt';
-
-const customOrbConfig = {
-  // Tight orbs for luminaries
-  planetCategories: {
-    [PlanetCategory.Luminaries]: {
-      defaultOrb: 8,
-      aspectOrbs: {
-        'conjunction': 10,
-        'opposition': 10
-      }
-    },
-    [PlanetCategory.Personal]: {
-      defaultOrb: 6
-    },
-    [PlanetCategory.Outer]: {
-      defaultOrb: 3
-    }
-  },
-  
-  // Reduced orbs for minor aspects
-  aspectClassification: {
-    [AspectClassification.Major]: {
-      orbMultiplier: 1.0,
-      maxOrb: 10
-    },
-    [AspectClassification.Minor]: {
-      orbMultiplier: 0.6,
-      maxOrb: 4
-    }
-  },
-  
-  // Tighter orbs for synastry
-  contextualOrbs: {
-    synastry: {
-      orbMultiplier: 0.8
-    },
-    transits: {
-      orbMultiplier: 1.2,
-      aspectMultipliers: {
-        'conjunction': 1.5,
-        'opposition': 1.5
-      }
-    }
-  }
-};
-
-const settings = {
-  orbConfiguration: customOrbConfig,
-  includeAspectPatterns: true
-};
-
-const report = chart2txt(chartData, settings);
-```
-
-### Using Built-in Presets
-```typescript
-import { chart2txt, TIGHT_ASPECTS, TIGHT_ORB_CONFIG } from 'chart2txt';
-
-const precisionSettings = {
-  aspectDefinitions: TIGHT_ASPECTS,
+const report = chart2txt(chartData, {
   orbConfiguration: TIGHT_ORB_CONFIG,
-  skipOutOfSignAspects: true
-};
-
-const report = chart2txt(chartData, precisionSettings);
+  includeAspectPatterns: true
+});
 ```
 
-### Customizing Sign Distribution Output
+## Example Output
 
+Here is an example of the text report generated for a single natal chart.
+
+**Input Code:**
 ```typescript
 import { chart2txt } from 'chart2txt';
 
-// Disable sign distributions
-const settingsWithoutDistributions = {
-  includeSignDistributions: false
+const chartData = {
+  name: "Jane Doe",
+  planets: [
+    { name: 'Sun', degree: 0 },      // 0° Aries
+    { name: 'Moon', degree: 180 },   // 0° Libra
+    { name: 'Saturn', degree: 90 }   // 0° Cancer
+  ],
+  ascendant: 15.0,
+  midheaven: 105.0,
+  houseCusps: [15, 45, 75, 105, 135, 165, 195, 225, 255, 285, 315, 345],
+  timestamp: "1992-03-20T10:00:00Z",
+  location: "London, UK"
 };
 
-const reportWithoutDistributions = chart2txt(chartData, settingsWithoutDistributions);
-
-// Enable sign distributions (default behavior)
-const settingsWithDistributions = {
-  includeSignDistributions: true
-};
-
-const reportWithDistributions = chart2txt(chartData, settingsWithDistributions);
+const report = chart2txt(chartData, { includeAspectPatterns: true });
+console.log(report);
 ```
 
-## Default Configuration
-
-### Standard Aspects (includes quincunx)
-```typescript
-const DEFAULT_ASPECTS = [
-  { name: 'conjunction', angle: 0, orb: 5, classification: AspectClassification.Major },
-  { name: 'opposition', angle: 180, orb: 5, classification: AspectClassification.Major },
-  { name: 'trine', angle: 120, orb: 5, classification: AspectClassification.Major },
-  { name: 'square', angle: 90, orb: 5, classification: AspectClassification.Major },
-  { name: 'sextile', angle: 60, orb: 3, classification: AspectClassification.Major },
-  { name: 'quincunx', angle: 150, orb: 2, classification: AspectClassification.Minor }
-];
-```
-
-### Default Settings
-```typescript
-const DEFAULT_SETTINGS = {
-  houseSystemName: 'Placidus',
-  skipOutOfSignAspects: false,
-  includeAspectPatterns: true,
-  includeSignDistributions: true,
-  dateFormat: 'MMMM Do, YYYY [at] h:mm A',
-  aspectDefinitions: DEFAULT_ASPECTS,
-  aspectCategories: DEFAULT_ASPECT_CATEGORIES
-};
-```
-
-## Output Format
-
-The library generates structured text reports with clearly delineated sections:
-
+**Generated Report:**
 ```
 [METADATA]
-Generated: January 15th, 2024 at 2:30 PM
-Chart Type: natal
-House System: Placidus
+chart_type: natal
+house_system: whole_sign
+date_format: MM/DD/YYYY
 
-[CHART: John Doe]
+[CHART: Jane Doe]
 [BIRTHDATA]
-January 15th, 1990 at 2:30 PM
-Location: New York, NY
+London, UK | 03/20/1992 | 10:00:00 AM
 
 [ANGLES]
 Ascendant: 15° Aries
 Midheaven: 15° Cancer
 
-[HOUSES]
-1st House: 15° Aries
-2nd House: 12° Taurus
-...
+[HOUSE CUSPS]
+1st house: 15° Aries     7th house: 15° Libra
+2nd house: 15° Taurus    8th house: 15° Scorpio
+3rd house: 15° Gemini    9th house: 15° Sagittarius
+4th house: 15° Cancer    10th house: 15° Capricorn
+5th house: 15° Leo       11th house: 15° Aquarius
+6th house: 15° Virgo     12th house: 15° Pisces
 
 [PLANETS]
-Sun: 5°30' Taurus in 2nd House
-Moon: 0°15' Leo in 5th House
-...
+Sun: 0° Aries [Exaltation | Ruler: Mars], 12th house
+Moon: 0° Libra [Ruler: Venus], 6th house
+Saturn: 0° Cancer [Detriment | Ruler: Moon], 3rd house
+
+[DISPOSITOR TREE]
+Sun → Mars (not in chart)
+Moon → Venus (not in chart)
+Saturn → Moon → Venus (not in chart)
 
 [ELEMENT DISTRIBUTION]
-Fire: 2 (Sun, Mars)
-Earth: 3 (Mercury, Venus, Saturn)
-Air: 2 (Moon, Ascendant)
-Water: 1 (Neptune)
+Fire: 1 (Sun)
+Earth: 0
+Air: 1 (Moon)
+Water: 1 (Saturn)
 
 [MODALITY DISTRIBUTION]
-Cardinal: 3
-Fixed: 4
-Mutable: 1
+Cardinal: 2
+Fixed: 1
+Mutable: 0
 
 [POLARITY]
-Masculine: 4
-Feminine: 4
+Masculine: 2
+Feminine: 1
 
 [ASPECTS]
-Sun conjunction Mercury: 1°15' orb (applying)
-Moon trine Venus: 2°30' orb (separating)
-...
+[TIGHT ASPECTS: orb under 2.0°]
+Sun opposition Moon: 0.0°
+Sun square Saturn: 0.0°
+Moon square Saturn: 0.0°
 
 [ASPECT PATTERNS]
-T-Square: Mars (15° Capricorn) - Sun (5° Taurus) - Moon (0° Leo)
-...
+No stelliums detected.
+T-Square:
+  - Apex: Saturn 0° Cancer
+  - Opposition: Sun 0° Aries - Moon 0° Libra
+  - Mode: Cardinal
+  - Average orb: 0.0°
+
 ```
-
-## Aspect Pattern Detection
-
-The library automatically detects these complex aspect patterns:
-
-- **T-Square**: Two planets in opposition with a third planet square to both
-- **Grand Trine**: Three planets forming 120° aspects in the same element
-- **Grand Cross**: Four planets forming two opposition pairs with all squares
-- **Yod (Finger of God)**: Two planets in sextile with a third quincunx to both
-- **Stellium**: 3+ planets within close orb (customizable)
-- **Mystic Rectangle**: Two oppositions connected by sextiles and trines
-- **Kite**: Grand Trine with a fourth planet opposite one point
 
 ## Development
 
@@ -438,48 +259,13 @@ The library automatically detects these complex aspect patterns:
 # Install dependencies
 npm install
 
-# Run tests (95+ test cases)
+# Run tests
 npm test
-
-# Test with sample configurations
-npm run test:config
 
 # Build the library
 npm run build
-
-# Development build (TypeScript only)
-npm run build:tsc
-
-# Production build (with webpack)
-npm run build:webpack
-
-# Lint code
-npm run lint
-
-# Format code with Prettier
-npm run format
 ```
-
-## Architecture
-
-The library uses a modular architecture optimized for performance and extensibility:
-
-- **Core Engine** (`src/core/`): Aspect calculations, pattern detection, orb resolution
-- **Formatters** (`src/formatters/`): Text generation and output formatting
-- **Configuration** (`src/config/`): Settings management and validation
-- **Types** (`src/types.ts`): Comprehensive TypeScript definitions
-
-## Performance Optimizations
-
-- **Aspect Lookup Caching**: Pre-calculated aspect maps for pattern detection
-- **Orb Resolution Caching**: Hierarchical orb calculations with performance cache
-- **Efficient Pattern Detection**: Uses pre-detected aspects instead of re-calculating
-- **Minimal Re-computation**: Stelliums use custom detection, others reuse aspect data
 
 ## License
 
 MIT
-
----
-
-**Note**: This library focuses on astronomical calculations and text generation. Astrological interpretations are not included - the output is structured data suitable for further processing by interpretation systems or LLMs.
