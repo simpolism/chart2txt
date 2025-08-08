@@ -121,22 +121,6 @@ describe('Aspects', () => {
       );
     });
 
-    test.skip('omit aspects when disabled via settings', () => {
-      const data: ChartData = {
-        name: 'test',
-        planets: [
-          { name: 'Sun', degree: 0 }, // 0° Aries
-          { name: 'Moon', degree: 92 }, // 0° Cancer (square to Sun)
-          { name: 'Venus', degree: 60 }, // 0° Gemini (sextile to Sun)
-        ],
-      };
-
-      const result = chart2txt(data, { omitAspects: true } as any);
-
-      expect(result).not.toContain('square');
-      expect(result).not.toContain('sextile');
-    });
-
     test('out-of-sign aspect filtering works correctly', () => {
       const data: ChartData = {
         name: 'test',

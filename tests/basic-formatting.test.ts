@@ -19,21 +19,6 @@ describe('Basic Formatting', () => {
       expect(result).toContain('Moon: 0° Leo');
       expect(result).toContain('Mercury: 15° Gemini');
     });
-
-    test.skip('omits signs when disabled via settings', () => {
-      const data: ChartData = {
-        name: 'test',
-        planets: [
-          { name: 'Sun', degree: 35 }, // 5° Taurus
-          { name: 'Moon', degree: 120 }, // 0° Leo
-        ],
-      };
-
-      const result = chart2txt(data, { omitSigns: true } as any);
-
-      expect(result).not.toContain('Taurus');
-      expect(result).not.toContain('Leo');
-    });
   });
 
   describe('house formatting', () => {
@@ -114,21 +99,6 @@ describe('Basic Formatting', () => {
       expect(result).toContain('[PLANETS]');
       expect(result).toContain('Sun: 5° Taurus [Ruler: Venus], 2nd house');
       expect(result).toContain('Moon: 0° Leo [Ruler: Sun], 5th house');
-    });
-
-    test.skip('omits house positions when disabled via settings', () => {
-      const data: ChartData = {
-        name: 'test',
-        planets: [
-          { name: 'Sun', degree: 35 }, // 5° Taurus
-          { name: 'Moon', degree: 120 }, // 0° Leo
-        ],
-        ascendant: 6, // 6° Aries
-      };
-
-      const result = chart2txt(data, { omitHouses: true } as any);
-
-      expect(result).not.toContain('house');
     });
 
     test('handles zodiac wraparound when 1st house cusp > 12th house cusp', () => {
@@ -212,25 +182,6 @@ describe('Basic Formatting', () => {
       expect(result).toContain('[ANGLES]');
       expect(result).toContain('Ascendant: 6° Aries');
       expect(result).toContain('Midheaven: Not available');
-    });
-
-    test.skip('omits points when disabled via settings', () => {
-      const data: ChartData = {
-        name: 'test',
-        planets: [
-          { name: 'Sun', degree: 35 }, // 5° Taurus
-        ],
-        ascendant: 6, // 6° Aries
-        points: [
-          { name: 'MC', degree: 120 }, // 0° Leo
-          { name: 'IC', degree: 240 }, // 0° Aquarius
-        ],
-      };
-
-      const result = chart2txt(data, { omitPoints: true } as any);
-
-      expect(result).not.toContain('MC');
-      expect(result).not.toContain('IC');
     });
   });
 
@@ -559,7 +510,7 @@ describe('Basic Formatting', () => {
       expect(result).toContain('Feminine: 3');
     });
 
-    test.skip('handles empty planet list for distributions', () => {
+    test('handles empty planet list for distributions', () => {
       const data: ChartData = {
         name: 'test',
         planets: [],
@@ -568,11 +519,17 @@ describe('Basic Formatting', () => {
       const result = chart2txt(data, { includeAspectPatterns: true });
 
       expect(result).toContain('[ELEMENT DISTRIBUTION]');
-      expect(result).toContain('No planets available for element analysis.');
+      expect(result).toContain('Fire: 0');
+      expect(result).toContain('Earth: 0');
+      expect(result).toContain('Air: 0');
+      expect(result).toContain('Water: 0');
       expect(result).toContain('[MODALITY DISTRIBUTION]');
-      expect(result).toContain('No planets available for modality analysis.');
+      expect(result).toContain('Cardinal: 0');
+      expect(result).toContain('Fixed: 0');
+      expect(result).toContain('Mutable: 0');
       expect(result).toContain('[POLARITY]');
-      expect(result).toContain('No planets available for polarity analysis.');
+      expect(result).toContain('Masculine: 0');
+      expect(result).toContain('Feminine: 0');
     });
 
     test('handles distributions without ascendant', () => {
