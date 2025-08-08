@@ -145,9 +145,10 @@ export function formatChartToText(
   partialSettings: PartialSettings = {}
 ): string {
   const report: AstrologicalReport = analyzeCharts(data, partialSettings);
-  const { settings: reportSettings, chartAnalyses, pairwiseAnalyses, globalAnalysis, transitAnalyses, globalTransitAnalysis } = report;
+  const { chartAnalyses, pairwiseAnalyses, globalAnalysis, transitAnalyses, globalTransitAnalysis } = report;
   
-  const settings = new ChartSettings(reportSettings);
+  // The settings object in the report IS the ChartSettings instance.
+  const settings = report.settings as ChartSettings;
   const outputLines: string[] = [];
 
   const charts = isMultiChartData(data) ? data : [data];

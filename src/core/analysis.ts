@@ -280,7 +280,7 @@ export function analyzeCharts(
   }
 
   const report: AstrologicalReport = {
-    settings: settings.getSettings(),
+    settings: settings,
     chartAnalyses,
     pairwiseAnalyses,
     globalAnalysis,

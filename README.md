@@ -1,12 +1,12 @@
 # chart2txt
 
-An **automated text-based astrological delineation utility** designed primarily for LLM consumption with secondary human readability. This TypeScript library converts complex astrological chart data into structured, standardized text reports.
+An **automated text-based astrological pattern detection utility** designed primarily for LLM consumption with secondary human readability. This TypeScript library converts complex astrological chart data into structured, standardized text reports.
 
 [![npm version](https://badge.fury.io/js/chart2txt.svg)](https://badge.fury.io/js/chart2txt)
 
 ## Purpose & Design Philosophy
 
-chart2txt is designed as an **automated delineation engine** that transforms astrological chart data into consistent, structured text format. The primary goal is **LLM consumption** - enabling AI systems to process astrological information efficiently. Human readability is a secondary consideration.
+chart2txt is designed as an **automated pattern detection engine** that transforms astrological chart data into consistent, structured text format. The primary goal is **LLM consumption** - enabling AI systems to process astrological information efficiently. Human readability is a secondary consideration.
 
 ## Features
 
