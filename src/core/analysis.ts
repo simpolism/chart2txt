@@ -268,7 +268,7 @@ export function analyzeCharts(
       // Tier 5: Global Transit Analysis (if there are natal charts)
       if (nonTransitCharts.length > 0) {
           const globalTransitPatterns = filterPatternsByChartInvolvement(allPatterns, [transitChart.name])
-              .filter(p => countUniqueCharts(p) >= 2); // Must involve transit + at least one other chart
+              .filter(p => countUniqueCharts(p) >= 3); // Must involve transit + at least two other charts
 
           if (globalTransitPatterns.length > 0) {
               globalTransitAnalysis = {

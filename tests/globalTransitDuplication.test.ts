@@ -126,4 +126,43 @@ describe('Global Transit Composite Duplication Bug', () => {
       expect(pattern).toMatch(/Transit['']s/);
     });
   });
+
+  test('global transit composite should not include patterns with only one natal chart', () => {
+    const natalChart1: ChartData = {
+      name: 'Natal A',
+      planets: [
+        { name: 'Sun', degree: 0 }, // 0° Aries
+        { name: 'Moon', degree: 180 }, // 0° Libra
+      ],
+      houseCusps: [0, 30, 60, 90, 120, 150, 180, 210, 240, 270, 300, 330],
+    };
+    const natalChart2: ChartData = {
+      name: 'Natal B',
+      planets: [
+        { name: 'Mars', degree: 120 }, // 0° Leo
+      ],
+      houseCusps: [0, 30, 60, 90, 120, 150, 180, 210, 240, 270, 300, 330],
+    };
+    const transitChart: ChartData = {
+      name: 'Transit',
+      chartType: 'transit',
+      planets: [
+        { name: 'Pluto', degree: 90 }, // 0° Cancer, creates a T-Square with Natal A's Sun/Moon
+      ],
+      houseCusps: [0, 30, 60, 90, 120, 150, 180, 210, 240, 270, 300, 330],
+    };
+
+    const result = chart2txt([natalChart1, natalChart2, transitChart], {
+      includeAspectPatterns: true,
+    });
+
+    // The T-Square involving only Natal A and Transit should be in the individual transit section
+    expect(result).toContain('[ASPECT PATTERNS: Transit to Natal A]');
+    const transitToASection = result.substring(result.indexOf('[ASPECT PATTERNS: Transit to Natal A]'));
+    expect(transitToASection).toContain('T-Square:');
+    expect(transitToASection).toContain("Apex: Transit's Pluto");
+
+    // The Global Transit Composite section should NOT be present at all
+    expect(result).not.toContain('Global Transit Composite');
+  });
 });
