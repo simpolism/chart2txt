@@ -1,4 +1,4 @@
-import { PlanetPosition, Point } from '../types';
+import { Point } from '../types';
 import { ZODIAC_SIGN_DATA } from '../constants';
 import { getSign } from '../utils/formatting';
 
@@ -18,7 +18,9 @@ function getDispositor(planet: Point): string {
  * @param planets The list of planets in the chart.
  * @returns A map of each planet to its full dispositor chain string.
  */
-export function calculateDispositors(planets: Point[]): { [key: string]: string } {
+export function calculateDispositors(planets: Point[]): {
+  [key: string]: string;
+} {
   const dispositorMap: { [key: string]: string } = {};
   planets.forEach((p) => {
     dispositorMap[p.name] = getDispositor(p);
@@ -30,8 +32,10 @@ export function calculateDispositors(planets: Point[]): { [key: string]: string 
     let current = planet.name;
     let chain = `${current}`;
 
+    // eslint-disable-next-line no-constant-condition
     while (true) {
       const nextDispositor = dispositorMap[current];
+      // eslint-disable-next-line no-prototype-builtins
       if (!nextDispositor || !dispositorMap.hasOwnProperty(nextDispositor)) {
         // Dispositor is not in the chart, so the chain ends.
         chain += ` → ${nextDispositor} (not in chart)`;

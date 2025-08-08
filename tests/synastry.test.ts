@@ -23,7 +23,10 @@ describe('Synastry and Multi-Chart Tests', () => {
     });
 
     it('handles missing house cusps in overlay analysis', () => {
-      const chart1: ChartData = { name: 'Alice', planets: [{ name: 'Sun', degree: 120 }] }; // No cusps
+      const chart1: ChartData = {
+        name: 'Alice',
+        planets: [{ name: 'Sun', degree: 120 }],
+      }; // No cusps
       const chart2: ChartData = {
         name: 'Bob',
         planets: [{ name: 'Moon', degree: 180 }],
@@ -38,18 +41,26 @@ describe('Synastry and Multi-Chart Tests', () => {
     });
 
     it('calculates synastry aspects between angles', () => {
-        const chart1: ChartData = { name: 'Person A', planets: [], ascendant: 0.0 };
-        const chart2: ChartData = { name: 'Person B', planets: [], midheaven: 90.0 };
+      const chart1: ChartData = {
+        name: 'Person A',
+        planets: [],
+        ascendant: 0.0,
+      };
+      const chart2: ChartData = {
+        name: 'Person B',
+        planets: [],
+        midheaven: 90.0,
+      };
 
-        const report = formatChartToJson([chart1, chart2]);
-        const synastryAspects = report.pairwiseAnalyses[0]?.synastryAspects;
+      const report = formatChartToJson([chart1, chart2]);
+      const synastryAspects = report.pairwiseAnalyses[0]?.synastryAspects;
 
-        expect(synastryAspects).toBeDefined();
-        expect(synastryAspects.length).toBeGreaterThan(0);
-        const square = synastryAspects.find(a => a.aspectType === 'square');
-        expect(square).toBeDefined();
-        expect(square?.planetA).toBe('Ascendant');
-        expect(square?.planetB).toBe('Midheaven');
+      expect(synastryAspects).toBeDefined();
+      expect(synastryAspects.length).toBeGreaterThan(0);
+      const square = synastryAspects.find((a) => a.aspectType === 'square');
+      expect(square).toBeDefined();
+      expect(square?.planetA).toBe('Ascendant');
+      expect(square?.planetB).toBe('Midheaven');
     });
   });
 

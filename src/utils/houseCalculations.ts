@@ -26,5 +26,5 @@ export function calculateHouseOverlays(chart1: ChartData, chart2: ChartData) {
 }
 
 export function getHouseForPoint(degree: number, houseCusps: number[]): number {
-    return getHouse(degree, houseCusps);
+  return getHouse(degree, houseCusps);
 }

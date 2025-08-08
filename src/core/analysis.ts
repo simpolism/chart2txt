@@ -3,7 +3,6 @@ import {
   MultiChartData,
   isMultiChartData,
   AstrologicalReport,
-  Settings,
   PartialSettings,
   Point,
   UnionedPoint,
@@ -13,15 +12,11 @@ import {
   PairwiseAnalysis,
   TransitAnalysis,
   GlobalAnalysis,
-  Stellium,
   PlanetPosition,
 } from '../types';
 import { ChartSettings } from '../config/ChartSettings';
 import { validateInputData } from '../utils/validation';
-import {
-  calculateAspects,
-  calculateMultichartAspects,
-} from './aspects';
+import { calculateAspects, calculateMultichartAspects } from './aspects';
 import { detectAspectPatterns } from './aspectPatterns';
 import { detectStelliums } from './stelliums';
 import { getPlanetPositions } from '../utils/formatting';
@@ -50,76 +45,91 @@ function getPointsForPatternDetection(chartData: ChartData): Point[] {
   );
 }
 
-function getUnionedPoints(charts: ChartData[], forPatternDetection = false): UnionedPoint[] {
-    return charts.flatMap(chart => {
-        const points = forPatternDetection ? getPointsForPatternDetection(chart) : getAllPointsFromChart(chart);
-        return points.map((p): UnionedPoint => [p, chart.name]);
-    });
+function getUnionedPoints(
+  charts: ChartData[],
+  forPatternDetection = false
+): UnionedPoint[] {
+  return charts.flatMap((chart) => {
+    const points = forPatternDetection
+      ? getPointsForPatternDetection(chart)
+      : getAllPointsFromChart(chart);
+    return points.map((p): UnionedPoint => [p, chart.name]);
+  });
 }
 
 function getChartNamesFromPattern(pattern: AspectPattern): Set<string> {
-    const chartNames = new Set<string>();
-    const planetsToVisit: PlanetPosition[] = [];
+  const chartNames = new Set<string>();
+  const planetsToVisit: PlanetPosition[] = [];
 
-    const addPlanet = (p: PlanetPosition) => {
-        if (p) planetsToVisit.push(p);
+  const addPlanet = (p: PlanetPosition) => {
+    if (p) planetsToVisit.push(p);
+  };
+
+  switch (pattern.type) {
+    case 'T-Square':
+      addPlanet(pattern.apex);
+      pattern.opposition.forEach(addPlanet);
+      break;
+    case 'Grand Trine':
+      pattern.planets.forEach(addPlanet);
+      break;
+    case 'Grand Cross':
+      pattern.planets.forEach(addPlanet);
+      break;
+    case 'Yod':
+      addPlanet(pattern.apex);
+      pattern.base.forEach(addPlanet);
+      break;
+    case 'Mystic Rectangle':
+      pattern.oppositions.flat().forEach(addPlanet);
+      break;
+    case 'Kite':
+      pattern.grandTrine.forEach(addPlanet);
+      addPlanet(pattern.opposition);
+      break;
+  }
+
+  planetsToVisit.forEach((p) => {
+    if (p.chartName) {
+      chartNames.add(p.chartName);
     }
+  });
 
-    switch (pattern.type) {
-        case 'T-Square':
-            addPlanet(pattern.apex);
-            pattern.opposition.forEach(addPlanet);
-            break;
-        case 'Grand Trine':
-            pattern.planets.forEach(addPlanet);
-            break;
-        case 'Grand Cross':
-            pattern.planets.forEach(addPlanet);
-            break;
-        case 'Yod':
-            addPlanet(pattern.apex);
-            pattern.base.forEach(addPlanet);
-            break;
-        case 'Mystic Rectangle':
-            pattern.oppositions.flat().forEach(addPlanet);
-            break;
-        case 'Kite':
-            pattern.grandTrine.forEach(addPlanet);
-            addPlanet(pattern.opposition);
-            break;
-    }
-
-    planetsToVisit.forEach(p => {
-        if (p.chartName) {
-            chartNames.add(p.chartName);
-        }
-    });
-
-    return chartNames;
+  return chartNames;
 }
-
 
 function countUniqueCharts(pattern: AspectPattern): number {
   return getChartNamesFromPattern(pattern).size;
 }
 
-function patternInvolvesChart(pattern: AspectPattern, chartName: string): boolean {
-    return getChartNamesFromPattern(pattern).has(chartName);
+function patternInvolvesChart(
+  pattern: AspectPattern,
+  chartName: string
+): boolean {
+  return getChartNamesFromPattern(pattern).has(chartName);
 }
 
-function filterPatternsByChartCount(patterns: AspectPattern[], minCharts: number, maxCharts = Infinity): AspectPattern[] {
-  return patterns.filter(pattern => {
-      const count = countUniqueCharts(pattern);
-      return count >= minCharts && count <= maxCharts;
+function filterPatternsByChartCount(
+  patterns: AspectPattern[],
+  minCharts: number,
+  maxCharts = Infinity
+): AspectPattern[] {
+  return patterns.filter((pattern) => {
+    const count = countUniqueCharts(pattern);
+    return count >= minCharts && count <= maxCharts;
   });
 }
 
-function filterPatternsByChartInvolvement(patterns: AspectPattern[], requiredChartNames: string[]): AspectPattern[] {
-  return patterns.filter(pattern => {
-    return requiredChartNames.some(chartName => patternInvolvesChart(pattern, chartName));
+function filterPatternsByChartInvolvement(
+  patterns: AspectPattern[],
+  requiredChartNames: string[]
+): AspectPattern[] {
+  return patterns.filter((pattern) => {
+    return requiredChartNames.some((chartName) =>
+      patternInvolvesChart(pattern, chartName)
+    );
   });
 }
-
 
 /**
  * Analyzes single or multiple chart data and returns a structured report
@@ -137,9 +147,12 @@ export function analyzeCharts(
   const settings = new ChartSettings(partialSettings);
   const rawCharts = isMultiChartData(data) ? data : [data];
 
-  const nonTransitCharts = rawCharts.filter(c => c.chartType !== 'transit');
-  const transitChart = rawCharts.find(c => c.chartType === 'transit');
-  const allCharts = [...nonTransitCharts, ...(transitChart ? [transitChart] : [])];
+  const nonTransitCharts = rawCharts.filter((c) => c.chartType !== 'transit');
+  const transitChart = rawCharts.find((c) => c.chartType === 'transit');
+  const allCharts = [
+    ...nonTransitCharts,
+    ...(transitChart ? [transitChart] : []),
+  ];
 
   // === Unified Aspect Calculation ===
   const allAspects: AspectData[] = [];
@@ -147,34 +160,42 @@ export function analyzeCharts(
 
   // 1. Individual chart aspects
   for (const chart of allCharts) {
-      const points = getUnionedPoints([chart]);
-      const aspects = calculateAspects(settings.aspectDefinitions, points, settings.skipOutOfSignAspects, settings.orbResolver);
-      allAspects.push(...aspects);
+    const points = getUnionedPoints([chart]);
+    const aspects = calculateAspects(
+      settings.aspectDefinitions,
+      points,
+      settings.skipOutOfSignAspects,
+      settings.orbResolver
+    );
+    allAspects.push(...aspects);
   }
 
   // 2. Pairwise aspects (Synastry, Natal-Transit, etc.)
   for (let i = 0; i < allCharts.length; i++) {
-      for (let j = i + 1; j < allCharts.length; j++) {
-          const chart1 = allCharts[i];
-          const chart2 = allCharts[j];
-          const aspectType = chart1.chartType === 'transit' || chart2.chartType === 'transit' ? 'transit' : 'synastry';
-          
-          const aspects = calculateMultichartAspects(
-              settings.aspectDefinitions,
-              getUnionedPoints([chart1]),
-              getUnionedPoints([chart2]),
-              settings.skipOutOfSignAspects,
-              settings.orbResolver,
-              aspectType
-          );
-          allAspects.push(...aspects);
-      }
+    for (let j = i + 1; j < allCharts.length; j++) {
+      const chart1 = allCharts[i];
+      const chart2 = allCharts[j];
+      const aspectType =
+        chart1.chartType === 'transit' || chart2.chartType === 'transit'
+          ? 'transit'
+          : 'synastry';
+
+      const aspects = calculateMultichartAspects(
+        settings.aspectDefinitions,
+        getUnionedPoints([chart1]),
+        getUnionedPoints([chart2]),
+        settings.skipOutOfSignAspects,
+        settings.orbResolver,
+        aspectType
+      );
+      allAspects.push(...aspects);
+    }
   }
 
   // === Unified Pattern Detection ===
-  const allPatterns = settings.includeAspectPatterns 
-      ? detectAspectPatterns(allUnionedPointsForPatterns, allAspects) 
-      : [];
+  const allPatterns = settings.includeAspectPatterns
+    ? detectAspectPatterns(allUnionedPointsForPatterns, allAspects)
+    : [];
 
   // === Analysis Structuring ===
   const chartAnalyses: ChartAnalysis[] = [];
@@ -185,98 +206,132 @@ export function analyzeCharts(
 
   // Tier 1: Individual Chart Analysis
   for (const chart of allCharts) {
-      const individualAspects = allAspects.filter(a => a.p1ChartName === chart.name && a.p2ChartName === chart.name);
-      const individualPatterns = filterPatternsByChartCount(allPatterns, 1, 1).filter(p => patternInvolvesChart(p, chart.name));
-      const stelliums = settings.includeAspectPatterns ? detectStelliums(getPointsForPatternDetection(chart), chart.houseCusps) : [];
+    const individualAspects = allAspects.filter(
+      (a) => a.p1ChartName === chart.name && a.p2ChartName === chart.name
+    );
+    const individualPatterns = filterPatternsByChartCount(
+      allPatterns,
+      1,
+      1
+    ).filter((p) => patternInvolvesChart(p, chart.name));
+    const stelliums = settings.includeAspectPatterns
+      ? detectStelliums(getPointsForPatternDetection(chart), chart.houseCusps)
+      : [];
 
-      chartAnalyses.push({
-          chart: chart,
-          placements: {
-              planets: getPlanetPositions(chart.planets, chart.houseCusps),
-          },
-          aspects: individualAspects,
-          patterns: individualPatterns,
-          stelliums: stelliums,
-          signDistributions: calculateSignDistributions(chart.planets, chart.ascendant),
-          dispositors: chart.chartType !== 'transit' ? calculateDispositors(chart.planets) : {},
-      });
+    chartAnalyses.push({
+      chart: chart,
+      placements: {
+        planets: getPlanetPositions(chart.planets, chart.houseCusps),
+      },
+      aspects: individualAspects,
+      patterns: individualPatterns,
+      stelliums: stelliums,
+      signDistributions: calculateSignDistributions(
+        chart.planets,
+        chart.ascendant
+      ),
+      dispositors:
+        chart.chartType !== 'transit'
+          ? calculateDispositors(chart.planets)
+          : {},
+    });
   }
 
   // Tier 2: Pairwise Synastry Analysis (non-transit charts)
   if (nonTransitCharts.length >= 2) {
-      for (let i = 0; i < nonTransitCharts.length; i++) {
-          for (let j = i + 1; j < nonTransitCharts.length; j++) {
-              const chart1 = nonTransitCharts[i];
-              const chart2 = nonTransitCharts[j];
+    for (let i = 0; i < nonTransitCharts.length; i++) {
+      for (let j = i + 1; j < nonTransitCharts.length; j++) {
+        const chart1 = nonTransitCharts[i];
+        const chart2 = nonTransitCharts[j];
 
-              const synastryAspects = allAspects.filter(a => 
-                  (a.p1ChartName === chart1.name && a.p2ChartName === chart2.name) ||
-                  (a.p1ChartName === chart2.name && a.p2ChartName === chart1.name)
-              );
+        const synastryAspects = allAspects.filter(
+          (a) =>
+            (a.p1ChartName === chart1.name && a.p2ChartName === chart2.name) ||
+            (a.p1ChartName === chart2.name && a.p2ChartName === chart1.name)
+        );
 
-              const compositePatterns = filterPatternsByChartCount(allPatterns, 2, 2).filter(p => 
-                  patternInvolvesChart(p, chart1.name) && patternInvolvesChart(p, chart2.name)
-              );
+        const compositePatterns = filterPatternsByChartCount(
+          allPatterns,
+          2,
+          2
+        ).filter(
+          (p) =>
+            patternInvolvesChart(p, chart1.name) &&
+            patternInvolvesChart(p, chart2.name)
+        );
 
-              pairwiseAnalyses.push({
-                  chart1: chart1,
-                  chart2: chart2,
-                  synastryAspects: synastryAspects,
-                  compositePatterns: compositePatterns,
-                  houseOverlays: calculateHouseOverlays(chart1, chart2),
-              });
-          }
+        pairwiseAnalyses.push({
+          chart1: chart1,
+          chart2: chart2,
+          synastryAspects: synastryAspects,
+          compositePatterns: compositePatterns,
+          houseOverlays: calculateHouseOverlays(chart1, chart2),
+        });
       }
+    }
   }
 
   // Tier 3: Global Analysis (3+ non-transit charts)
   if (nonTransitCharts.length > 2) {
-      const globalPatterns = filterPatternsByChartCount(allPatterns, 3).filter(p => {
-          // Ensure no transit charts are involved
-          const involvedCharts = getChartNamesFromPattern(p);
-          return !involvedCharts.has(transitChart?.name || 'TRANSIT_PLACEHOLDER');
-      });
-      
-      if (globalPatterns.length > 0) {
-          globalAnalysis = {
-              charts: nonTransitCharts,
-              patterns: globalPatterns,
-          };
+    const globalPatterns = filterPatternsByChartCount(allPatterns, 3).filter(
+      (p) => {
+        // Ensure no transit charts are involved
+        const involvedCharts = getChartNamesFromPattern(p);
+        return !involvedCharts.has(transitChart?.name || 'TRANSIT_PLACEHOLDER');
       }
+    );
+
+    if (globalPatterns.length > 0) {
+      globalAnalysis = {
+        charts: nonTransitCharts,
+        patterns: globalPatterns,
+      };
+    }
   }
 
   // Tier 4: Transit Analysis
   if (transitChart) {
-      for (const natalChart of nonTransitCharts) {
-          const transitAspects = allAspects.filter(a => 
-              (a.p1ChartName === natalChart.name && a.p2ChartName === transitChart.name) ||
-              (a.p1ChartName === transitChart.name && a.p2ChartName === natalChart.name)
-          );
+    for (const natalChart of nonTransitCharts) {
+      const transitAspects = allAspects.filter(
+        (a) =>
+          (a.p1ChartName === natalChart.name &&
+            a.p2ChartName === transitChart.name) ||
+          (a.p1ChartName === transitChart.name &&
+            a.p2ChartName === natalChart.name)
+      );
 
-          const transitPatterns = filterPatternsByChartCount(allPatterns, 2, 2).filter(p => 
-              patternInvolvesChart(p, natalChart.name) && patternInvolvesChart(p, transitChart.name)
-          );
+      const transitPatterns = filterPatternsByChartCount(
+        allPatterns,
+        2,
+        2
+      ).filter(
+        (p) =>
+          patternInvolvesChart(p, natalChart.name) &&
+          patternInvolvesChart(p, transitChart.name)
+      );
 
-          transitAnalyses.push({
-              natalChart: natalChart,
-              transitChart: transitChart,
-              aspects: transitAspects,
-              patterns: transitPatterns,
-          });
+      transitAnalyses.push({
+        natalChart: natalChart,
+        transitChart: transitChart,
+        aspects: transitAspects,
+        patterns: transitPatterns,
+      });
+    }
+
+    // Tier 5: Global Transit Analysis (if there are natal charts)
+    if (nonTransitCharts.length > 0) {
+      const globalTransitPatterns = filterPatternsByChartInvolvement(
+        allPatterns,
+        [transitChart.name]
+      ).filter((p) => countUniqueCharts(p) >= 3); // Must involve transit + at least two other charts
+
+      if (globalTransitPatterns.length > 0) {
+        globalTransitAnalysis = {
+          charts: allCharts,
+          patterns: globalTransitPatterns,
+        };
       }
-
-      // Tier 5: Global Transit Analysis (if there are natal charts)
-      if (nonTransitCharts.length > 0) {
-          const globalTransitPatterns = filterPatternsByChartInvolvement(allPatterns, [transitChart.name])
-              .filter(p => countUniqueCharts(p) >= 3); // Must involve transit + at least two other charts
-
-          if (globalTransitPatterns.length > 0) {
-              globalTransitAnalysis = {
-                  charts: allCharts,
-                  patterns: globalTransitPatterns,
-              };
-          }
-      }
+    }
   }
 
   const report: AstrologicalReport = {

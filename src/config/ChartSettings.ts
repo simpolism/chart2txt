@@ -5,14 +5,11 @@ import {
   Aspect,
   OrbConfiguration,
 } from '../types';
-import {
-  DEFAULT_SETTINGS,
-} from '../constants';
+import { DEFAULT_SETTINGS } from '../constants';
 import { OrbResolver } from '../core/orbResolver';
 
 export class ChartSettings implements Settings {
   // Properties from Settings interface are dynamically assigned
-  [key: string]: any; // Allow dynamic properties
   houseSystemName!: string;
   skipOutOfSignAspects!: boolean;
   aspectDefinitions!: Aspect[];

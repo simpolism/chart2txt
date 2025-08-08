@@ -174,7 +174,12 @@ function detectTSquares(
     for (let j = i + 1; j < unionedPoints.length; j++) {
       // Check for opposition
       if (
-        hasSpecificAspect(unionedPoints[i], unionedPoints[j], 'opposition', aspectLookup)
+        hasSpecificAspect(
+          unionedPoints[i],
+          unionedPoints[j],
+          'opposition',
+          aspectLookup
+        )
       ) {
         // Look for a third planet that squares both
         for (let k = 0; k < unionedPoints.length; k++) {
@@ -360,14 +365,18 @@ function detectGrandCrosses(
               hasSpecificAspect(group[a], group[b], 'opposition', aspectLookup)
             ) {
               oppositions++;
-              aspectData.push(getAspectBetween(group[a], group[b], aspectLookup)!);
+              aspectData.push(
+                getAspectBetween(group[a], group[b], aspectLookup)!
+              );
             }
           });
 
           otherPairs.forEach(([a, b]) => {
             if (hasSpecificAspect(group[a], group[b], 'square', aspectLookup)) {
               squares++;
-              aspectData.push(getAspectBetween(group[a], group[b], aspectLookup)!);
+              aspectData.push(
+                getAspectBetween(group[a], group[b], aspectLookup)!
+              );
             }
           });
 
@@ -418,7 +427,12 @@ function detectYods(
     for (let j = i + 1; j < unionedPoints.length; j++) {
       // Check for sextile between base planets
       if (
-        hasSpecificAspect(unionedPoints[i], unionedPoints[j], 'sextile', aspectLookup)
+        hasSpecificAspect(
+          unionedPoints[i],
+          unionedPoints[j],
+          'sextile',
+          aspectLookup
+        )
       ) {
         // Look for apex planet that forms quincunxes with both
         for (let k = 0; k < unionedPoints.length; k++) {
@@ -547,7 +561,12 @@ function detectMysticRectangles(
 
             combo.oppositions.forEach(([a, b]) => {
               if (
-                hasSpecificAspect(group[a], group[b], 'opposition', aspectLookup)
+                hasSpecificAspect(
+                  group[a],
+                  group[b],
+                  'opposition',
+                  aspectLookup
+                )
               ) {
                 validOppositions++;
                 aspectData.push(
@@ -635,13 +654,16 @@ function detectKites(
           const trineUnionedPoint = unionedPoints.find(
             ([p, c]) => p.name === trinePoint.name && c === trinePoint.chartName
           );
-          
-          if (trineUnionedPoint && hasSpecificAspect(
-            trineUnionedPoint,
-            unionedPoint,
-            'opposition',
-            aspectLookup
-          )) {
+
+          if (
+            trineUnionedPoint &&
+            hasSpecificAspect(
+              trineUnionedPoint,
+              unionedPoint,
+              'opposition',
+              aspectLookup
+            )
+          ) {
             const oppositionPlanet = pointToPlanetPosition(
               planet,
               houseCusps,

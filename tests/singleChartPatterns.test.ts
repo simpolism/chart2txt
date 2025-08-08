@@ -1,4 +1,11 @@
-import { formatChartToJson, ChartData, TSquare, GrandTrine, Yod, Stellium } from '../src/index';
+import {
+  formatChartToJson,
+  ChartData,
+  TSquare,
+  GrandTrine,
+  Yod,
+  Stellium,
+} from '../src/index';
 
 describe('Single Chart Aspect Pattern Analysis', () => {
   it('should detect a T-Square pattern', () => {
@@ -68,6 +75,10 @@ describe('Single Chart Aspect Pattern Analysis', () => {
     const stellium = stelliums[0] as Stellium;
     expect(stellium.type).toBe('Stellium');
     expect(stellium.sign).toBe('Cancer');
-    expect(stellium.planets.map(p => p.name)).toEqual(['Sun', 'Mercury', 'Venus']);
+    expect(stellium.planets.map((p) => p.name)).toEqual([
+      'Sun',
+      'Mercury',
+      'Venus',
+    ]);
   });
 });

@@ -93,7 +93,7 @@ describe('Basic Formatting', () => {
       };
 
       const result = chart2txt(data, {
-        houseSystemName: 'whole_sign'
+        houseSystemName: 'whole_sign',
       });
 
       expect(result).toContain('[PLANETS]');

@@ -1,4 +1,4 @@
-import { Point, Aspect, AspectData, ChartData, UnionedPoint } from '../types';
+import { Point, Aspect, AspectData, UnionedPoint } from '../types';
 import { normalizeDegree } from './astrology';
 import { isExactAspect, roundDegrees } from '../utils/precision';
 import { OrbResolver, OrbResolutionContext } from './orbResolver';
@@ -191,7 +191,7 @@ export function calculateAspects(
     for (let j = i + 1; j < unionedPlanets.length; j++) {
       const [planetA, chartNameA] = unionedPlanets[i];
       const [planetB, chartNameB] = unionedPlanets[j];
-      
+
       // Automatically determine chart type based on whether planets are from same chart
       let chartType: 'natal' | 'synastry' | 'transit' | 'composite';
       if (forceChartType) {

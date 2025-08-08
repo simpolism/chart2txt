@@ -8,21 +8,93 @@ import {
 } from './types';
 
 export const ZODIAC_SIGN_DATA = [
-    { name: 'Aries', element: 'Fire', modality: 'Cardinal', polarity: 'Masculine', ruler: 'Mars' },
-    { name: 'Taurus', element: 'Earth', modality: 'Fixed', polarity: 'Feminine', ruler: 'Venus' },
-    { name: 'Gemini', element: 'Air', modality: 'Mutable', polarity: 'Masculine', ruler: 'Mercury' },
-    { name: 'Cancer', element: 'Water', modality: 'Cardinal', polarity: 'Feminine', ruler: 'Moon' },
-    { name: 'Leo', element: 'Fire', modality: 'Fixed', polarity: 'Masculine', ruler: 'Sun' },
-    { name: 'Virgo', element: 'Earth', modality: 'Mutable', polarity: 'Feminine', ruler: 'Mercury' },
-    { name: 'Libra', element: 'Air', modality: 'Fixed', polarity: 'Masculine', ruler: 'Venus' },
-    { name: 'Scorpio', element: 'Water', modality: 'Fixed', polarity: 'Feminine', ruler: 'Mars' },
-    { name: 'Sagittarius', element: 'Fire', modality: 'Mutable', polarity: 'Masculine', ruler: 'Jupiter' },
-    { name: 'Capricorn', element: 'Earth', modality: 'Cardinal', polarity: 'Feminine', ruler: 'Saturn' },
-    { name: 'Aquarius', element: 'Air', modality: 'Fixed', polarity: 'Masculine', ruler: 'Saturn' },
-    { name: 'Pisces', element: 'Water', modality: 'Mutable', polarity: 'Feminine', ruler: 'Jupiter' },
+  {
+    name: 'Aries',
+    element: 'Fire',
+    modality: 'Cardinal',
+    polarity: 'Masculine',
+    ruler: 'Mars',
+  },
+  {
+    name: 'Taurus',
+    element: 'Earth',
+    modality: 'Fixed',
+    polarity: 'Feminine',
+    ruler: 'Venus',
+  },
+  {
+    name: 'Gemini',
+    element: 'Air',
+    modality: 'Mutable',
+    polarity: 'Masculine',
+    ruler: 'Mercury',
+  },
+  {
+    name: 'Cancer',
+    element: 'Water',
+    modality: 'Cardinal',
+    polarity: 'Feminine',
+    ruler: 'Moon',
+  },
+  {
+    name: 'Leo',
+    element: 'Fire',
+    modality: 'Fixed',
+    polarity: 'Masculine',
+    ruler: 'Sun',
+  },
+  {
+    name: 'Virgo',
+    element: 'Earth',
+    modality: 'Mutable',
+    polarity: 'Feminine',
+    ruler: 'Mercury',
+  },
+  {
+    name: 'Libra',
+    element: 'Air',
+    modality: 'Fixed',
+    polarity: 'Masculine',
+    ruler: 'Venus',
+  },
+  {
+    name: 'Scorpio',
+    element: 'Water',
+    modality: 'Fixed',
+    polarity: 'Feminine',
+    ruler: 'Mars',
+  },
+  {
+    name: 'Sagittarius',
+    element: 'Fire',
+    modality: 'Mutable',
+    polarity: 'Masculine',
+    ruler: 'Jupiter',
+  },
+  {
+    name: 'Capricorn',
+    element: 'Earth',
+    modality: 'Cardinal',
+    polarity: 'Feminine',
+    ruler: 'Saturn',
+  },
+  {
+    name: 'Aquarius',
+    element: 'Air',
+    modality: 'Fixed',
+    polarity: 'Masculine',
+    ruler: 'Saturn',
+  },
+  {
+    name: 'Pisces',
+    element: 'Water',
+    modality: 'Mutable',
+    polarity: 'Feminine',
+    ruler: 'Jupiter',
+  },
 ];
 
-export const ZODIAC_SIGNS = ZODIAC_SIGN_DATA.map(s => s.name);
+export const ZODIAC_SIGNS = ZODIAC_SIGN_DATA.map((s) => s.name);
 
 export const DEFAULT_ASPECTS: Aspect[] = [
   {

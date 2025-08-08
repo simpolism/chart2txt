@@ -20,7 +20,9 @@ export function generateHouseOverlaysOutput(
   output.push(`${chart1Name}'s planets in ${chart2Name}'s houses:`);
   if (Object.keys(overlays.chart1InChart2Houses).length > 0) {
     for (const planet in overlays.chart1InChart2Houses) {
-      output.push(`- ${planet}: ${getOrdinal(overlays.chart1InChart2Houses[planet])}`);
+      output.push(
+        `- ${planet}: ${getOrdinal(overlays.chart1InChart2Houses[planet])}`
+      );
     }
   } else {
     output.push(`(${chart2Name} house cusps not available)`);
@@ -31,7 +33,9 @@ export function generateHouseOverlaysOutput(
   output.push(`${chart2Name}'s planets in ${chart1Name}'s houses:`);
   if (Object.keys(overlays.chart2InChart1Houses).length > 0) {
     for (const planet in overlays.chart2InChart1Houses) {
-      output.push(`- ${planet}: ${getOrdinal(overlays.chart2InChart1Houses[planet])}`);
+      output.push(
+        `- ${planet}: ${getOrdinal(overlays.chart2InChart1Houses[planet])}`
+      );
     }
   } else {
     output.push(`(${chart1Name} house cusps not available)`);

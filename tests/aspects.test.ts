@@ -1,4 +1,10 @@
-import { chart2txt, formatChartToJson, formatReportToText, ChartData, AstrologicalReport } from '../src/index';
+import {
+  chart2txt,
+  formatChartToJson,
+  formatReportToText,
+  ChartData,
+  AstrologicalReport,
+} from '../src/index';
 import { ChartSettings } from '../src/config/ChartSettings';
 
 describe('Aspects', () => {
@@ -15,9 +21,23 @@ describe('Aspects', () => {
 
       const report = formatChartToJson(data);
       const aspects = report.chartAnalyses[0].aspects;
-      
-      expect(aspects.some(a => a.aspectType === 'square' && a.planetA === 'Sun' && a.planetB === 'Moon')).toBe(true);
-      expect(aspects.some(a => a.aspectType === 'sextile' && a.planetA === 'Sun' && a.planetB === 'Venus')).toBe(true);
+
+      expect(
+        aspects.some(
+          (a) =>
+            a.aspectType === 'square' &&
+            a.planetA === 'Sun' &&
+            a.planetB === 'Moon'
+        )
+      ).toBe(true);
+      expect(
+        aspects.some(
+          (a) =>
+            a.aspectType === 'sextile' &&
+            a.planetA === 'Sun' &&
+            a.planetB === 'Venus'
+        )
+      ).toBe(true);
     });
 
     test('filters out-of-sign aspects by default', () => {
@@ -65,64 +85,124 @@ describe('Aspects', () => {
         ],
       };
 
-      const applyingReport = formatChartToJson(applyingData, { skipOutOfSignAspects: false });
-      const separatingReport = formatChartToJson(separatingData, { skipOutOfSignAspects: false });
+      const applyingReport = formatChartToJson(applyingData, {
+        skipOutOfSignAspects: false,
+      });
+      const separatingReport = formatChartToJson(separatingData, {
+        skipOutOfSignAspects: false,
+      });
 
-      const applyingAspect = applyingReport.chartAnalyses[0].aspects.find(a => a.aspectType === 'trine');
-      const separatingAspect = separatingReport.chartAnalyses[0].aspects.find(a => a.aspectType === 'trine');
+      const applyingAspect = applyingReport.chartAnalyses[0].aspects.find(
+        (a) => a.aspectType === 'trine'
+      );
+      const separatingAspect = separatingReport.chartAnalyses[0].aspects.find(
+        (a) => a.aspectType === 'trine'
+      );
 
       expect(applyingAspect?.application).toBe('applying');
       expect(separatingAspect?.application).toBe('separating');
     });
 
     test('correctly handles retrograde planets in aspect application', () => {
-        const data: ChartData = {
-          name: 'test',
-          planets: [
-            { name: 'Sun', degree: 0.0, speed: 1.0 }, // 0° Aries, direct
-            { name: 'Mars', degree: 93.0, speed: -0.5 }, // 3° Cancer, retrograde
-          ],
-        };
-  
-        const report = formatChartToJson(data, { skipOutOfSignAspects: false });
-        const aspect = report.chartAnalyses[0].aspects.find(a => a.aspectType === 'square');
-        expect(aspect?.application).toBe('applying');
-      });
+      const data: ChartData = {
+        name: 'test',
+        planets: [
+          { name: 'Sun', degree: 0.0, speed: 1.0 }, // 0° Aries, direct
+          { name: 'Mars', degree: 93.0, speed: -0.5 }, // 3° Cancer, retrograde
+        ],
+      };
+
+      const report = formatChartToJson(data, { skipOutOfSignAspects: false });
+      const aspect = report.chartAnalyses[0].aspects.find(
+        (a) => a.aspectType === 'square'
+      );
+      expect(aspect?.application).toBe('applying');
+    });
 
     test('calculates aspects to Ascendant and Midheaven', () => {
-        const data: ChartData = {
-          name: 'test',
-          planets: [
-            { name: 'Sun', degree: 0.0 },
-            { name: 'Moon', degree: 90.0 },
-          ],
-          ascendant: 180.0,
-          midheaven: 270.0,
-        };
-  
-        const report = formatChartToJson(data);
-        const aspects = report.chartAnalyses[0].aspects;
+      const data: ChartData = {
+        name: 'test',
+        planets: [
+          { name: 'Sun', degree: 0.0 },
+          { name: 'Moon', degree: 90.0 },
+        ],
+        ascendant: 180.0,
+        midheaven: 270.0,
+      };
 
-        expect(aspects.some(a => a.planetA === 'Sun' && a.planetB === 'Ascendant' && a.aspectType === 'opposition')).toBe(true);
-        expect(aspects.some(a => a.planetA === 'Moon' && a.planetB === 'Ascendant' && a.aspectType === 'square')).toBe(true);
-        expect(aspects.some(a => a.planetA === 'Sun' && a.planetB === 'Midheaven' && a.aspectType === 'square')).toBe(true);
-        expect(aspects.some(a => a.planetA === 'Ascendant' && a.planetB === 'Midheaven' && a.aspectType === 'square')).toBe(true);
-      });
+      const report = formatChartToJson(data);
+      const aspects = report.chartAnalyses[0].aspects;
+
+      expect(
+        aspects.some(
+          (a) =>
+            a.planetA === 'Sun' &&
+            a.planetB === 'Ascendant' &&
+            a.aspectType === 'opposition'
+        )
+      ).toBe(true);
+      expect(
+        aspects.some(
+          (a) =>
+            a.planetA === 'Moon' &&
+            a.planetB === 'Ascendant' &&
+            a.aspectType === 'square'
+        )
+      ).toBe(true);
+      expect(
+        aspects.some(
+          (a) =>
+            a.planetA === 'Sun' &&
+            a.planetB === 'Midheaven' &&
+            a.aspectType === 'square'
+        )
+      ).toBe(true);
+      expect(
+        aspects.some(
+          (a) =>
+            a.planetA === 'Ascendant' &&
+            a.planetB === 'Midheaven' &&
+            a.aspectType === 'square'
+        )
+      ).toBe(true);
+    });
   });
 
   describe('Formatting Logic', () => {
     test('formats a report with aspects correctly', () => {
       const report: AstrologicalReport = {
         settings: new ChartSettings(),
-        chartAnalyses: [{
-          chart: { name: 'test', planets: [{ name: 'Sun', degree: 0 }, { name: 'Moon', degree: 90 }] },
-          placements: { planets: [{ name: 'Sun', degree: 0, sign: 'Aries', house: 1 }, { name: 'Moon', degree: 90, sign: 'Cancer', house: 4 }] },
-          aspects: [{ planetA: 'Sun', planetB: 'Moon', aspectType: 'square', orb: 0, p1ChartName: 'test', p2ChartName: 'test' }],
-          patterns: [],
-          stelliums: [],
-          signDistributions: { elements: {}, modalities: {}, polarities: {} },
-          dispositors: {},
-        }],
+        chartAnalyses: [
+          {
+            chart: {
+              name: 'test',
+              planets: [
+                { name: 'Sun', degree: 0 },
+                { name: 'Moon', degree: 90 },
+              ],
+            },
+            placements: {
+              planets: [
+                { name: 'Sun', degree: 0, sign: 'Aries', house: 1 },
+                { name: 'Moon', degree: 90, sign: 'Cancer', house: 4 },
+              ],
+            },
+            aspects: [
+              {
+                planetA: 'Sun',
+                planetB: 'Moon',
+                aspectType: 'square',
+                orb: 0,
+                p1ChartName: 'test',
+                p2ChartName: 'test',
+              },
+            ],
+            patterns: [],
+            stelliums: [],
+            signDistributions: { elements: {}, modalities: {}, polarities: {} },
+            dispositors: {},
+          },
+        ],
         pairwiseAnalyses: [],
         transitAnalyses: [],
       };
@@ -135,15 +215,28 @@ describe('Aspects', () => {
     test('formats a report with no aspects correctly', () => {
       const report: AstrologicalReport = {
         settings: new ChartSettings(),
-        chartAnalyses: [{
-          chart: { name: 'test', planets: [{ name: 'Sun', degree: 0 }, { name: 'Moon', degree: 45 }] },
-          placements: { planets: [{ name: 'Sun', degree: 0, sign: 'Aries', house: 1 }, { name: 'Moon', degree: 45, sign: 'Taurus', house: 2 }] },
-          aspects: [],
-          patterns: [],
-          stelliums: [],
-          signDistributions: { elements: {}, modalities: {}, polarities: {} },
-          dispositors: {},
-        }],
+        chartAnalyses: [
+          {
+            chart: {
+              name: 'test',
+              planets: [
+                { name: 'Sun', degree: 0 },
+                { name: 'Moon', degree: 45 },
+              ],
+            },
+            placements: {
+              planets: [
+                { name: 'Sun', degree: 0, sign: 'Aries', house: 1 },
+                { name: 'Moon', degree: 45, sign: 'Taurus', house: 2 },
+              ],
+            },
+            aspects: [],
+            patterns: [],
+            stelliums: [],
+            signDistributions: { elements: {}, modalities: {}, polarities: {} },
+            dispositors: {},
+          },
+        ],
         pairwiseAnalyses: [],
         transitAnalyses: [],
       };

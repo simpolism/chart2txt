@@ -1,10 +1,4 @@
-import {
-  Aspect,
-  AspectClassification,
-  PlanetCategory,
-  OrbConfiguration,
-  Point,
-} from '../types';
+import { Aspect, PlanetCategory, OrbConfiguration, Point } from '../types';
 
 /**
  * Default planet categorization mapping
