@@ -413,8 +413,8 @@ Fixed: 4
 Mutable: 1
 
 [POLARITY]
-Masculine (Active): 4
-Feminine (Receptive): 4
+Masculine: 4
+Feminine: 4
 
 [ASPECTS]
 Sun conjunction Mercury: 1°15' orb (applying)

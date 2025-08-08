@@ -1,152 +1,40 @@
-import { ZODIAC_SIGNS } from '../constants';
-import { getDegreeSign } from './astrology';
-import { Point } from '../types';
+import { Point, PlanetPosition } from '../types';
+import { getSign } from '../utils/formatting';
+import { ZODIAC_SIGN_DATA } from '../constants';
 
-export interface DignityInfo {
-  rulers: string[];
-  exaltation?: string;
-  detriment?: string;
-  fall?: string;
-}
-
-// Essential dignity mappings
-const SIGN_DIGNITIES: Record<string, DignityInfo> = {
-  Aries: {
-    rulers: ['Mars'],
-    exaltation: 'Sun',
-    detriment: 'Venus',
-    fall: 'Saturn',
-  },
-  Taurus: {
-    rulers: ['Venus'],
-    exaltation: 'Moon',
-    detriment: 'Mars',
-    fall: 'Uranus',
-  },
-  Gemini: {
-    rulers: ['Mercury'],
-    detriment: 'Jupiter',
-  },
-  Cancer: {
-    rulers: ['Moon'],
-    exaltation: 'Jupiter',
-    detriment: 'Saturn',
-    fall: 'Mars',
-  },
-  Leo: {
-    rulers: ['Sun'],
-    detriment: 'Saturn',
-    fall: 'Neptune',
-  },
-  Virgo: {
-    rulers: ['Mercury'],
-    exaltation: 'Mercury',
-    detriment: 'Jupiter',
-    fall: 'Venus',
-  },
-  Libra: {
-    rulers: ['Venus'],
-    exaltation: 'Saturn',
-    detriment: 'Mars',
-    fall: 'Sun',
-  },
-  Scorpio: {
-    rulers: ['Mars'],
-    detriment: 'Venus',
-    fall: 'Moon',
-  },
-  Sagittarius: {
-    rulers: ['Jupiter'],
-    detriment: 'Mercury',
-  },
-  Capricorn: {
-    rulers: ['Saturn'],
-    exaltation: 'Mars',
-    detriment: 'Moon',
-    fall: 'Jupiter',
-  },
-  Aquarius: {
-    rulers: ['Saturn'],
-    detriment: 'Sun',
-    fall: 'Neptune',
-  },
-  Pisces: {
-    rulers: ['Jupiter'],
-    exaltation: 'Venus',
-    detriment: 'Mercury',
-    fall: 'Mercury',
-  },
+const DIGNITY_MAP: { [key: string]: { [key: string]: string[] } } = {
+    Sun: { Leo: ['Domicile'], Aries: ['Exaltation'], Aquarius: ['Detriment'], Libra: ['Fall'] },
+    Moon: { Cancer: ['Domicile'], Taurus: ['Exaltation'], Capricorn: ['Detriment'], Scorpio: ['Fall'] },
+    Mercury: { Gemini: ['Domicile'], Virgo: ['Domicile', 'Exaltation'], Pisces: ['Detriment', 'Fall'], Sagittarius: ['Detriment'] },
+    Venus: { Taurus: ['Domicile'], Libra: ['Domicile'], Scorpio: ['Detriment'], Aries: ['Fall'], Virgo: ['Fall'] },
+    Mars: { Aries: ['Domicile'], Scorpio: ['Domicile'], Libra: ['Detriment'], Cancer: ['Fall'] },
+    Jupiter: { Sagittarius: ['Domicile'], Pisces: ['Domicile'], Gemini: ['Detriment'], Virgo: ['Fall'] },
+    Saturn: { Capricorn: ['Domicile'], Aquarius: ['Domicile'], Cancer: ['Detriment'], Leo: ['Fall'] },
 };
 
-/**
- * Gets the essential dignities for a planet in a specific sign
- * @param planetName Name of the planet
- * @param sign The zodiac sign
- * @returns Array of dignity descriptions
- */
-export function getPlanetDignities(planetName: string, sign: string): string[] {
-  const dignities: string[] = [];
-  const normalizedSign = sign.trim();
-  const signInfo = SIGN_DIGNITIES[normalizedSign];
+export function formatPlanetWithDignities(planet: PlanetPosition): string {
+    const sign = planet.sign;
+    const dignities = DIGNITY_MAP[planet.name];
+    const ruler = ZODIAC_SIGN_DATA.find(s => s.name === sign)?.ruler;
+    
+    const dignityParts: string[] = [];
+    if (dignities && dignities[sign]) {
+        dignityParts.push(...dignities[sign]);
+    }
 
-  if (!signInfo) return dignities;
+    let dignityString = dignityParts.join(', ');
 
-  // Check for rulership (domicile)
-  if (signInfo.rulers.includes(planetName)) {
-    dignities.push(`Domicile`);
-  }
+    if (ruler && planet.name !== ruler) {
+        if (dignityString) {
+            dignityString += ` | Ruler: ${ruler}`;
+        } else {
+            dignityString = `Ruler: ${ruler}`;
+        }
+    }
 
-  // Check for exaltation
-  if (signInfo.exaltation === planetName) {
-    dignities.push(`Exaltation`);
-  }
+    if (dignityString) {
+        return `[${dignityString}]`;
+    }
 
-  // Check for detriment
-  if (signInfo.detriment === planetName) {
-    dignities.push(`Detriment`);
-  }
-
-  // Check for fall
-  if (signInfo.fall && signInfo.fall === planetName) {
-    dignities.push(`Fall`);
-  }
-
-  return dignities;
-}
-
-/**
- * Gets the ruler(s) of a zodiac sign
- * @param sign The zodiac sign
- * @returns Array of ruling planets
- */
-export function getSignRulers(sign: string): string[] {
-  const normalizedSign = sign.trim();
-  const signInfo = SIGN_DIGNITIES[normalizedSign];
-  return signInfo ? signInfo.rulers : [];
-}
-
-/**
- * Formats planet dignities for display
- * @param planet The planet point
- * @param houseCusps Array of house cusps (optional)
- * @returns Formatted string with dignities
- */
-export function formatPlanetWithDignities(
-  planet: Point,
-  houseCusps?: number[]
-): string {
-  const sign = getDegreeSign(planet.degree);
-  const dignities = getPlanetDignities(planet.name, sign);
-  const rulers = getSignRulers(sign);
-
-  let dignitiesStr = '';
-  if (dignities.length > 0 && dignities.includes('Domicile')) {
-    dignitiesStr = `[${dignities.join(', ')}]`;
-  } else if (dignities.length > 0 && rulers.length > 0) {
-    dignitiesStr = `[${dignities.join(', ')} | Ruler: ${rulers.join(', ')}]`;
-  } else if (rulers.length > 0) {
-    dignitiesStr = `[Ruler: ${rulers.join(', ')}]`;
-  }
-
-  return dignitiesStr;
+    return '';
 }

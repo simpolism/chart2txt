@@ -70,4 +70,20 @@ export class ChartSettings implements Settings {
       this._orbResolver = undefined;
     }
   }
+
+  getSettings(): Settings {
+    return {
+      includeSignDegree: this.includeSignDegree,
+      includeAscendant: this.includeAscendant,
+      houseSystemName: this.houseSystemName,
+      includeHouseDegree: this.includeHouseDegree,
+      aspectDefinitions: this.aspectDefinitions,
+      aspectCategories: this.aspectCategories,
+      orbConfiguration: this.orbConfiguration,
+      skipOutOfSignAspects: this.skipOutOfSignAspects,
+      includeAspectPatterns: this.includeAspectPatterns,
+      includeSignDistributions: this.includeSignDistributions,
+      dateFormat: this.dateFormat,
+    };
+  }
 }

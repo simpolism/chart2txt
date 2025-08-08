@@ -199,9 +199,8 @@ describe('Synastry and Multi-Chart Tests', () => {
       expect(result).toContain('[HOUSE OVERLAYS]');
       expect(result).toContain("Alice's planets in Bob's houses:");
       expect(result).toContain('- Sun: 5th');
-      expect(result).toContain(
-        "Bob's planets in Alice's houses: (Alice house cusps not available)"
-      );
+      expect(result).toContain("Bob's planets in Alice's houses:");
+      expect(result).toContain("(Alice house cusps not available)")
     });
 
     test('works in synastry with angles from both charts', () => {

@@ -101,6 +101,7 @@ export interface PlanetPosition {
   name: string;
   degree: number;
   sign: string;
+  speed?: number;
   house?: number;
   chartName?: string; // Optional chart ownership for multichart patterns
 }
@@ -166,6 +167,55 @@ export type AspectPattern =
   | Yod
   | MysticRectangle
   | Kite;
+
+export interface ChartAnalysis {
+  chart: ChartData;
+  placements: {
+    planets: PlanetPosition[];
+    [key: string]: any; // Allow for other placements
+  };
+  aspects: AspectData[];
+  patterns: AspectPattern[];
+  stelliums: Stellium[];
+  signDistributions: {
+    elements: { [key: string]: string[] };
+    modalities: { [key: string]: number };
+    polarities: { [key: string]: number };
+  };
+  dispositors: { [key: string]: string };
+}
+
+export interface PairwiseAnalysis {
+  chart1: ChartData;
+  chart2: ChartData;
+  synastryAspects: AspectData[];
+  compositePatterns: AspectPattern[];
+  houseOverlays: {
+    chart1InChart2Houses: { [key: string]: number };
+    chart2InChart1Houses: { [key: string]: number };
+  };
+}
+
+export interface GlobalAnalysis {
+  charts: ChartData[];
+  patterns: AspectPattern[];
+}
+
+export interface TransitAnalysis {
+  natalChart: ChartData;
+  transitChart: ChartData;
+  aspects: AspectData[];
+  patterns: AspectPattern[];
+}
+
+export interface AstrologicalReport {
+  settings: Settings;
+  chartAnalyses: ChartAnalysis[];
+  pairwiseAnalyses: PairwiseAnalysis[];
+  globalAnalysis?: GlobalAnalysis;
+  transitAnalyses: TransitAnalysis[];
+  globalTransitAnalysis?: GlobalAnalysis;
+}
 
 export interface Settings {
   // sign settings
