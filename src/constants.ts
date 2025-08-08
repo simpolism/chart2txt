@@ -485,4 +485,5 @@ export const DEFAULT_SETTINGS: Settings = {
   includeSignDistributions: true, // Sign distributions enabled by default
 
   dateFormat: 'MM/DD/YYYY', // As per example output
+  detailLevel: 'complete',
 };

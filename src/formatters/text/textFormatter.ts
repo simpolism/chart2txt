@@ -267,14 +267,15 @@ export function formatChartToText(
   data: ChartData | MultiChartData,
   partialSettings: PartialSettings = {}
 ): string {
-  const rawReport: AstrologicalReport = analyzeCharts(data, partialSettings);
+  const settings = new ChartSettings(partialSettings);
+  const rawReport: AstrologicalReport = analyzeCharts(data, settings);
 
   // New Salience Pipeline
   const salienceEngine = new SalienceEngine();
   const annotatedReport = salienceEngine.annotate(rawReport);
 
-  // TODO: The detailLevel should be configurable via settings.
-  const reportFilterer = new ReportFilterer({ detailLevel: 'complete' });
+  // The detailLevel is now configurable via settings.
+  const reportFilterer = new ReportFilterer({ detailLevel: settings.detailLevel });
   const filteredReport = reportFilterer.filter(annotatedReport);
 
   return formatReportToText(filteredReport);

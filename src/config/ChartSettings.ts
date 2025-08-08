@@ -18,6 +18,7 @@ export class ChartSettings implements Settings {
   includeAspectPatterns!: boolean;
   includeSignDistributions!: boolean;
   dateFormat!: string;
+  detailLevel!: 'complete' | 'standard' | 'summary';
 
   // Derived properties for convenience
   private _orbResolver?: OrbResolver;

@@ -92,7 +92,8 @@ const TEST_SCENARIOS = {
   EVENT_WITH_TRANSITS: 'event_with_transits',
   SYNASTRY_WITH_TRANSITS: 'synastry_with_transits',
   CUSTOM_SETTINGS: 'custom_settings',
-  MINIMAL_DATA: 'minimal_data'
+  MINIMAL_DATA: 'minimal_data',
+  SALIENCE_SUMMARY: 'salience_summary'
 } as const;
 
 type TestScenario = typeof TEST_SCENARIOS[keyof typeof TEST_SCENARIOS];
@@ -163,6 +164,11 @@ function runTest(): void {
         sampleTransitChart
       ];
       settings = { includeAspectPatterns: true };
+      break;
+
+    case TEST_SCENARIOS.SALIENCE_SUMMARY:
+      chartData = sampleNatalChart;
+      settings = { detailLevel: 'summary' };
       break;
 
     case TEST_SCENARIOS.CUSTOM_SETTINGS:
@@ -269,6 +275,9 @@ if (require.main === module) {
       break;
     case TEST_SCENARIOS.SYNASTRY_WITH_TRANSITS:
       chartData = [sampleNatalChart, { ...sampleEventChart, name: 'Partner Chart', chartType: 'natal' as const }, sampleTransitChart];
+      break;
+    case TEST_SCENARIOS.SALIENCE_SUMMARY:
+      chartData = sampleNatalChart;
       break;
     case TEST_SCENARIOS.MINIMAL_DATA:
       chartData = { name: 'Minimal Chart', planets: [{ name: 'Sun', degree: 84.5 }, { name: 'Moon', degree: 246.2 }] };

@@ -238,7 +238,9 @@ export interface Settings {
   // sign distribution settings
   includeSignDistributions: boolean; // Whether to include element, modality, and polarity distributions
 
+  // output settings
   dateFormat: string; // e.g., "MM/DD/YYYY", "YYYY-MM-DD"
+  detailLevel: 'complete' | 'standard' | 'summary';
 }
 
 export type PartialSettings = Partial<Settings>;
