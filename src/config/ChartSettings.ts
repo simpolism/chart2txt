@@ -49,19 +49,4 @@ export class ChartSettings implements Settings {
         return DEFAULT_SETTINGS.aspectDefinitions as Aspect[];
     }
   }
-
-  /**
-   * Returns a plain JSON object representation of the settings.
-   */
-  toJSON(): Settings {
-    return {
-      houseSystemName: this.houseSystemName,
-      skipOutOfSignAspects: this.skipOutOfSignAspects,
-      aspectDefinitions: this.aspectDefinitions,
-      aspectStrengthThresholds: this.aspectStrengthThresholds,
-      includeAspectPatterns: this.includeAspectPatterns,
-      includeSignDistributions: this.includeSignDistributions,
-      dateFormat: this.dateFormat,
-    };
-  }
 }
