@@ -101,7 +101,7 @@ describe('Aspect Pattern Separation', () => {
         result.indexOf('[CHART: Alice]'),
         result.indexOf('[SYNASTRY: Jake-Alice]')
       );
-      expect(aliceSection).toContain('T-Square:');
+      expect(aliceSection).toContain('T-Square (');
 
       // The composite section should not exist if there are no composite patterns
       expect(result).not.toContain('Jake-Alice Composite');

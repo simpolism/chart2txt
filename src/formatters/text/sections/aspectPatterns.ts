@@ -19,7 +19,7 @@ function formatPlanetPosition(
 }
 
 /**
- * Format a T-Square pattern
+ * Format a T-Square pattern in compact format
  */
 function formatTSquare(
   pattern: AspectPattern,
@@ -27,26 +27,15 @@ function formatTSquare(
 ): string[] {
   if (pattern.type !== 'T-Square') return [];
 
-  const output = ['T-Square:'];
-  output.push(
-    `  - Apex: ${formatPlanetPosition(pattern.apex, false, showChartNames)}`
-  );
-  output.push(
-    `  - Opposition: ${formatPlanetPosition(
-      pattern.opposition[0],
-      false,
-      showChartNames
-    )} - ${formatPlanetPosition(pattern.opposition[1], false, showChartNames)}`
-  );
-  output.push(`  - Mode: ${pattern.mode}`);
-  output.push(`  - Average orb: ${pattern.averageOrb.toFixed(1)}°`);
-  output.push('');
-
-  return output;
+  const apex = formatPlanetPosition(pattern.apex, false, showChartNames);
+  const opp1 = formatPlanetPosition(pattern.opposition[0], false, showChartNames);
+  const opp2 = formatPlanetPosition(pattern.opposition[1], false, showChartNames);
+  
+  return [`T-Square (${pattern.mode}, ${pattern.averageOrb.toFixed(1)}°): ${apex} ← ${opp1} ↔ ${opp2}`];
 }
 
 /**
- * Format a Grand Trine pattern
+ * Format a Grand Trine pattern in compact format
  */
 function formatGrandTrine(
   pattern: AspectPattern,
@@ -54,25 +43,15 @@ function formatGrandTrine(
 ): string[] {
   if (pattern.type !== 'Grand Trine') return [];
 
-  const output = ['Grand Trine:'];
-  pattern.planets.forEach((planet, index) => {
-    output.push(
-      `  - Planet ${index + 1}: ${formatPlanetPosition(
-        planet,
-        false,
-        showChartNames
-      )}`
-    );
-  });
-  output.push(`  - Element: ${pattern.element}`);
-  output.push(`  - Average orb: ${pattern.averageOrb.toFixed(1)}°`);
-  output.push('');
-
-  return output;
+  const planets = pattern.planets
+    .map(p => formatPlanetPosition(p, false, showChartNames))
+    .join(' △ ');
+  
+  return [`Grand Trine (${pattern.element}, ${pattern.averageOrb.toFixed(1)}°): ${planets}`];
 }
 
 /**
- * Format a Grand Cross pattern
+ * Format a Grand Cross pattern in compact format
  */
 function formatGrandCross(
   pattern: AspectPattern,
@@ -80,55 +59,28 @@ function formatGrandCross(
 ): string[] {
   if (pattern.type !== 'Grand Cross') return [];
 
-  const output = ['Grand Cross:'];
-  pattern.planets.forEach((planet, index) => {
-    output.push(
-      `  - Planet ${index + 1}: ${formatPlanetPosition(
-        planet,
-        false,
-        showChartNames
-      )}`
-    );
-  });
-  output.push(`  - Mode: ${pattern.mode}`);
-  output.push(`  - Average orb: ${pattern.averageOrb.toFixed(1)}°`);
-  output.push('');
-
-  return output;
+  const planets = pattern.planets
+    .map(p => formatPlanetPosition(p, false, showChartNames))
+    .join(' ⨯ ');
+  
+  return [`Grand Cross (${pattern.mode}, ${pattern.averageOrb.toFixed(1)}°): ${planets}`];
 }
 
 /**
- * Format a Yod pattern
+ * Format a Yod pattern in compact format
  */
 function formatYod(pattern: AspectPattern, showChartNames = true): string[] {
   if (pattern.type !== 'Yod') return [];
 
-  const output = ['Yod:'];
-  output.push(
-    `  - Apex: ${formatPlanetPosition(pattern.apex, false, showChartNames)}`
-  );
-  output.push(
-    `  - Base planet 1: ${formatPlanetPosition(
-      pattern.base[0],
-      false,
-      showChartNames
-    )}`
-  );
-  output.push(
-    `  - Base planet 2: ${formatPlanetPosition(
-      pattern.base[1],
-      false,
-      showChartNames
-    )}`
-  );
-  output.push(`  - Average orb: ${pattern.averageOrb.toFixed(1)}°`);
-  output.push('');
-
-  return output;
+  const apex = formatPlanetPosition(pattern.apex, false, showChartNames);
+  const base1 = formatPlanetPosition(pattern.base[0], false, showChartNames);
+  const base2 = formatPlanetPosition(pattern.base[1], false, showChartNames);
+  
+  return [`Yod (${pattern.averageOrb.toFixed(1)}°): ${apex} ← ${base1} • ${base2}`];
 }
 
 /**
- * Format a Mystic Rectangle pattern
+ * Format a Mystic Rectangle pattern in compact format
  */
 function formatMysticRectangle(
   pattern: AspectPattern,
@@ -136,57 +88,46 @@ function formatMysticRectangle(
 ): string[] {
   if (pattern.type !== 'Mystic Rectangle') return [];
 
-  const output = ['Mystic Rectangle:'];
-  output.push(
-    `  - Opposition 1: ${formatPlanetPosition(
-      pattern.oppositions[0][0],
-      false,
-      showChartNames
-    )} - ${formatPlanetPosition(
-      pattern.oppositions[0][1],
-      false,
-      showChartNames
-    )}`
-  );
-  output.push(
-    `  - Opposition 2: ${formatPlanetPosition(
-      pattern.oppositions[1][0],
-      false,
-      showChartNames
-    )} - ${formatPlanetPosition(
-      pattern.oppositions[1][1],
-      false,
-      showChartNames
-    )}`
-  );
-  output.push(`  - Average orb: ${pattern.averageOrb.toFixed(1)}°`);
-  output.push('');
-
-  return output;
+  const opp1_1 = formatPlanetPosition(pattern.oppositions[0][0], false, showChartNames);
+  const opp1_2 = formatPlanetPosition(pattern.oppositions[0][1], false, showChartNames);
+  const opp2_1 = formatPlanetPosition(pattern.oppositions[1][0], false, showChartNames);
+  const opp2_2 = formatPlanetPosition(pattern.oppositions[1][1], false, showChartNames);
+  
+  return [`Mystic Rectangle (${pattern.averageOrb.toFixed(1)}°): ${opp1_1} ↔ ${opp1_2} | ${opp2_1} ↔ ${opp2_2}`];
 }
 
 /**
- * Format a Kite pattern
+ * Format a Kite pattern in compact format
  */
 function formatKite(pattern: AspectPattern, showChartNames = true): string[] {
   if (pattern.type !== 'Kite') return [];
 
-  const output = ['Kite:'];
   const grandTrineStr = pattern.grandTrine
-    .map((p) => formatPlanetPosition(p, false, showChartNames))
-    .join(', ');
-  output.push(`  - Grand Trine planets: ${grandTrineStr}`);
-  output.push(
-    `  - Opposition planet: ${formatPlanetPosition(
-      pattern.opposition,
-      false,
-      showChartNames
-    )}`
-  );
-  output.push(`  - Average orb: ${pattern.averageOrb.toFixed(1)}°`);
-  output.push('');
+    .map(p => formatPlanetPosition(p, false, showChartNames))
+    .join(' △ ');
+  const oppositionPlanet = formatPlanetPosition(pattern.opposition, false, showChartNames);
+  
+  // Get the element from the first planet's sign for context
+  const element = pattern.grandTrine[0].sign ? getElementFromSign(pattern.grandTrine[0].sign) : '';
+  const elementStr = element ? `${element}, ` : '';
+  
+  return [`Kite (${elementStr}${pattern.averageOrb.toFixed(1)}°): [${grandTrineStr}] ← ${oppositionPlanet}`];
+}
 
-  return output;
+/**
+ * Helper function to get element from sign
+ */
+function getElementFromSign(sign: string): string {
+  const fireSigns = ['Aries', 'Leo', 'Sagittarius'];
+  const earthSigns = ['Taurus', 'Virgo', 'Capricorn'];
+  const airSigns = ['Gemini', 'Libra', 'Aquarius'];
+  const waterSigns = ['Cancer', 'Scorpio', 'Pisces'];
+  
+  if (fireSigns.includes(sign)) return 'Fire';
+  if (earthSigns.includes(sign)) return 'Earth';
+  if (airSigns.includes(sign)) return 'Air';
+  if (waterSigns.includes(sign)) return 'Water';
+  return '';
 }
 
 /**

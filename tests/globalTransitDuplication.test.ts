@@ -104,7 +104,7 @@ describe('Global Transit Composite Logic', () => {
       });
 
       expect(result).toContain('Person A-Person B-Person C Global Composite');
-      expect(result).toContain('Grand Trine:');
+      expect(result).toContain('Grand Trine (');
 
       // This scenario does not produce a global transit pattern, so the section should not appear.
       // A more complex setup would be needed to test the positive case.

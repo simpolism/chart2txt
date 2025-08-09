@@ -83,7 +83,7 @@ describe('Transit Pattern Consistency', () => {
         '[ASPECT PATTERNS: Transit to Person2]'
       );
       const p1Section = result.substring(p1SectionStart, p1SectionEnd);
-      expect(p1Section).toContain('T-Square:');
+      expect(p1Section).toContain('T-Square (');
 
       // Check content of Person2's transit section
       const p2SectionStart = result.indexOf(

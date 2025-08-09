@@ -112,8 +112,8 @@ describe('MultiChart Aspect Pattern Detection', () => {
       expect(result).toContain(
         '[ASPECT PATTERNS: Person A-Person B Composite]'
       );
-      expect(result).toContain('T-Square:');
-      expect(result).toContain("Apex: Person B's Mars 0° Cancer");
+      expect(result).toContain('T-Square (');
+      expect(result).toContain("Person B's Mars 0° Cancer");
     });
 
     it('should format a global Grand Trine correctly', () => {
@@ -140,8 +140,8 @@ describe('MultiChart Aspect Pattern Detection', () => {
       expect(result).toContain(
         '[ASPECT PATTERNS: Person A-Person B-Person C Global Composite]'
       );
-      expect(result).toContain('Grand Trine:');
-      expect(result).toContain("Planet 1: Person A's Sun 0° Aries");
+      expect(result).toContain('Grand Trine (');
+      expect(result).toContain("Person A's Sun 0° Aries");
     });
   });
 });
