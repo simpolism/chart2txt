@@ -9,6 +9,7 @@
 export { formatChartToText as chart2txt } from './formatters/text/textFormatter';
 export { formatReportToText } from './formatters/text/textFormatter';
 export { analyzeCharts as formatChartToJson } from './core/analysis';
+export { analyzeCharts } from './core/analysis';
 
 // Export all types for library users
 export * from './types';

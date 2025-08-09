@@ -3,51 +3,52 @@ import {
   PartialSettings,
   AspectCategory,
   Aspect,
-  OrbConfiguration,
+  AspectStrengthThresholds,
 } from '../types';
-import { DEFAULT_SETTINGS } from '../constants';
-import { OrbResolver } from '../core/orbResolver';
+import {
+  DEFAULT_SETTINGS,
+  SIMPLE_TRADITIONAL_ORBS,
+  SIMPLE_MODERN_ORBS,
+  SIMPLE_TIGHT_ORBS,
+  SIMPLE_WIDE_ORBS,
+} from '../constants';
 
 export class ChartSettings implements Settings {
-  // Properties from Settings interface are dynamically assigned
+  // Properties from Settings interface
   houseSystemName!: string;
   skipOutOfSignAspects!: boolean;
-  aspectDefinitions!: Aspect[];
+  aspectDefinitions!: Aspect[] | 'traditional' | 'modern' | 'tight' | 'wide';
   aspectCategories!: AspectCategory[];
-  orbConfiguration?: OrbConfiguration;
+  aspectStrengthThresholds!: AspectStrengthThresholds;
   includeAspectPatterns!: boolean;
   includeSignDistributions!: boolean;
   dateFormat!: string;
 
-  // Derived properties for convenience
-  private _orbResolver?: OrbResolver;
-
   constructor(customSettings: PartialSettings = {}) {
     const mergedSettings = { ...DEFAULT_SETTINGS, ...customSettings };
     Object.assign(this, mergedSettings);
+  }
 
-    // Initialize orb resolver if orb configuration is provided
-    if (this.orbConfiguration) {
-      this._orbResolver = new OrbResolver(this.orbConfiguration);
+  /**
+   * Gets the resolved aspect definitions (handles preset strings)
+   */
+  get resolvedAspectDefinitions(): Aspect[] {
+    if (Array.isArray(this.aspectDefinitions)) {
+      return this.aspectDefinitions;
     }
-  }
 
-  /**
-   * Gets the orb resolver instance, creating it if needed
-   */
-  get orbResolver(): OrbResolver | undefined {
-    return this._orbResolver;
-  }
-
-  /**
-   * Updates the orb configuration and reinitializes the orb resolver
-   */
-  updateOrbConfiguration(orbConfiguration?: OrbConfiguration): void {
-    this.orbConfiguration = orbConfiguration;
-    if (orbConfiguration) {
-      this._orbResolver = new OrbResolver(orbConfiguration);
-    } else {
-      this._orbResolver = undefined;
+    // Handle preset strings
+    switch (this.aspectDefinitions) {
+      case 'traditional':
+        return SIMPLE_TRADITIONAL_ORBS;
+      case 'modern':
+        return SIMPLE_MODERN_ORBS;
+      case 'tight':
+        return SIMPLE_TIGHT_ORBS;
+      case 'wide':
+        return SIMPLE_WIDE_ORBS;
+      default:
+        return DEFAULT_SETTINGS.aspectDefinitions as Aspect[];
     }
   }
 }

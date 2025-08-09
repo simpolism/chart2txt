@@ -13,7 +13,7 @@ chart2txt is designed as an **automated pattern detection engine** that transfor
 - **Single & Multi-Chart Analysis**: Natal, event, synastry, and transit chart processing.
 - **Comprehensive Aspect Detection**: Including all major and minor aspects.
 - **Advanced Aspect Patterns**: T-Square, Grand Trine, Yod, Stellium, Kite, and more.
-- **Hierarchical Orb System**: Planet-specific, context-aware orb calculations with presets.
+- **Simple Orb System**: Generous orb detection with configurable aspect strength classification.
 - **Sign Distributions**: Element, modality, and polarity analysis.
 - **Dual Output**: Generate either a structured JSON `AstrologicalReport` or a formatted text string.
 
@@ -90,24 +90,40 @@ interface Point {
 
 ### Configuration
 
-Configuration is handled via the `PartialSettings` object. The most common way to configure orbs is by using presets.
+Configuration is handled via the `PartialSettings` object. The orb system uses generous detection orbs with configurable aspect strength classification.
 
 ```typescript
 import { chart2txt, formatChartToJson } from 'chart2txt';
 
 // Example: Using a preset for tight orbs
 const report = formatChartToJson(chartData, {
-  orbConfiguration: TIGHT_ORB_CONFIG
+  aspectDefinitions: 'tight'
+});
+
+// Example: Custom aspect strength thresholds
+const report = formatChartToJson(chartData, {
+  aspectStrengthThresholds: {
+    tight: 1.5,    // Aspects <= 1.5° are 'tight'
+    moderate: 3.5  // Aspects 1.5-3.5° are 'moderate', >3.5° are 'wide'
+  }
 });
 ```
 
-#### Orb Configuration Presets
+#### Orb Presets
+The library includes four built-in orb presets:
 ```typescript
+// String presets (recommended)
+aspectDefinitions: 'traditional' // Wide, classical orbs
+aspectDefinitions: 'modern'      // Balanced, contemporary orbs  
+aspectDefinitions: 'tight'       // Narrow, precise orbs
+aspectDefinitions: 'wide'        // Very wide orbs for subtle influences
+
+// You can also import the preset arrays directly
 import { 
-  TRADITIONAL_ORB_CONFIG,
-  MODERN_ORB_CONFIG,
-  TIGHT_ORB_CONFIG,
-  WIDE_ORB_CONFIG
+  SIMPLE_TRADITIONAL_ORBS,
+  SIMPLE_MODERN_ORBS,
+  SIMPLE_TIGHT_ORBS,
+  SIMPLE_WIDE_ORBS
 } from 'chart2txt';
 ```
 
@@ -155,12 +171,72 @@ console.log(reportText);
 
 ### Using Orb Presets
 ```typescript
-import { chart2txt, TIGHT_ORB_CONFIG } from 'chart2txt';
+import { chart2txt } from 'chart2txt';
 
 const report = chart2txt(chartData, {
-  orbConfiguration: TIGHT_ORB_CONFIG,
+  aspectDefinitions: 'tight',
   includeAspectPatterns: true
 });
+```
+
+### Custom Aspect Strength Classification
+
+The library provides a simple default classification (tight <= 2°, moderate 2-4°, wide > 4°), but developers can implement sophisticated custom strength logic:
+
+```typescript
+import { formatChartToJson, AspectData } from 'chart2txt';
+
+// 1. Use wide orbs for detection to catch all potentially relevant aspects
+const report = formatChartToJson(chartData, {
+  aspectDefinitions: 'wide', // Generous detection orbs
+  aspectStrengthThresholds: { tight: 1.0, moderate: 2.5 } // Custom thresholds
+});
+
+// 2. Implement custom strength classification logic
+function customAspectStrength(aspect: AspectData): 'critical' | 'important' | 'moderate' | 'minor' {
+  let score = 0;
+  
+  // Factor 1: Tighter orb = higher score
+  score += (3 - aspect.orb) * 2;
+  
+  // Factor 2: Planet importance
+  if (['Sun', 'Moon'].includes(aspect.planetA) || ['Sun', 'Moon'].includes(aspect.planetB)) {
+    score += 8; // Luminaries are more important
+  }
+  
+  // Factor 3: Aspect type significance  
+  const majorAspects = ['conjunction', 'opposition', 'square', 'trine'];
+  if (majorAspects.includes(aspect.aspectType)) {
+    score += 6;
+  }
+  
+  // Factor 4: Applying aspects are stronger
+  if (aspect.application === 'applying') {
+    score += 2;
+  }
+  
+  // Convert score to classification
+  if (score >= 15) return 'critical';
+  if (score >= 10) return 'important'; 
+  if (score >= 6) return 'moderate';
+  return 'minor';
+}
+
+// 3. Apply custom classification to aspects
+report.chartAnalyses.forEach(chartAnalysis => {
+  chartAnalysis.aspects.forEach(aspect => {
+    const customStrength = customAspectStrength(aspect);
+    console.log(`${aspect.planetA} ${aspect.aspectType} ${aspect.planetB}: ${customStrength}`);
+  });
+});
+```
+
+**Example Output:**
+```
+Sun conjunction Moon: critical    // 1.2° orb, luminaries, major aspect, applying
+Mars square Venus: important      // 2.1° orb, major aspect  
+Jupiter sextile Mercury: moderate // 3.8° orb, minor aspect
+Saturn quincunx Pluto: minor      // 4.2° orb, minor aspect, outer planets
 ```
 
 ## Example Output

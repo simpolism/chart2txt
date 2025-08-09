@@ -162,10 +162,10 @@ export function analyzeCharts(
   for (const chart of allCharts) {
     const points = getUnionedPoints([chart]);
     const aspects = calculateAspects(
-      settings.aspectDefinitions,
+      settings.resolvedAspectDefinitions,
       points,
       settings.skipOutOfSignAspects,
-      settings.orbResolver
+      settings.aspectStrengthThresholds
     );
     allAspects.push(...aspects);
   }
@@ -175,18 +175,14 @@ export function analyzeCharts(
     for (let j = i + 1; j < allCharts.length; j++) {
       const chart1 = allCharts[i];
       const chart2 = allCharts[j];
-      const aspectType =
-        chart1.chartType === 'transit' || chart2.chartType === 'transit'
-          ? 'transit'
-          : 'synastry';
 
+      // Get unioned points from both charts for multi-chart analysis
+      const unionedPoints = [...getUnionedPoints([chart1]), ...getUnionedPoints([chart2])];
       const aspects = calculateMultichartAspects(
-        settings.aspectDefinitions,
-        getUnionedPoints([chart1]),
-        getUnionedPoints([chart2]),
+        settings.resolvedAspectDefinitions,
+        unionedPoints,
         settings.skipOutOfSignAspects,
-        settings.orbResolver,
-        aspectType
+        settings.aspectStrengthThresholds
       );
       allAspects.push(...aspects);
     }

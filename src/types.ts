@@ -48,6 +48,14 @@ export interface Aspect {
   classification?: AspectClassification; // Major, minor, or esoteric aspect
 }
 
+export type AspectStrength = 'tight' | 'moderate' | 'wide';
+
+export interface AspectStrengthThresholds {
+  tight: number; // Orb threshold for tight aspects (e.g., 2.0 degrees)
+  moderate: number; // Orb threshold for moderate aspects (e.g., 4.0 degrees)
+  // Aspects with orb > moderate threshold are classified as 'wide'
+}
+
 export interface AspectData {
   planetA: string;
   planetB: string;
@@ -55,6 +63,7 @@ export interface AspectData {
   p2ChartName?: string; // Optional: for multi-chart contexts
   aspectType: string;
   orb: number; // Actual orb of the aspect
+  strength: AspectStrength; // Classification based on orb tightness
   application?: 'applying' | 'separating' | 'exact'; // Optional: whether aspect is applying or separating
 }
 
@@ -64,38 +73,7 @@ export interface AspectCategory {
   maxOrb: number; // Maximum orb for this category (inclusive)
 }
 
-export interface PlanetOrbRules {
-  defaultOrb?: number; // Default orb for this planet category
-  aspectOrbs?: { [aspectName: string]: number }; // Specific aspect orbs for this category
-}
-
-export interface OrbClassificationRules {
-  orbMultiplier?: number; // Multiplier applied to base orbs for this classification
-  minOrb?: number; // Minimum orb regardless of calculation
-  maxOrb?: number; // Maximum orb regardless of calculation
-}
-
-export interface ContextualOrbRules {
-  orbMultiplier?: number; // Multiplier applied to calculated orbs for this context
-  aspectMultipliers?: { [aspectName: string]: number }; // Per-aspect multipliers
-}
-
-export interface OrbConfiguration {
-  presetName?: string; // Name of preset being used (for reference)
-  planetCategories?: {
-    [key in PlanetCategory]?: PlanetOrbRules;
-  };
-  aspectClassification?: {
-    [key in AspectClassification]?: OrbClassificationRules;
-  };
-  contextualOrbs?: {
-    synastry?: ContextualOrbRules;
-    transits?: ContextualOrbRules;
-    composite?: ContextualOrbRules;
-  };
-  planetMapping?: { [planetName: string]: PlanetCategory }; // Override default planet categorization
-  globalFallbackOrb?: number; // Ultimate fallback orb if all else fails
-}
+// Removed complex OrbConfiguration - replaced with simple aspect-based orbs and strength classification
 
 export interface PlanetPosition {
   name: string;
@@ -222,10 +200,10 @@ export interface Settings {
   houseSystemName: string; // Name of house system used in computations
 
   // orb + aspect settings
-  aspectDefinitions: Aspect[];
+  aspectDefinitions: Aspect[] | 'traditional' | 'modern' | 'tight' | 'wide'; // Simple orb presets or custom aspects
   aspectCategories: AspectCategory[];
   skipOutOfSignAspects: boolean;
-  orbConfiguration?: OrbConfiguration; // New enhanced orb configuration system
+  aspectStrengthThresholds: AspectStrengthThresholds; // New simple classification system
 
   // pattern settings
   includeAspectPatterns: boolean; // Whether to detect and display aspect patterns

@@ -193,6 +193,7 @@ describe('Aspects', () => {
                 planetB: 'Moon',
                 aspectType: 'square',
                 orb: 0,
+                strength: 'tight' as const,
                 p1ChartName: 'test',
                 p2ChartName: 'test',
               },

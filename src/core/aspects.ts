@@ -1,7 +1,6 @@
-import { Point, Aspect, AspectData, UnionedPoint } from '../types';
+import { Point, Aspect, AspectData, UnionedPoint, AspectStrength, AspectStrengthThresholds } from '../types';
 import { normalizeDegree } from './astrology';
 import { isExactAspect, roundDegrees } from '../utils/precision';
-import { OrbResolver, OrbResolutionContext } from './orbResolver';
 
 /**
  * Gets the expected sign difference for a given aspect angle
@@ -98,13 +97,38 @@ function determineAspectApplication(
   return isApplying ? 'applying' : 'separating';
 }
 
+/**
+ * Classifies aspect strength based on orb tightness
+ * @param orb The actual orb of the aspect
+ * @param thresholds The aspect strength thresholds
+ * @returns The aspect strength classification
+ */
+function classifyAspectStrength(
+  orb: number,
+  thresholds: AspectStrengthThresholds
+): AspectStrength {
+  if (orb <= thresholds.tight) return 'tight';
+  if (orb <= thresholds.moderate) return 'moderate';
+  return 'wide';
+}
+
+/**
+ * Finds the tightest aspect between two planets using simple orb detection
+ * @param aspectDefinitions Array of aspect types to check for
+ * @param planetA First planet
+ * @param planetB Second planet
+ * @param skipOutOfSignAspects Whether to skip aspects that cross sign boundaries
+ * @param aspectStrengthThresholds Thresholds for classifying aspect strength
+ * @param p1ChartName Optional chart name for planetA
+ * @param p2ChartName Optional chart name for planetB
+ * @returns The tightest aspect found, or null if none
+ */
 function findTightestAspect(
   aspectDefinitions: Aspect[],
   planetA: Point,
   planetB: Point,
   skipOutOfSignAspects: boolean,
-  orbResolver?: OrbResolver,
-  chartType?: 'natal' | 'synastry' | 'transit' | 'composite',
+  aspectStrengthThresholds: AspectStrengthThresholds,
   p1ChartName?: string,
   p2ChartName?: string
 ): AspectData | null {
@@ -122,7 +146,6 @@ function findTightestAspect(
       const planetBSign = Math.floor(degreeB / 30);
 
       // Calculate expected sign difference for this aspect
-      // For major aspects: 0° = 0 signs, 60° = 2 signs, 90° = 3 signs, 120° = 4 signs, 180° = 6 signs
       const expectedSignDiff = getExpectedSignDifference(aspectType.angle);
 
       let actualSignDiff = Math.abs(planetASign - planetBSign);
@@ -133,18 +156,8 @@ function findTightestAspect(
       }
     }
 
-    // Determine the maximum allowed orb for this aspect
-    let maxAllowedOrb = aspectType.orb; // Default fallback
-
-    if (orbResolver) {
-      const context: OrbResolutionContext = {
-        chartType: chartType || 'natal',
-        planetA,
-        planetB,
-        aspect: aspectType,
-      };
-      maxAllowedOrb = orbResolver.resolveOrb(context);
-    }
+    // Use simple orb from aspect definition
+    const maxAllowedOrb = aspectType.orb;
 
     if (orb <= maxAllowedOrb) {
       if (!tightestAspect || orb < tightestAspect.orb) {
@@ -153,6 +166,10 @@ function findTightestAspect(
           planetB,
           aspectType.angle
         );
+        
+        // Classify aspect strength based on orb
+        const strength = classifyAspectStrength(orb, aspectStrengthThresholds);
+        
         tightestAspect = {
           planetA: planetA.name,
           planetB: planetB.name,
@@ -160,6 +177,7 @@ function findTightestAspect(
           p2ChartName,
           aspectType: aspectType.name,
           orb,
+          strength,
           application,
         };
       }
@@ -173,7 +191,7 @@ function findTightestAspect(
  * @param aspectDefinitions Array of aspect types to check for.
  * @param unionedPlanets Array of UnionedPoint pairs to analyze.
  * @param skipOutOfSignAspects Whether to skip aspects that cross sign boundaries.
- * @param orbResolver Optional orb resolver for advanced orb calculation.
+ * @param aspectStrengthThresholds Thresholds for classifying aspect strength.
  * @param forceChartType Optional override for chart type determination.
  * @returns Array of found aspects.
  */
@@ -181,8 +199,7 @@ export function calculateAspects(
   aspectDefinitions: Aspect[],
   unionedPlanets: UnionedPoint[],
   skipOutOfSignAspects = true,
-  orbResolver?: OrbResolver,
-  forceChartType?: 'natal' | 'synastry' | 'transit' | 'composite'
+  aspectStrengthThresholds: AspectStrengthThresholds,
 ): AspectData[] {
   const aspects: AspectData[] = [];
   if (!unionedPlanets || unionedPlanets.length < 2) return aspects;
@@ -192,24 +209,16 @@ export function calculateAspects(
       const [planetA, chartNameA] = unionedPlanets[i];
       const [planetB, chartNameB] = unionedPlanets[j];
 
-      // Automatically determine chart type based on whether planets are from same chart
-      let chartType: 'natal' | 'synastry' | 'transit' | 'composite';
-      if (forceChartType) {
-        chartType = forceChartType;
-      } else {
-        chartType = chartNameA === chartNameB ? 'natal' : 'synastry';
-      }
-
       const aspect = findTightestAspect(
         aspectDefinitions,
         planetA,
         planetB,
         skipOutOfSignAspects,
-        orbResolver,
-        chartType,
+        aspectStrengthThresholds,
         chartNameA,
         chartNameB
       );
+
       if (aspect) {
         aspects.push(aspect);
       }
@@ -219,51 +228,45 @@ export function calculateAspects(
 }
 
 /**
- * Identifies aspects between planets across multiple chart groups.
- * @param aspectDefinitions Array of aspect types to check for.
- * @param chart1Points Array of planet points for the first chart.
- * @param chart2Points Array of planet points for the second chart.
- * @param skipOutOfSignAspects Whether to skip aspects that cross sign boundaries.
- * @param orbResolver Optional orb resolver for advanced orb calculation.
- * @param chartType Type of multi-chart comparison (synastry, transit, etc.).
- * @returns Array of found aspects.
+ * Calculates aspects in a multi-chart context (synastry, transits, etc.)
+ * @param aspectDefinitions Array of aspect types to check for
+ * @param unionedPlanets Array of UnionedPoint pairs to analyze
+ * @param skipOutOfSignAspects Whether to skip aspects that cross sign boundaries
+ * @param aspectStrengthThresholds Thresholds for classifying aspect strength
+ * @returns Array of found aspects
  */
 export function calculateMultichartAspects(
   aspectDefinitions: Aspect[],
-  chart1Points: UnionedPoint[],
-  chart2Points: UnionedPoint[],
+  unionedPlanets: UnionedPoint[],
   skipOutOfSignAspects = true,
-  orbResolver?: OrbResolver,
-  chartType: 'synastry' | 'transit' | 'composite' = 'synastry'
+  aspectStrengthThresholds: AspectStrengthThresholds
 ): AspectData[] {
-  const aspects: AspectData[] = [];
+  // Filter to only cross-chart aspects
+  const crossChartAspects: AspectData[] = [];
+  
+  for (let i = 0; i < unionedPlanets.length; i++) {
+    for (let j = i + 1; j < unionedPlanets.length; j++) {
+      const [planetA, chartNameA] = unionedPlanets[i];
+      const [planetB, chartNameB] = unionedPlanets[j];
+      
+      // Only calculate aspects between planets from different charts
+      if (chartNameA !== chartNameB) {
+        const aspect = findTightestAspect(
+          aspectDefinitions,
+          planetA,
+          planetB,
+          skipOutOfSignAspects,
+          aspectStrengthThresholds,
+          chartNameA,
+          chartNameB
+        );
 
-  if (
-    !chart1Points ||
-    !chart2Points ||
-    chart1Points.length === 0 ||
-    chart2Points.length === 0
-  ) {
-    return aspects;
-  }
-
-  // Only calculate aspects between planets from different charts
-  for (const [p1, chartName1] of chart1Points) {
-    for (const [p2, chartName2] of chart2Points) {
-      const aspect = findTightestAspect(
-        aspectDefinitions,
-        p1,
-        p2,
-        skipOutOfSignAspects,
-        orbResolver,
-        chartType,
-        chartName1,
-        chartName2
-      );
-      if (aspect) {
-        aspects.push(aspect);
+        if (aspect) {
+          crossChartAspects.push(aspect);
+        }
       }
     }
   }
-  return aspects;
+  
+  return crossChartAspects;
 }
