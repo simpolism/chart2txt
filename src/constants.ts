@@ -136,40 +136,165 @@ export const DEFAULT_ASPECTS: Aspect[] = [
 
 // Simple Orb Presets - generous orbs for detection, classification handled separately
 export const SIMPLE_TRADITIONAL_ORBS: Aspect[] = [
-  { name: 'conjunction', angle: 0, orb: 10, classification: AspectClassification.Major },
-  { name: 'opposition', angle: 180, orb: 10, classification: AspectClassification.Major },
-  { name: 'trine', angle: 120, orb: 8, classification: AspectClassification.Major },
-  { name: 'square', angle: 90, orb: 8, classification: AspectClassification.Major },
-  { name: 'sextile', angle: 60, orb: 6, classification: AspectClassification.Minor },
-  { name: 'quincunx', angle: 150, orb: 4, classification: AspectClassification.Minor },
+  {
+    name: 'conjunction',
+    angle: 0,
+    orb: 10,
+    classification: AspectClassification.Major,
+  },
+  {
+    name: 'opposition',
+    angle: 180,
+    orb: 10,
+    classification: AspectClassification.Major,
+  },
+  {
+    name: 'trine',
+    angle: 120,
+    orb: 8,
+    classification: AspectClassification.Major,
+  },
+  {
+    name: 'square',
+    angle: 90,
+    orb: 8,
+    classification: AspectClassification.Major,
+  },
+  {
+    name: 'sextile',
+    angle: 60,
+    orb: 6,
+    classification: AspectClassification.Minor,
+  },
+  {
+    name: 'quincunx',
+    angle: 150,
+    orb: 4,
+    classification: AspectClassification.Minor,
+  },
 ];
 
 export const SIMPLE_MODERN_ORBS: Aspect[] = [
-  { name: 'conjunction', angle: 0, orb: 8, classification: AspectClassification.Major },
-  { name: 'opposition', angle: 180, orb: 8, classification: AspectClassification.Major },
-  { name: 'trine', angle: 120, orb: 6, classification: AspectClassification.Major },
-  { name: 'square', angle: 90, orb: 6, classification: AspectClassification.Major },
-  { name: 'sextile', angle: 60, orb: 4, classification: AspectClassification.Minor },
-  { name: 'quincunx', angle: 150, orb: 3, classification: AspectClassification.Minor },
+  {
+    name: 'conjunction',
+    angle: 0,
+    orb: 8,
+    classification: AspectClassification.Major,
+  },
+  {
+    name: 'opposition',
+    angle: 180,
+    orb: 8,
+    classification: AspectClassification.Major,
+  },
+  {
+    name: 'trine',
+    angle: 120,
+    orb: 6,
+    classification: AspectClassification.Major,
+  },
+  {
+    name: 'square',
+    angle: 90,
+    orb: 6,
+    classification: AspectClassification.Major,
+  },
+  {
+    name: 'sextile',
+    angle: 60,
+    orb: 4,
+    classification: AspectClassification.Minor,
+  },
+  {
+    name: 'quincunx',
+    angle: 150,
+    orb: 3,
+    classification: AspectClassification.Minor,
+  },
 ];
 
 export const SIMPLE_TIGHT_ORBS: Aspect[] = [
-  { name: 'conjunction', angle: 0, orb: 5, classification: AspectClassification.Major },
-  { name: 'opposition', angle: 180, orb: 5, classification: AspectClassification.Major },
-  { name: 'trine', angle: 120, orb: 4, classification: AspectClassification.Major },
-  { name: 'square', angle: 90, orb: 4, classification: AspectClassification.Major },
-  { name: 'sextile', angle: 60, orb: 3, classification: AspectClassification.Minor },
-  { name: 'quincunx', angle: 150, orb: 2, classification: AspectClassification.Minor },
+  {
+    name: 'conjunction',
+    angle: 0,
+    orb: 5,
+    classification: AspectClassification.Major,
+  },
+  {
+    name: 'opposition',
+    angle: 180,
+    orb: 5,
+    classification: AspectClassification.Major,
+  },
+  {
+    name: 'trine',
+    angle: 120,
+    orb: 4,
+    classification: AspectClassification.Major,
+  },
+  {
+    name: 'square',
+    angle: 90,
+    orb: 4,
+    classification: AspectClassification.Major,
+  },
+  {
+    name: 'sextile',
+    angle: 60,
+    orb: 3,
+    classification: AspectClassification.Minor,
+  },
+  {
+    name: 'quincunx',
+    angle: 150,
+    orb: 2,
+    classification: AspectClassification.Minor,
+  },
 ];
 
 export const SIMPLE_WIDE_ORBS: Aspect[] = [
-  { name: 'conjunction', angle: 0, orb: 12, classification: AspectClassification.Major },
-  { name: 'opposition', angle: 180, orb: 12, classification: AspectClassification.Major },
-  { name: 'trine', angle: 120, orb: 10, classification: AspectClassification.Major },
-  { name: 'square', angle: 90, orb: 10, classification: AspectClassification.Major },
-  { name: 'sextile', angle: 60, orb: 8, classification: AspectClassification.Minor },
-  { name: 'quincunx', angle: 150, orb: 6, classification: AspectClassification.Minor },
-  { name: 'semi-sextile', angle: 30, orb: 4, classification: AspectClassification.Minor },
+  {
+    name: 'conjunction',
+    angle: 0,
+    orb: 12,
+    classification: AspectClassification.Major,
+  },
+  {
+    name: 'opposition',
+    angle: 180,
+    orb: 12,
+    classification: AspectClassification.Major,
+  },
+  {
+    name: 'trine',
+    angle: 120,
+    orb: 10,
+    classification: AspectClassification.Major,
+  },
+  {
+    name: 'square',
+    angle: 90,
+    orb: 10,
+    classification: AspectClassification.Major,
+  },
+  {
+    name: 'sextile',
+    angle: 60,
+    orb: 8,
+    classification: AspectClassification.Minor,
+  },
+  {
+    name: 'quincunx',
+    angle: 150,
+    orb: 6,
+    classification: AspectClassification.Minor,
+  },
+  {
+    name: 'semi-sextile',
+    angle: 30,
+    orb: 4,
+    classification: AspectClassification.Minor,
+  },
 ];
 
 // Legacy aliases for backwards compatibility

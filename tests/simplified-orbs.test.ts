@@ -35,7 +35,7 @@ describe('Simplified Orb Configuration System', () => {
       expect(result).toContain('Sun conjunction Moon');
       expect(result).toContain('Sun conjunction Mercury');
       expect(result).toContain('Sun conjunction Venus');
-      
+
       // Should detect all the other exact and near-exact aspects
       expect(result).toContain('square');
       expect(result).toContain('trine');
@@ -71,18 +71,21 @@ describe('Simplified Orb Configuration System', () => {
       const conjunctions = report.chartAnalyses[0].aspects.filter(
         (a: AspectData) => a.aspectType === 'conjunction'
       );
-      
-      const sunMoon = conjunctions.find((a: AspectData) => 
-        (a.planetA === 'Sun' && a.planetB === 'Moon') || 
-        (a.planetA === 'Moon' && a.planetB === 'Sun')
+
+      const sunMoon = conjunctions.find(
+        (a: AspectData) =>
+          (a.planetA === 'Sun' && a.planetB === 'Moon') ||
+          (a.planetA === 'Moon' && a.planetB === 'Sun')
       );
-      const sunMercury = conjunctions.find((a: AspectData) => 
-        (a.planetA === 'Sun' && a.planetB === 'Mercury') || 
-        (a.planetA === 'Mercury' && a.planetB === 'Sun')
+      const sunMercury = conjunctions.find(
+        (a: AspectData) =>
+          (a.planetA === 'Sun' && a.planetB === 'Mercury') ||
+          (a.planetA === 'Mercury' && a.planetB === 'Sun')
       );
-      const sunVenus = conjunctions.find((a: AspectData) => 
-        (a.planetA === 'Sun' && a.planetB === 'Venus') || 
-        (a.planetA === 'Venus' && a.planetB === 'Sun')
+      const sunVenus = conjunctions.find(
+        (a: AspectData) =>
+          (a.planetA === 'Sun' && a.planetB === 'Venus') ||
+          (a.planetA === 'Venus' && a.planetB === 'Sun')
       );
 
       expect(sunMoon?.strength).toBe('tight'); // 1.5° orb
@@ -99,14 +102,16 @@ describe('Simplified Orb Configuration System', () => {
       const conjunctions = report.chartAnalyses[0].aspects.filter(
         (a: AspectData) => a.aspectType === 'conjunction'
       );
-      
-      const sunMoon = conjunctions.find((a: AspectData) => 
-        (a.planetA === 'Sun' && a.planetB === 'Moon') || 
-        (a.planetA === 'Moon' && a.planetB === 'Sun')
+
+      const sunMoon = conjunctions.find(
+        (a: AspectData) =>
+          (a.planetA === 'Sun' && a.planetB === 'Moon') ||
+          (a.planetA === 'Moon' && a.planetB === 'Sun')
       );
-      const sunMercury = conjunctions.find((a: AspectData) => 
-        (a.planetA === 'Sun' && a.planetB === 'Mercury') || 
-        (a.planetA === 'Mercury' && a.planetB === 'Sun')
+      const sunMercury = conjunctions.find(
+        (a: AspectData) =>
+          (a.planetA === 'Sun' && a.planetB === 'Mercury') ||
+          (a.planetA === 'Mercury' && a.planetB === 'Sun')
       );
 
       expect(sunMoon?.strength).toBe('moderate'); // 1.5° is > 1.0° tight but <= 3.0° moderate threshold
@@ -132,13 +137,19 @@ describe('Simplified Orb Configuration System', () => {
       expect(result).toContain('TIGHT ASPECTS');
       expect(result).toContain('MODERATE ASPECTS');
       expect(result).toContain('WIDE ASPECTS');
-      
+
       // Check that aspects appear in appropriate sections
       const lines = result.split('\n');
-      const tightSectionIndex = lines.findIndex(line => line.includes('TIGHT ASPECTS'));
-      const moderateSectionIndex = lines.findIndex(line => line.includes('MODERATE ASPECTS'));
-      const wideSectionIndex = lines.findIndex(line => line.includes('WIDE ASPECTS'));
-      
+      const tightSectionIndex = lines.findIndex((line) =>
+        line.includes('TIGHT ASPECTS')
+      );
+      const moderateSectionIndex = lines.findIndex((line) =>
+        line.includes('MODERATE ASPECTS')
+      );
+      const wideSectionIndex = lines.findIndex((line) =>
+        line.includes('WIDE ASPECTS')
+      );
+
       expect(tightSectionIndex).toBeGreaterThan(-1);
       expect(moderateSectionIndex).toBeGreaterThan(tightSectionIndex);
       expect(wideSectionIndex).toBeGreaterThan(moderateSectionIndex);
@@ -260,7 +271,7 @@ describe('Simplified Orb Configuration System', () => {
       const conjunctions = report.chartAnalyses[0].aspects.filter(
         (a: AspectData) => a.aspectType === 'conjunction'
       );
-      
+
       // Should have strength classification even without explicit thresholds
       conjunctions.forEach((aspect: AspectData) => {
         expect(aspect.strength).toMatch(/^(tight|moderate|wide)$/);

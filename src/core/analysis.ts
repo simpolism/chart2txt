@@ -177,7 +177,10 @@ export function analyzeCharts(
       const chart2 = allCharts[j];
 
       // Get unioned points from both charts for multi-chart analysis
-      const unionedPoints = [...getUnionedPoints([chart1]), ...getUnionedPoints([chart2])];
+      const unionedPoints = [
+        ...getUnionedPoints([chart1]),
+        ...getUnionedPoints([chart2]),
+      ];
       const aspects = calculateMultichartAspects(
         settings.resolvedAspectDefinitions,
         unionedPoints,

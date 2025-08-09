@@ -1,4 +1,11 @@
-import { Point, Aspect, AspectData, UnionedPoint, AspectStrength, AspectStrengthThresholds } from '../types';
+import {
+  Point,
+  Aspect,
+  AspectData,
+  UnionedPoint,
+  AspectStrength,
+  AspectStrengthThresholds,
+} from '../types';
 import { normalizeDegree } from './astrology';
 import { isExactAspect, roundDegrees } from '../utils/precision';
 
@@ -166,10 +173,10 @@ function findTightestAspect(
           planetB,
           aspectType.angle
         );
-        
+
         // Classify aspect strength based on orb
         const strength = classifyAspectStrength(orb, aspectStrengthThresholds);
-        
+
         tightestAspect = {
           planetA: planetA.name,
           planetB: planetB.name,
@@ -199,7 +206,7 @@ export function calculateAspects(
   aspectDefinitions: Aspect[],
   unionedPlanets: UnionedPoint[],
   skipOutOfSignAspects = true,
-  aspectStrengthThresholds: AspectStrengthThresholds,
+  aspectStrengthThresholds: AspectStrengthThresholds
 ): AspectData[] {
   const aspects: AspectData[] = [];
   if (!unionedPlanets || unionedPlanets.length < 2) return aspects;
@@ -243,12 +250,12 @@ export function calculateMultichartAspects(
 ): AspectData[] {
   // Filter to only cross-chart aspects
   const crossChartAspects: AspectData[] = [];
-  
+
   for (let i = 0; i < unionedPlanets.length; i++) {
     for (let j = i + 1; j < unionedPlanets.length; j++) {
       const [planetA, chartNameA] = unionedPlanets[i];
       const [planetB, chartNameB] = unionedPlanets[j];
-      
+
       // Only calculate aspects between planets from different charts
       if (chartNameA !== chartNameB) {
         const aspect = findTightestAspect(
@@ -267,6 +274,6 @@ export function calculateMultichartAspects(
       }
     }
   }
-  
+
   return crossChartAspects;
 }
