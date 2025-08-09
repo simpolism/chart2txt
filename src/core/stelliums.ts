@@ -112,27 +112,24 @@ export function detectStelliums(
 }
 
 /**
- * Format a Stellium pattern for display
+ * Format a Stellium pattern for display in compact format
  */
 export function formatStellium(pattern: Stellium): string[] {
-  const output = ['Stellium:'];
   const planetNames = pattern.planets.map((p) => p.name).join(', ');
-  output.push(`  - Planets: ${planetNames}`);
-
+  
+  let location = '';
   if (pattern.sign) {
-    output.push(`  - Sign: ${pattern.sign}`);
+    location = pattern.sign;
   }
-
+  
   if (pattern.houses && pattern.houses.length > 0) {
-    const houseStr =
-      pattern.houses.length === 1
-        ? `${getOrdinal(pattern.houses[0])}`
-        : pattern.houses.map((h) => getOrdinal(h)).join('-');
-    output.push(`  - Houses: ${houseStr}`);
+    const houseStr = pattern.houses.length === 1
+      ? `${getOrdinal(pattern.houses[0])}`
+      : pattern.houses.map((h) => getOrdinal(h)).join('-');
+    location += location ? ` (${houseStr})` : houseStr;
   }
-
-  output.push(`  - Span: ${pattern.span.toFixed(1)}°`);
-  output.push('');
-
-  return output;
+  
+  const locationStr = location ? ` in ${location}` : '';
+  
+  return [`Stellium (${pattern.span.toFixed(1)}°): ${planetNames}${locationStr}`];
 }

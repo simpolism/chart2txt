@@ -131,6 +131,28 @@ function getElementFromSign(sign: string): string {
 }
 
 /**
+ * Check if a Grand Trine is part of any Kite pattern within the same analysis context
+ * Uses exact planet identity matching (chart name + planet name + degree)
+ */
+function isGrandTrinePartOfKite(grandTrine: AspectPattern, patterns: AspectPattern[]): boolean {
+  if (grandTrine.type !== 'Grand Trine') return false;
+  
+  return patterns.some(pattern => {
+    if (pattern.type !== 'Kite') return false;
+    
+    // Create unique identifiers for exact planet identity matching
+    const createPlanetId = (p: any) => `${p.chartName || ''}-${p.name}-${p.degree}`;
+    
+    const kiteGrandTrinePlanets = pattern.grandTrine.map(createPlanetId);
+    const grandTrinePlanets = grandTrine.planets.map(createPlanetId);
+    
+    // Check if the sets of planets are identical (same planets, same count)
+    return kiteGrandTrinePlanets.length === grandTrinePlanets.length &&
+           kiteGrandTrinePlanets.every(kp => grandTrinePlanets.includes(kp));
+  });
+}
+
+/**
  * Generates the [ASPECT PATTERNS] section of the chart output.
  * @param patterns Array of detected aspect patterns
  * @param customTitle Optional custom title for the section
@@ -154,6 +176,14 @@ export function generateAspectPatternsOutput(
     return output;
   }
 
+  // Filter out Grand Trines that are part of Kites to avoid duplication
+  const filteredPatterns = patterns.filter(pattern => {
+    if (pattern.type === 'Grand Trine') {
+      return !isGrandTrinePartOfKite(pattern, patterns);
+    }
+    return true;
+  });
+
   // Sort patterns by type for consistent output
   const sortOrder = [
     'T-Square',
@@ -163,7 +193,7 @@ export function generateAspectPatternsOutput(
     'Mystic Rectangle',
     'Kite',
   ];
-  const sortedPatterns = patterns.sort((a, b) => {
+  const sortedPatterns = filteredPatterns.sort((a, b) => {
     return sortOrder.indexOf(a.type) - sortOrder.indexOf(b.type);
   });
 
