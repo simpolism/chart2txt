@@ -442,8 +442,8 @@ describe('Basic Formatting', () => {
       expect(result).toContain('[DISPOSITOR TREE]');
       expect(result).toContain('Sun → (final)');
       expect(result).toContain('Mercury → (final)');
-      expect(result).toContain('Venus → Mars → (cycle)');
-      expect(result).toContain('Mars → Venus → (cycle)');
+      expect(result).toContain('Venus → Mars → Venus (cycle)');
+      expect(result).toContain('Mars → Venus → Mars (cycle)');
     });
   });
 

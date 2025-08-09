@@ -50,7 +50,7 @@ export function calculateDispositors(planets: Point[]): {
 
       if (path.includes(nextDispositor)) {
         // A loop is detected.
-        chain += ` → (cycle)`;
+        chain += ` → ${nextDispositor} (cycle)`;
         break;
       }
 
