@@ -1,33 +1,15 @@
 import {
-  ChartData,
-  isMultiChartData,
-  MultiChartData,
-  PartialSettings,
-  Point,
+  AstrologicalReport,
+  ChartAnalysis,
+  PairwiseAnalysis,
+  GlobalAnalysis,
 } from '../../types';
 import { ChartSettings } from '../../config/ChartSettings';
-import { validateInputData } from '../../utils/validation';
+
 import {
-  calculateAspects,
-  calculateMultichartAspects,
-} from '../../core/aspects';
-import { detectAspectPatterns } from '../../core/aspectPatterns';
-
-/**
- * Helper function to get all points (planets + angles) from a chart for aspect calculation
- */
-function getAllPointsFromChart(chartData: ChartData): Point[] {
-  const allPoints: Point[] = [...chartData.planets];
-  if (chartData.ascendant !== undefined) {
-    allPoints.push({ name: 'Ascendant', degree: chartData.ascendant });
-  }
-  if (chartData.midheaven !== undefined) {
-    allPoints.push({ name: 'Midheaven', degree: chartData.midheaven });
-  }
-  return allPoints;
-}
-
-import { generateMetadataOutput } from './sections/metadata';
+  generateMetadataOutput,
+  determineChartType,
+} from './sections/metadata';
 import { generateChartHeaderOutput } from './sections/chartHeader';
 import { generateBirthdataOutput } from './sections/birthdata';
 import { generateAnglesOutput } from './sections/angles';
@@ -42,75 +24,74 @@ import {
   generateModalityDistributionOutput,
   generatePolarityOutput,
 } from './sections/signDistributions';
+import { formatStellium } from '../../core/stelliums';
 
 const processSingleChartOutput = (
+  analysis: ChartAnalysis,
   settings: ChartSettings,
-  chartData: ChartData,
   chartTitlePrefix?: string
 ): string[] => {
   const outputLines: string[] = [];
-  outputLines.push(
-    ...generateChartHeaderOutput(chartData.name, chartTitlePrefix)
-  );
-  outputLines.push(
-    ...generateBirthdataOutput(
-      chartData.location,
-      chartData.timestamp,
-      settings
-    )
-  );
-  outputLines.push(
-    ...generateAnglesOutput(chartData.ascendant, chartData.midheaven)
-  );
-  outputLines.push(...generateHousesOutput(chartData.houseCusps));
-  outputLines.push(
-    ...generatePlanetsOutput(chartData.planets, chartData.houseCusps, settings)
-  );
-  outputLines.push(...generateDispositorsOutput(chartData.planets));
-  outputLines.push(
-    ...generateElementDistributionOutput(
-      chartData.planets,
-      undefined,
-      chartData.ascendant
-    )
-  );
-  outputLines.push(
-    ...generateModalityDistributionOutput(
-      chartData.planets,
-      undefined,
-      chartData.ascendant
-    )
-  );
-  outputLines.push(
-    ...generatePolarityOutput(chartData.planets, undefined, chartData.ascendant)
-  );
+  const {
+    chart,
+    groupedAspects,
+    patterns,
+    stelliums,
+    signDistributions,
+    dispositors,
+    placements,
+  } = analysis;
 
-  const aspects = calculateAspects(
-    settings.aspectDefinitions,
-    getAllPointsFromChart(chartData),
-    settings.skipOutOfSignAspects
+  outputLines.push(...generateChartHeaderOutput(chart.name, chartTitlePrefix));
+  outputLines.push(
+    ...generateBirthdataOutput(chart.location, chart.timestamp, settings)
   );
-  // For single chart, p1ChartName and p2ChartName are not needed for aspect string generation
-  outputLines.push(...generateAspectsOutput('[ASPECTS]', aspects, settings));
+  outputLines.push(...generateAnglesOutput(chart.ascendant, chart.midheaven));
+  outputLines.push(...generateHousesOutput(chart.houseCusps));
+  outputLines.push(...generatePlanetsOutput(placements.planets));
+  outputLines.push(...generateDispositorsOutput(dispositors));
 
-  // Detect and display aspect patterns (if enabled)
-  if (settings.includeAspectPatterns) {
-    const aspectPatterns = detectAspectPatterns(
-      chartData.planets,
-      chartData.houseCusps
+  if (settings.includeSignDistributions) {
+    outputLines.push(
+      ...generateElementDistributionOutput(signDistributions.elements)
     );
-    outputLines.push(...generateAspectPatternsOutput(aspectPatterns));
+    outputLines.push(
+      ...generateModalityDistributionOutput(signDistributions.modalities)
+    );
+    outputLines.push(...generatePolarityOutput(signDistributions.polarities));
+  }
+
+  outputLines.push(...generateAspectsOutput('[ASPECTS]', groupedAspects));
+
+  if (settings.includeAspectPatterns) {
+    outputLines.push(
+      ...generateAspectPatternsOutput(patterns, undefined, false)
+    );
+    if (stelliums.length > 0) {
+      stelliums.forEach((stellium) => {
+        outputLines.push(...formatStellium(stellium));
+      });
+    } else {
+      outputLines.push('No Stelliums detected.');
+    }
   }
   outputLines.push('');
   return outputLines;
 };
 
 const processChartPairOutput = (
-  settings: ChartSettings,
-  chart1: ChartData,
-  chart2: ChartData
+  analysis: PairwiseAnalysis,
+  settings: ChartSettings
 ): string[] => {
   const outputLines: string[] = [];
+  const {
+    chart1,
+    chart2,
+    groupedSynastryAspects,
+    compositePatterns,
+    houseOverlays,
+  } = analysis;
+
   const header =
     chart1.chartType === 'event' && chart2.chartType === 'event'
       ? 'EVENT_RELATIONSHIP'
@@ -120,195 +101,144 @@ const processChartPairOutput = (
   outputLines.push(
     ...generateChartHeaderOutput(`${chart1.name}-${chart2.name}`, header)
   );
-  const synastryAspects = calculateMultichartAspects(
-    settings.aspectDefinitions,
-    getAllPointsFromChart(chart1),
-    getAllPointsFromChart(chart2),
-    settings.skipOutOfSignAspects
-  );
   outputLines.push(
     ...generateAspectsOutput(
       '[PLANET-PLANET ASPECTS]',
-      synastryAspects,
-      settings,
+      groupedSynastryAspects,
       chart1.name,
       chart2.name
     )
   );
+
+  if (settings.includeAspectPatterns && compositePatterns.length > 0) {
+    outputLines.push(
+      ...generateAspectPatternsOutput(
+        compositePatterns,
+        `${chart1.name}-${chart2.name} Composite`,
+        true
+      )
+    );
+  }
+
   outputLines.push('');
-  outputLines.push(...generateHouseOverlaysOutput(chart1, chart2, settings));
+  outputLines.push(
+    ...generateHouseOverlaysOutput(houseOverlays, chart1.name, chart2.name)
+  );
   outputLines.push('');
   return outputLines;
 };
 
-const processTransitChartInfoOutput = (
-  settings: ChartSettings,
-  transitData: ChartData
+const processGlobalPatternsOutput = (
+  analysis: GlobalAnalysis,
+  isTransit = false
 ): string[] => {
   const outputLines: string[] = [];
-  outputLines.push(...generateChartHeaderOutput(transitData.name, 'TRANSIT'));
-  outputLines.push(
-    ...generateBirthdataOutput(
-      transitData.location,
-      transitData.timestamp,
-      settings,
-      '[DATETIME]'
-    )
-  );
-  // For transit chart's own planets, houses are usually not shown unless it's a full natal chart for that moment.
-  outputLines.push(
-    ...generatePlanetsOutput(
-      transitData.planets,
-      transitData.houseCusps,
-      settings
-    )
-  );
-  outputLines.push('');
+  const { charts, patterns } = analysis;
+  if (patterns.length > 0) {
+    const chartNames = charts.map((c) => c.name).join('-');
+    let title = `${chartNames} Global Composite`;
+    if (isTransit) {
+      title = `${chartNames} Global Transit Composite`;
+    }
+    outputLines.push(...generateAspectPatternsOutput(patterns, title, true));
+    outputLines.push('');
+  }
   return outputLines;
-};
-
-const determineChartType = (data: MultiChartData): string => {
-  let baseChartString = 'natal';
-  let suffixString = '';
-  const natalCharts = data.filter(
-    ({ chartType }) => chartType !== 'transit' && chartType !== 'event'
-  );
-  const eventCharts = data.filter(({ chartType }) => chartType === 'event');
-  const transitCharts = data.filter(({ chartType }) => chartType === 'transit');
-  if (transitCharts.length > 1) {
-    throw new Error('Must provide at most one transit chart');
-  }
-  const hasTransit = transitCharts.length > 0;
-
-  // first determine suffix
-  if (natalCharts.length > 0) {
-    if (eventCharts.length === 0) {
-      if (hasTransit) {
-        suffixString = '_with_transit';
-      }
-    } else if (eventCharts.length === 1) {
-      suffixString = hasTransit ? '_with_event_and_transit' : '_with_event';
-    } else {
-      suffixString = hasTransit ? '_with_events_and_transit' : '_with_events';
-    }
-  } else {
-    // base event charts can have transits
-    if (hasTransit) {
-      suffixString = '_with_transit';
-    }
-  }
-
-  // then determine base string
-  if (natalCharts.length === 0) {
-    if (eventCharts.length === 0) {
-      throw new Error('Must provide at least one non-transit chart');
-    } else if (eventCharts.length === 1) {
-      baseChartString = 'event';
-    } else {
-      baseChartString = 'multi_event';
-    }
-  } else if (natalCharts.length === 1) {
-    baseChartString = 'natal';
-  } else if (natalCharts.length === 2) {
-    baseChartString = 'synastry';
-  } else {
-    baseChartString = 'group_synastry';
-  }
-
-  return baseChartString + suffixString;
 };
 
 /**
- * Orchestrates the generation of a complete astrological chart report in text format.
- * @param data The chart data, can be for a single chart or multiple charts (synastry, transits).
- * @param partialSettings Optional: Custom settings to override defaults.
+ * Formats a pre-computed and pre-grouped AstrologicalReport into a human-readable text string.
+ * @param report The AstrologicalReport object, with aspects already grouped.
  * @returns A string representing the full chart report.
  */
-export function formatChartToText(
-  data: ChartData | MultiChartData,
-  partialSettings: PartialSettings = {}
-): string {
-  // Validate input data
-  const validationError = validateInputData(data);
-  if (validationError) {
-    throw new Error(`Invalid chart data: ${validationError}`);
-  }
+export function formatReportToText(report: AstrologicalReport): string {
+  const {
+    chartAnalyses,
+    pairwiseAnalyses,
+    globalAnalysis,
+    transitAnalyses,
+    globalTransitAnalysis,
+  } = report;
 
-  const settings = new ChartSettings(partialSettings);
-  const houseSystemName = settings.houseSystemName;
+  const settings = report.settings as ChartSettings;
   const outputLines: string[] = [];
 
-  if (!isMultiChartData(data)) {
-    // single chart or event, legacy usage
-    if (data.chartType === 'transit') {
-      throw new Error('Single chart data must not be transit.');
-    }
-    outputLines.push(
-      ...generateMetadataOutput(
-        settings,
-        data.chartType || 'natal',
-        houseSystemName
-      )
-    );
-    outputLines.push(''); // Blank line after metadata
-    outputLines.push(...processSingleChartOutput(settings, data as ChartData));
-    return outputLines.join('\n').trimEnd();
-  }
-
-  // multi-chart analysis proceeds from here on
-  // generate metadata
-  const chartType = determineChartType(data);
+  const originalCharts = chartAnalyses.map((ca) => ca.chart);
+  const chartType = determineChartType(originalCharts);
   outputLines.push(
-    ...generateMetadataOutput(settings, chartType, houseSystemName)
+    ...generateMetadataOutput(settings, chartType, settings.houseSystemName)
   );
-  outputLines.push(''); // Blank line after metadata
+  outputLines.push('');
 
-  const nonTransitCharts = data.filter(
-    ({ chartType }) => chartType !== 'transit'
+  // 1. Process individual non-transit charts
+  const nonTransitAnalyses = chartAnalyses.filter(
+    (a) => a.chart.chartType !== 'transit'
   );
-  const transitChart = data.find(({ chartType }) => chartType === 'transit');
-
-  // first, process each chart individually
-  for (const chart of nonTransitCharts) {
-    outputLines.push(...processSingleChartOutput(settings, chart));
+  for (const analysis of nonTransitAnalyses) {
+    outputLines.push(...processSingleChartOutput(analysis, settings));
   }
 
-  // then, process each pairwise chart
-  for (let i = 0; i < nonTransitCharts.length; i++) {
-    for (let j = i + 1; j < nonTransitCharts.length; j++) {
-      outputLines.push(
-        ...processChartPairOutput(
-          settings,
-          nonTransitCharts[i],
-          nonTransitCharts[j]
-        )
-      );
-    }
+  // 2. Process pairwise analyses
+  for (const analysis of pairwiseAnalyses) {
+    outputLines.push(...processChartPairOutput(analysis, settings));
   }
 
-  // finally, process transit against each non-transit chart
-  if (transitChart) {
-    outputLines.push(...processTransitChartInfoOutput(settings, transitChart));
-    for (const chart of nonTransitCharts) {
-      // Transit Aspects to Chart 1
-      const transitAspectsC1 = calculateMultichartAspects(
-        settings.aspectDefinitions,
-        getAllPointsFromChart(chart),
-        getAllPointsFromChart(transitChart),
-        settings.skipOutOfSignAspects
+  // 3. Process global patterns (non-transit)
+  if (globalAnalysis) {
+    outputLines.push(...processGlobalPatternsOutput(globalAnalysis, false));
+  }
+
+  // 4. Process transit analyses
+  if (transitAnalyses.length > 0) {
+    const transitChartAnalysis = chartAnalyses.find(
+      (a) => a.chart.chartType === 'transit'
+    );
+    if (transitChartAnalysis) {
+      outputLines.push(
+        ...generateChartHeaderOutput(transitChartAnalysis.chart.name, 'TRANSIT')
       );
       outputLines.push(
-        ...generateAspectsOutput(
-          `[TRANSIT ASPECTS: ${chart.name}]`,
-          transitAspectsC1,
+        ...generateBirthdataOutput(
+          transitChartAnalysis.chart.location,
+          transitChartAnalysis.chart.timestamp,
           settings,
-          chart.name,
-          transitChart.name,
-          true
+          '[DATETIME]'
         )
+      );
+      outputLines.push(
+        ...generatePlanetsOutput(transitChartAnalysis.placements.planets)
       );
       outputLines.push('');
     }
+
+    for (const analysis of transitAnalyses) {
+      outputLines.push(
+        ...generateAspectsOutput(
+          `[TRANSIT ASPECTS: ${analysis.natalChart.name}]`,
+          analysis.groupedAspects,
+          analysis.natalChart.name,
+          analysis.transitChart.name,
+          true
+        )
+      );
+      if (settings.includeAspectPatterns) {
+        outputLines.push(
+          ...generateAspectPatternsOutput(
+            analysis.patterns,
+            `Transit to ${analysis.natalChart.name}`,
+            true
+          )
+        );
+      }
+      outputLines.push('');
+    }
+  }
+
+  // 5. Process global transit patterns
+  if (globalTransitAnalysis) {
+    outputLines.push(
+      ...processGlobalPatternsOutput(globalTransitAnalysis, true)
+    );
   }
 
   return outputLines.join('\n').trimEnd();

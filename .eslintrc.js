@@ -12,5 +12,6 @@ module.exports = {
   },
   rules: {
     // Add custom rules here
+    '@typescript-eslint/no-non-null-assertion': 'off'
   }
 };

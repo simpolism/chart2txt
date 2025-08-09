@@ -104,10 +104,7 @@ type TestScenario = typeof TEST_SCENARIOS[keyof typeof TEST_SCENARIOS];
 const CURRENT_SCENARIO: TestScenario = TEST_SCENARIOS.SYNASTRY_WITH_TRANSITS;
 
 const CUSTOM_SETTINGS: PartialSettings = {
-  includeSignDegree: true,
-  includeAscendant: true,
   houseSystemName: 'Placidus',
-  includeHouseDegree: false,
   aspectDefinitions: [
     { name: 'conjunction', angle: 0, orb: 8 },
     { name: 'opposition', angle: 180, orb: 8 },
@@ -116,12 +113,12 @@ const CUSTOM_SETTINGS: PartialSettings = {
     { name: 'sextile', angle: 60, orb: 4 },
     { name: 'quincunx', angle: 150, orb: 3 },
   ],
-  aspectCategories: [
-    { name: 'TIGHT', maxOrb: 1 },
-    { name: 'MODERATE', minOrb: 1, maxOrb: 3 },
-    { name: 'WIDE', minOrb: 3, maxOrb: 6 },
-  ],
-  dateFormat: 'YYYY-MM-DD'
+  aspectStrengthThresholds: {
+    tight: 1.0,
+    moderate: 3.0,
+  },
+  dateFormat: 'YYYY-MM-DD',
+  includeAspectPatterns: true
 };
 
 // ============================================================================
@@ -164,6 +161,7 @@ function runTest(): void {
         { ...sampleEventChart, name: 'Partner Chart', chartType: 'natal' as const }, 
         sampleTransitChart
       ];
+      settings = { includeAspectPatterns: true };
       break;
 
     case TEST_SCENARIOS.CUSTOM_SETTINGS:

@@ -10,9 +10,7 @@ module.exports = {
     library: {
       name: 'chart2txt',
       type: 'umd',
-      export: 'chart2txt',
     },
-    libraryExport: 'default',
     globalObject: 'this',
   },
   resolve: {

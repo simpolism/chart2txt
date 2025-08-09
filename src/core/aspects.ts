@@ -1,4 +1,4 @@
-import { Point, Aspect, AspectData } from '../types';
+import { Point, Aspect, AspectData, UnionedPoint } from '../types';
 import { normalizeDegree } from './astrology';
 import { isExactAspect, roundDegrees } from '../utils/precision';
 
@@ -97,11 +97,24 @@ function determineAspectApplication(
   return isApplying ? 'applying' : 'separating';
 }
 
+/**
+ * Finds the tightest aspect between two planets using simple orb detection
+ * @param aspectDefinitions Array of aspect types to check for
+ * @param planetA First planet
+ * @param planetB Second planet
+ * @param skipOutOfSignAspects Whether to skip aspects that cross sign boundaries
+ * @param aspectStrengthThresholds Thresholds for classifying aspect strength
+ * @param p1ChartName Optional chart name for planetA
+ * @param p2ChartName Optional chart name for planetB
+ * @returns The tightest aspect found, or null if none
+ */
 function findTightestAspect(
   aspectDefinitions: Aspect[],
   planetA: Point,
   planetB: Point,
-  skipOutOfSignAspects: boolean
+  skipOutOfSignAspects: boolean,
+  p1ChartName?: string,
+  p2ChartName?: string
 ): AspectData | null {
   const degreeA = roundDegrees(normalizeDegree(planetA.degree));
   const degreeB = roundDegrees(normalizeDegree(planetB.degree));
@@ -117,7 +130,6 @@ function findTightestAspect(
       const planetBSign = Math.floor(degreeB / 30);
 
       // Calculate expected sign difference for this aspect
-      // For major aspects: 0° = 0 signs, 60° = 2 signs, 90° = 3 signs, 120° = 4 signs, 180° = 6 signs
       const expectedSignDiff = getExpectedSignDifference(aspectType.angle);
 
       let actualSignDiff = Math.abs(planetASign - planetBSign);
@@ -128,16 +140,22 @@ function findTightestAspect(
       }
     }
 
-    if (orb <= aspectType.orb) {
+    // Use simple orb from aspect definition
+    const maxAllowedOrb = aspectType.orb;
+
+    if (orb <= maxAllowedOrb) {
       if (!tightestAspect || orb < tightestAspect.orb) {
         const application = determineAspectApplication(
           planetA,
           planetB,
           aspectType.angle
         );
+
         tightestAspect = {
           planetA: planetA.name,
           planetB: planetB.name,
+          p1ChartName,
+          p2ChartName,
           aspectType: aspectType.name,
           orb,
           application,
@@ -149,29 +167,36 @@ function findTightestAspect(
 }
 
 /**
- * Identifies aspects between planets in a single chart.
+ * Unified aspect calculation function that handles both single-chart and multi-chart scenarios
  * @param aspectDefinitions Array of aspect types to check for.
- * @param planets Array of planet points.
+ * @param unionedPlanets Array of UnionedPoint pairs to analyze.
+ * @param skipOutOfSignAspects Whether to skip aspects that cross sign boundaries.
+ * @param aspectStrengthThresholds Thresholds for classifying aspect strength.
+ * @param forceChartType Optional override for chart type determination.
  * @returns Array of found aspects.
  */
 export function calculateAspects(
   aspectDefinitions: Aspect[],
-  planets: Point[],
+  unionedPlanets: UnionedPoint[],
   skipOutOfSignAspects = true
 ): AspectData[] {
   const aspects: AspectData[] = [];
-  if (!planets || planets.length < 2) return aspects;
+  if (!unionedPlanets || unionedPlanets.length < 2) return aspects;
 
-  for (let i = 0; i < planets.length; i++) {
-    for (let j = i + 1; j < planets.length; j++) {
-      const planetA = planets[i];
-      const planetB = planets[j];
+  for (let i = 0; i < unionedPlanets.length; i++) {
+    for (let j = i + 1; j < unionedPlanets.length; j++) {
+      const [planetA, chartNameA] = unionedPlanets[i];
+      const [planetB, chartNameB] = unionedPlanets[j];
+
       const aspect = findTightestAspect(
         aspectDefinitions,
         planetA,
         planetB,
-        skipOutOfSignAspects
+        skipOutOfSignAspects,
+        chartNameA,
+        chartNameB
       );
+
       if (aspect) {
         aspects.push(aspect);
       }
@@ -181,41 +206,43 @@ export function calculateAspects(
 }
 
 /**
- * Identifies aspects between planets across two charts.
- * PlanetA is always from chart1Planets, PlanetB always from chart2Planets.
- * @param aspectDefinitions Array of aspect types to check for.
- * @param chart1Planets Array of planet points for the first chart.
- * @param chart2Planets Array of planet points for the second chart.
- * @returns Array of found aspects.
+ * Calculates aspects in a multi-chart context (synastry, transits, etc.)
+ * @param aspectDefinitions Array of aspect types to check for
+ * @param unionedPlanets Array of UnionedPoint pairs to analyze
+ * @param skipOutOfSignAspects Whether to skip aspects that cross sign boundaries
+ * @param aspectStrengthThresholds Thresholds for classifying aspect strength
+ * @returns Array of found aspects
  */
 export function calculateMultichartAspects(
   aspectDefinitions: Aspect[],
-  chart1Planets: Point[],
-  chart2Planets: Point[],
+  unionedPlanets: UnionedPoint[],
   skipOutOfSignAspects = true
 ): AspectData[] {
-  const aspects: AspectData[] = [];
-  if (
-    !chart1Planets ||
-    !chart2Planets ||
-    chart1Planets.length === 0 ||
-    chart2Planets.length === 0
-  ) {
-    return aspects;
-  }
+  // Filter to only cross-chart aspects
+  const crossChartAspects: AspectData[] = [];
 
-  for (const p1 of chart1Planets) {
-    for (const p2 of chart2Planets) {
-      const aspect = findTightestAspect(
-        aspectDefinitions,
-        p1,
-        p2,
-        skipOutOfSignAspects
-      );
-      if (aspect) {
-        aspects.push(aspect);
+  for (let i = 0; i < unionedPlanets.length; i++) {
+    for (let j = i + 1; j < unionedPlanets.length; j++) {
+      const [planetA, chartNameA] = unionedPlanets[i];
+      const [planetB, chartNameB] = unionedPlanets[j];
+
+      // Only calculate aspects between planets from different charts
+      if (chartNameA !== chartNameB) {
+        const aspect = findTightestAspect(
+          aspectDefinitions,
+          planetA,
+          planetB,
+          skipOutOfSignAspects,
+          chartNameA,
+          chartNameB
+        );
+
+        if (aspect) {
+          crossChartAspects.push(aspect);
+        }
       }
     }
   }
-  return aspects;
+
+  return crossChartAspects;
 }

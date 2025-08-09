@@ -1,11 +1,43 @@
 import { AspectData } from '../../../types';
-import { ChartSettings } from '../../../config/ChartSettings';
 
 /**
- * Generates aspect sections (e.g., [ASPECTS], [PLANET-PLANET ASPECTS], [TRANSIT ASPECTS: Name]).
+ * Generates the output for a single aspect line.
+ * @param asp The aspect data.
+ * @param p1ChartName Optional name of the first chart.
+ * @param p2ChartName Optional name of the second chart.
+ * @param p2IsTransit Optional flag if the second chart is for transits.
+ * @returns A formatted string for the aspect.
+ */
+function formatAspectLine(
+  asp: AspectData,
+  p1ChartName?: string,
+  p2ChartName?: string,
+  p2IsTransit = false
+): string {
+  const p1NameStr = p1ChartName
+    ? `${p1ChartName}'s ${asp.planetA}`
+    : asp.planetA;
+  let p2NameStr = asp.planetB;
+
+  if (p2IsTransit) {
+    p2NameStr = `transiting ${asp.planetB}`;
+  } else if (p2ChartName) {
+    p2NameStr = `${p2ChartName}'s ${asp.planetB}`;
+  }
+
+  const applicationStr =
+    asp.application && asp.application !== 'exact'
+      ? ` (${asp.application})`
+      : '';
+  return `${p1NameStr} ${asp.aspectType} ${p2NameStr}: ${asp.orb.toFixed(
+    1
+  )}°${applicationStr}`;
+}
+
+/**
+ * Generates aspect sections from a pre-grouped map of aspects.
  * @param title The main title for this aspect block (e.g., "[ASPECTS]").
- * @param aspects Array of calculated aspect data.
- * @param settings The chart settings, containing aspect categories.
+ * @param groupedAspects A map of category names to aspect data arrays.
  * @param p1ChartName Optional: Name of the first chart/entity for synastry/transit aspects.
  * @param p2ChartName Optional: Name of the second chart/entity for synastry aspects.
  * @param p2IsTransit Optional: Boolean indicating if p2 represents transiting points.
@@ -13,74 +45,24 @@ import { ChartSettings } from '../../../config/ChartSettings';
  */
 export function generateAspectsOutput(
   title: string,
-  aspects: AspectData[],
-  settings: ChartSettings,
+  groupedAspects?: Map<string, AspectData[]>,
   p1ChartName?: string,
-  p2ChartName?: string, // For synastry, this is the second person's name. For transits, it could be "Current" or the transit chart name.
+  p2ChartName?: string,
   p2IsTransit = false
 ): string[] {
   const output: string[] = [title];
-  let aspectsFoundInAnyCategory = false;
 
-  settings.aspectCategories.forEach((category) => {
-    const categoryAspects = aspects.filter((asp) => {
-      const orb = asp.orb;
-      const minOrbCheck =
-        category.minOrb === undefined ? true : orb > category.minOrb;
-      const maxOrbCheck = orb <= category.maxOrb;
-      return minOrbCheck && maxOrbCheck;
+  if (!groupedAspects || groupedAspects.size === 0) {
+    output.push('None');
+    return output;
+  }
+
+  groupedAspects.forEach((categoryAspects, categoryName) => {
+    output.push(categoryName); // The category name is the pre-formatted key from the map
+    categoryAspects.forEach((asp) => {
+      output.push(formatAspectLine(asp, p1ChartName, p2ChartName, p2IsTransit));
     });
-
-    if (categoryAspects.length > 0) {
-      aspectsFoundInAnyCategory = true;
-      let orbRangeStr = `orb under ${category.maxOrb.toFixed(1)}°`;
-      if (category.minOrb !== undefined) {
-        // Ensure minOrb is less than maxOrb for sensible range string
-        orbRangeStr =
-          category.minOrb < category.maxOrb
-            ? `orb ${category.minOrb.toFixed(1)}-${category.maxOrb.toFixed(1)}°`
-            : `orb over ${category.minOrb.toFixed(
-                1
-              )}° & under ${category.maxOrb.toFixed(1)}°`; // Fallback for unusual category def
-      }
-      output.push(`[${category.name}: ${orbRangeStr}]`);
-
-      categoryAspects.sort((a, b) => a.orb - b.orb); // Sort by orb tightness
-
-      categoryAspects.forEach((asp) => {
-        const p1NameStr = p1ChartName
-          ? `${p1ChartName}'s ${asp.planetA}`
-          : asp.planetA;
-        let p2NameStr = asp.planetB;
-
-        if (p2IsTransit) {
-          // For "Transit Aspects: Alice", p1 is Alice, p2 is the transiting planet.
-          // Example: "Alice's Mercury opposition transiting Neptune: 0.3°" - here p2ChartName is not used for the planet itself.
-          p2NameStr = `transiting ${asp.planetB}`;
-        } else if (p2ChartName) {
-          // For "Synastry: Alice-Bob", "Planet-Planet Aspects"
-          // Example: "Alice's Mercury opposition Bob's Neptune: 0.3°"
-          p2NameStr = `${p2ChartName}'s ${asp.planetB}`;
-        }
-        // If neither p2IsTransit nor p2ChartName, it's a natal chart aspect, e.g. "Venus opposition Pluto: 1.2°"
-
-        const applicationStr =
-          asp.application && asp.application !== 'exact'
-            ? ` (${asp.application})`
-            : '';
-        output.push(
-          `${p1NameStr} ${asp.aspectType} ${p2NameStr}: ${asp.orb.toFixed(
-            1
-          )}°${applicationStr}`
-        );
-      });
-    }
   });
 
-  if (!aspectsFoundInAnyCategory && aspects.length > 0) {
-    output.push('No aspects within defined categories.');
-  } else if (aspects.length === 0) {
-    output.push('None');
-  }
   return output;
 }

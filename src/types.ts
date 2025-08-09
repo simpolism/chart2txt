@@ -25,31 +25,56 @@ export function isMultiChartData(
   return Array.isArray(obj);
 }
 
+export type UnionedPoint = [Point, string]; // [Point, chartName]
+
+export enum AspectClassification {
+  Major = 'major',
+  Minor = 'minor',
+  Esoteric = 'esoteric',
+}
+
+export enum PlanetCategory {
+  Luminaries = 'luminaries',
+  Personal = 'personal',
+  Social = 'social',
+  Outer = 'outer',
+  Angles = 'angles',
+}
+
 export interface Aspect {
   name: string;
   angle: number; // 0-360 degrees
-  orb: number; // Maximum allowable orb for this aspect type
+  orb: number; // Maximum allowable orb for this aspect type (legacy/fallback)
+  classification?: AspectClassification; // Major, minor, or esoteric aspect
+}
+
+export type AspectStrength = 'tight' | 'moderate' | 'wide';
+
+export interface AspectStrengthThresholds {
+  tight: number; // Orb threshold for tight aspects (e.g., 2.0 degrees)
+  moderate: number; // Orb threshold for moderate aspects (e.g., 4.0 degrees)
+  // Aspects with orb > moderate threshold are classified as 'wide'
 }
 
 export interface AspectData {
   planetA: string;
   planetB: string;
+  p1ChartName?: string; // Optional: for multi-chart contexts
+  p2ChartName?: string; // Optional: for multi-chart contexts
   aspectType: string;
   orb: number; // Actual orb of the aspect
   application?: 'applying' | 'separating' | 'exact'; // Optional: whether aspect is applying or separating
 }
 
-export interface AspectCategory {
-  name: string; // e.g., "MAJOR", "MODERATE"
-  minOrb?: number; // Minimum orb for this category (exclusive, e.g. 2 for 2-4°)
-  maxOrb: number; // Maximum orb for this category (inclusive)
-}
+// Removed complex OrbConfiguration - replaced with simple aspect-based orbs and strength classification
 
 export interface PlanetPosition {
   name: string;
   degree: number;
   sign: string;
+  speed?: number;
   house?: number;
+  chartName?: string; // Optional chart ownership for multichart patterns
 }
 
 export interface TSquare {
@@ -114,26 +139,83 @@ export type AspectPattern =
   | MysticRectangle
   | Kite;
 
-export interface Settings {
-  // sign settings
-  includeSignDegree: boolean; // For planets list, if degree in sign is shown
-
-  // point settings
-  includeAscendant: boolean; // Legacy, angles now have their own section
-
-  // house settings
-  houseSystemName: string; // Name of house system used in computations
-  includeHouseDegree: boolean; // For planets list, if degree in house is shown (legacy)
-
-  // orb + aspect settings
-  aspectDefinitions: Aspect[];
-  aspectCategories: AspectCategory[];
-  skipOutOfSignAspects: boolean;
-
-  // pattern settings
-  includeAspectPatterns: boolean; // Whether to detect and display aspect patterns
-
-  dateFormat: string; // e.g., "MM/DD/YYYY", "YYYY-MM-DD"
+export interface ChartAnalysis {
+  chart: ChartData;
+  placements: {
+    planets: PlanetPosition[];
+    [key: string]: any; // Allow for other placements
+  };
+  aspects: AspectData[];
+  groupedAspects?: Map<string, AspectData[]>;
+  patterns: AspectPattern[];
+  stelliums: Stellium[];
+  signDistributions: {
+    elements: { [key: string]: string[] };
+    modalities: { [key: string]: number };
+    polarities: { [key: string]: number };
+  };
+  dispositors: { [key: string]: string };
 }
 
+export interface PairwiseAnalysis {
+  chart1: ChartData;
+  chart2: ChartData;
+  synastryAspects: AspectData[];
+  groupedSynastryAspects?: Map<string, AspectData[]>;
+  compositePatterns: AspectPattern[];
+  houseOverlays: {
+    chart1InChart2Houses: { [key: string]: number };
+    chart2InChart1Houses: { [key: string]: number };
+  };
+}
+
+export interface GlobalAnalysis {
+  charts: ChartData[];
+  patterns: AspectPattern[];
+}
+
+export interface TransitAnalysis {
+  natalChart: ChartData;
+  transitChart: ChartData;
+  aspects: AspectData[];
+  groupedAspects?: Map<string, AspectData[]>;
+  patterns: AspectPattern[];
+}
+
+export interface AstrologicalReport {
+  settings: Settings;
+  chartAnalyses: ChartAnalysis[];
+  pairwiseAnalyses: PairwiseAnalysis[];
+  globalAnalysis?: GlobalAnalysis;
+  transitAnalyses: TransitAnalysis[];
+  globalTransitAnalysis?: GlobalAnalysis;
+}
+
+export interface AnalysisSettings {
+  aspectDefinitions?: Aspect[] | 'traditional' | 'modern' | 'tight' | 'wide';
+  skipOutOfSignAspects?: boolean;
+  includeAspectPatterns?: boolean;
+  includeSignDistributions?: boolean;
+}
+
+export interface GroupingSettings {
+  aspectStrengthThresholds?: AspectStrengthThresholds;
+}
+
+export interface FormattingSettings {
+  dateFormat?: string;
+  houseSystemName?: string;
+}
+
+export interface Settings
+  extends AnalysisSettings,
+    GroupingSettings,
+    FormattingSettings {}
+
 export type PartialSettings = Partial<Settings>;
+
+// Utility type for internal use
+export type ChartDataWithInfo = {
+  data: ChartData;
+  index: number;
+};

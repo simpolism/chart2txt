@@ -1,180 +1,65 @@
 import { Point } from '../types';
-import { getDegreeSign } from './astrology';
+import { getSign } from '../utils/formatting';
+import { ZODIAC_SIGN_DATA } from '../constants';
 
-// Sign classifications
-const SIGN_ELEMENTS: Record<string, string> = {
-  Aries: 'Fire',
-  Leo: 'Fire',
-  Sagittarius: 'Fire',
-  Taurus: 'Earth',
-  Virgo: 'Earth',
-  Capricorn: 'Earth',
-  Gemini: 'Air',
-  Libra: 'Air',
-  Aquarius: 'Air',
-  Cancer: 'Water',
-  Scorpio: 'Water',
-  Pisces: 'Water',
-};
-
-const SIGN_MODALITIES: Record<string, string> = {
-  Aries: 'Cardinal',
-  Cancer: 'Cardinal',
-  Libra: 'Cardinal',
-  Capricorn: 'Cardinal',
-  Taurus: 'Fixed',
-  Leo: 'Fixed',
-  Scorpio: 'Fixed',
-  Aquarius: 'Fixed',
-  Gemini: 'Mutable',
-  Virgo: 'Mutable',
-  Sagittarius: 'Mutable',
-  Pisces: 'Mutable',
-};
-
-const SIGN_POLARITIES: Record<string, string> = {
-  Aries: 'Masculine',
-  Gemini: 'Masculine',
-  Leo: 'Masculine',
-  Libra: 'Masculine',
-  Sagittarius: 'Masculine',
-  Aquarius: 'Masculine',
-  Taurus: 'Feminine',
-  Cancer: 'Feminine',
-  Virgo: 'Feminine',
-  Scorpio: 'Feminine',
-  Capricorn: 'Feminine',
-  Pisces: 'Feminine',
-};
-
-export interface SignDistributions {
-  elements: Record<string, string[]>;
-  modalities: Record<string, number>;
-  polarities: Record<string, number>;
-}
-
-/**
- * Analyzes the distribution of planets across elements, modalities, and polarities
- * @param planets Array of planet points
- * @param includeAscendant Optional ascendant degree to include in analysis
- * @returns Sign distribution analysis
- */
-export function analyzeSignDistributions(
+export function calculateSignDistributions(
   planets: Point[],
-  includeAscendant?: number
-): SignDistributions {
-  const elements: Record<string, string[]> = {
+  ascendant?: number
+) {
+  const points = [...planets];
+  if (ascendant !== undefined) {
+    points.push({ name: 'Ascendant', degree: ascendant });
+  }
+
+  const elements: { [key: string]: string[] } = {
     Fire: [],
     Earth: [],
     Air: [],
     Water: [],
   };
-
-  const modalities: Record<string, number> = {
+  const modalities: { [key: string]: number } = {
     Cardinal: 0,
     Fixed: 0,
     Mutable: 0,
   };
+  const polarities: { [key: string]: number } = { Masculine: 0, Feminine: 0 };
 
-  const polarities: Record<string, number> = {
-    Masculine: 0,
-    Feminine: 0,
-  };
-
-  // Process planets
-  planets.forEach((planet) => {
-    const sign = getDegreeSign(planet.degree);
-    const element = SIGN_ELEMENTS[sign];
-    const modality = SIGN_MODALITIES[sign];
-    const polarity = SIGN_POLARITIES[sign];
-
-    if (element) {
-      elements[element].push(planet.name);
-    }
-    if (modality) {
-      modalities[modality]++;
-    }
-    if (polarity) {
-      polarities[polarity]++;
-    }
-  });
-
-  // Process ascendant if provided
-  if (includeAscendant !== undefined) {
-    const ascSign = getDegreeSign(includeAscendant);
-    const ascElement = SIGN_ELEMENTS[ascSign];
-    const ascModality = SIGN_MODALITIES[ascSign];
-    const ascPolarity = SIGN_POLARITIES[ascSign];
-
-    if (ascElement) {
-      elements[ascElement].push('Ascendant');
-    }
-    if (ascModality) {
-      modalities[ascModality]++;
-    }
-    if (ascPolarity) {
-      polarities[ascPolarity]++;
+  for (const point of points) {
+    const sign = getSign(point.degree);
+    const signInfo = ZODIAC_SIGN_DATA.find((s) => s.name === sign);
+    if (signInfo) {
+      elements[signInfo.element].push(point.name);
+      modalities[signInfo.modality]++;
+      polarities[signInfo.polarity]++;
     }
   }
 
   return { elements, modalities, polarities };
 }
 
-/**
- * Formats element distribution for display
- * @param elements Element distribution data
- * @returns Array of formatted strings
- */
-export function formatElementDistribution(
-  elements: Record<string, string[]>
-): string[] {
-  const output: string[] = [];
-
-  Object.entries(elements).forEach(([element, planets]) => {
-    if (planets.length > 0) {
-      const planetList = planets.join(', ');
-      output.push(`${element}: ${planets.length} (${planetList})`);
+export function formatElementDistribution(elements: {
+  [key: string]: string[];
+}): string[] {
+  return Object.entries(elements).map(([element, planets]) => {
+    if (planets.length === 0) {
+      return `${element}: 0`;
     }
+    return `${element}: ${planets.length} (${planets.join(', ')})`;
   });
-
-  return output;
 }
 
-/**
- * Formats modality distribution for display
- * @param modalities Modality distribution data
- * @returns Array of formatted strings
- */
-export function formatModalityDistribution(
-  modalities: Record<string, number>
-): string[] {
-  const output: string[] = [];
-
-  Object.entries(modalities).forEach(([modality, count]) => {
-    if (count > 0) {
-      output.push(`${modality}: ${count}`);
-    }
-  });
-
-  return output;
+export function formatModalityDistribution(modalities: {
+  [key: string]: number;
+}): string[] {
+  return Object.entries(modalities).map(
+    ([modality, count]) => `${modality}: ${count}`
+  );
 }
 
-/**
- * Formats polarity distribution for display
- * @param polarities Polarity distribution data
- * @returns Array of formatted strings
- */
-export function formatPolarityDistribution(
-  polarities: Record<string, number>
-): string[] {
-  const output: string[] = [];
-
-  if (polarities['Masculine'] > 0) {
-    output.push(`Masculine (Active): ${polarities['Masculine']}`);
-  }
-  if (polarities['Feminine'] > 0) {
-    output.push(`Feminine (Receptive): ${polarities['Feminine']}`);
-  }
-
-  return output;
+export function formatPolarityDistribution(polarities: {
+  [key: string]: number;
+}): string[] {
+  return Object.entries(polarities).map(
+    ([polarity, count]) => `${polarity}: ${count}`
+  );
 }

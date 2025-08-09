@@ -1,47 +1,30 @@
-import { Point } from '../../../types';
-import { ChartSettings } from '../../../config/ChartSettings';
-import { getDegreeSign, getDegreeInSign } from '../../../core/astrology';
-import { formatPlanetWithDignities } from '../../../core/dignities';
+import { PlanetPosition } from '../../../types';
 import { getOrdinal } from '../../../utils/formatting';
-import { getHouseForPoint } from '../../../utils/houseCalculations';
+import { formatPlanetWithDignities } from '../../../core/dignities';
 
 /**
  * Generates the [PLANETS] section of the chart output.
- * @param planets Array of planet points.
- * @param houseCusps Array of 12 house cusp degrees, or undefined if not available.
+ * @param placements Array of planet positions.
  * @param settings The chart settings.
  * @returns An array of strings for the output.
  */
-export function generatePlanetsOutput(
-  planets: Point[],
-  houseCusps: number[] | undefined,
-  settings: ChartSettings
-): string[] {
+export function generatePlanetsOutput(placements: PlanetPosition[]): string[] {
   const output: string[] = ['[PLANETS]'];
 
-  planets.forEach((planet) => {
-    const sign = getDegreeSign(planet.degree);
-    const degInSign = Math.floor(getDegreeInSign(planet.degree));
-    const retrogradeIndicator =
-      planet.speed !== undefined && planet.speed < 0 ? ' Retrograde' : '';
-    const dignities = formatPlanetWithDignities(planet, houseCusps);
+  placements.forEach((planet) => {
+    const dignities = formatPlanetWithDignities(planet);
+    const retrograde = planet.speed && planet.speed < 0 ? ' Retrograde' : '';
+    let line = `${planet.name}: ${Math.floor(planet.degree % 30)}° ${
+      planet.sign
+    }${retrograde} ${dignities}`;
 
-    let line = `${planet.name}: ${degInSign}° ${sign}${retrogradeIndicator}`;
-
-    if (dignities) {
-      line += ` ${dignities}`;
+    if (planet.house) {
+      line += `, ${getOrdinal(planet.house)} house`;
     }
-
-    if (houseCusps && houseCusps.length === 12) {
-      const houseNumber = getHouseForPoint(planet.degree, houseCusps);
-      if (houseNumber) {
-        line += `, ${getOrdinal(houseNumber)} house`;
-      }
-    }
-    output.push(line);
+    output.push(line.replace(/\s+/g, ' ').trim());
   });
 
-  if (planets.length === 0) {
+  if (placements.length === 0) {
     output.push('No planets listed.');
   }
 
