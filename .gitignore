@@ -31,3 +31,4 @@ yarn-error.log*
 *.sln
 *.sw?
 CLAUDE.md
+GEMINI.md

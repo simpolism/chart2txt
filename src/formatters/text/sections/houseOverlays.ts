@@ -39,10 +39,12 @@ export function generateHouseOverlaysOutput(
  * @param overlays Object mapping planet names to house numbers.
  * @returns A compact string representation.
  */
-function formatHouseOverlayCompact(overlays: { [key: string]: number }): string {
+function formatHouseOverlayCompact(overlays: {
+  [key: string]: number;
+}): string {
   // Group planets by house
   const houseGroups: { [key: number]: string[] } = {};
-  
+
   for (const planet in overlays) {
     const house = overlays[planet];
     if (!houseGroups[house]) {
@@ -50,13 +52,15 @@ function formatHouseOverlayCompact(overlays: { [key: string]: number }): string 
     }
     houseGroups[house].push(planet);
   }
-  
+
   // Sort houses numerically and format
-  const sortedHouses = Object.keys(houseGroups).map(Number).sort((a, b) => a - b);
-  const houseStrings = sortedHouses.map(house => {
+  const sortedHouses = Object.keys(houseGroups)
+    .map(Number)
+    .sort((a, b) => a - b);
+  const houseStrings = sortedHouses.map((house) => {
     const planets = houseGroups[house].join(', ');
     return `${getOrdinal(house)}: ${planets}`;
   });
-  
+
   return houseStrings.join(' | ');
 }

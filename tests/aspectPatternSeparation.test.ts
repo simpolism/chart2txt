@@ -1,4 +1,10 @@
-import { chart2txt, formatChartToJson, ChartData } from '../src/index';
+import {
+  chart2txt,
+  analyzeCharts,
+  ChartData,
+  ChartAnalysis,
+  AspectPattern,
+} from '../src/index';
 
 describe('Aspect Pattern Separation', () => {
   describe('Analysis Logic', () => {
@@ -20,17 +26,19 @@ describe('Aspect Pattern Separation', () => {
         ],
       };
 
-      const report = formatChartToJson([jake, alice], {
+      const report = analyzeCharts([jake, alice], {
         includeAspectPatterns: true,
       });
 
       // Alice's individual analysis should have the T-Square
       const aliceAnalysis = report.chartAnalyses.find(
-        (c) => c.chart.name === 'Alice'
+        (c: ChartAnalysis) => c.chart.name === 'Alice'
       );
-      expect(aliceAnalysis?.patterns.some((p) => p.type === 'T-Square')).toBe(
-        true
-      );
+      expect(
+        aliceAnalysis?.patterns.some(
+          (p: AspectPattern) => p.type === 'T-Square'
+        )
+      ).toBe(true);
 
       // The pairwise composite analysis should NOT have any patterns
       const compositePatterns = report.pairwiseAnalyses[0]?.compositePatterns;
@@ -55,7 +63,7 @@ describe('Aspect Pattern Separation', () => {
         planets: [{ name: 'Jupiter', degree: 180 }],
       };
 
-      const report = formatChartToJson([chart1, chart2, chart3], {
+      const report = analyzeCharts([chart1, chart2, chart3], {
         includeAspectPatterns: true,
       });
 
@@ -63,7 +71,7 @@ describe('Aspect Pattern Separation', () => {
       expect(report.globalAnalysis).toBeDefined();
 
       // All patterns in the global section should involve at least 3 charts
-      report.globalAnalysis?.patterns.forEach((pattern) => {
+      report.globalAnalysis?.patterns.forEach((pattern: AspectPattern) => {
         const chartNames = new Set();
         // Simplified check; assumes pattern structure has planets with chartName
         JSON.stringify(pattern, (key, value) => {

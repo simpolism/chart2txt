@@ -1,13 +1,9 @@
 import {
-  ChartData,
-  MultiChartData,
-  PartialSettings,
   AstrologicalReport,
   ChartAnalysis,
   PairwiseAnalysis,
   GlobalAnalysis,
 } from '../../types';
-import { analyzeCharts } from '../../core/analysis';
 import { ChartSettings } from '../../config/ChartSettings';
 
 import {
@@ -38,7 +34,7 @@ const processSingleChartOutput = (
   const outputLines: string[] = [];
   const {
     chart,
-    aspects,
+    groupedAspects,
     patterns,
     stelliums,
     signDistributions,
@@ -65,26 +61,18 @@ const processSingleChartOutput = (
     outputLines.push(...generatePolarityOutput(signDistributions.polarities));
   }
 
-  outputLines.push(...generateAspectsOutput('[ASPECTS]', aspects, settings));
+  outputLines.push(...generateAspectsOutput('[ASPECTS]', groupedAspects));
 
   if (settings.includeAspectPatterns) {
-    outputLines.push('[ASPECT PATTERNS]');
-    if (patterns.length === 0 && stelliums.length === 0) {
-      outputLines.push('No aspect patterns detected.');
-      outputLines.push('No stelliums detected.');
+    outputLines.push(
+      ...generateAspectPatternsOutput(patterns, undefined, false)
+    );
+    if (stelliums.length > 0) {
+      stelliums.forEach((stellium) => {
+        outputLines.push(...formatStellium(stellium));
+      });
     } else {
-      if (stelliums.length > 0) {
-        stelliums.forEach((stellium) => {
-          outputLines.push(...formatStellium(stellium));
-        });
-      } else {
-        outputLines.push('No stelliums detected.');
-      }
-      if (patterns.length > 0) {
-        outputLines.push(
-          ...generateAspectPatternsOutput(patterns, undefined, false).slice(1)
-        );
-      }
+      outputLines.push('No Stelliums detected.');
     }
   }
   outputLines.push('');
@@ -96,8 +84,13 @@ const processChartPairOutput = (
   settings: ChartSettings
 ): string[] => {
   const outputLines: string[] = [];
-  const { chart1, chart2, synastryAspects, compositePatterns, houseOverlays } =
-    analysis;
+  const {
+    chart1,
+    chart2,
+    groupedSynastryAspects,
+    compositePatterns,
+    houseOverlays,
+  } = analysis;
 
   const header =
     chart1.chartType === 'event' && chart2.chartType === 'event'
@@ -111,8 +104,7 @@ const processChartPairOutput = (
   outputLines.push(
     ...generateAspectsOutput(
       '[PLANET-PLANET ASPECTS]',
-      synastryAspects,
-      settings,
+      groupedSynastryAspects,
       chart1.name,
       chart2.name
     )
@@ -155,8 +147,8 @@ const processGlobalPatternsOutput = (
 };
 
 /**
- * Formats a pre-computed AstrologicalReport into a human-readable text string.
- * @param report The AstrologicalReport object from formatChartToJson (analyzeCharts).
+ * Formats a pre-computed and pre-grouped AstrologicalReport into a human-readable text string.
+ * @param report The AstrologicalReport object, with aspects already grouped.
  * @returns A string representing the full chart report.
  */
 export function formatReportToText(report: AstrologicalReport): string {
@@ -168,7 +160,6 @@ export function formatReportToText(report: AstrologicalReport): string {
     globalTransitAnalysis,
   } = report;
 
-  // The settings object in the report IS the ChartSettings instance.
   const settings = report.settings as ChartSettings;
   const outputLines: string[] = [];
 
@@ -199,7 +190,6 @@ export function formatReportToText(report: AstrologicalReport): string {
 
   // 4. Process transit analyses
   if (transitAnalyses.length > 0) {
-    // Find the transit chart info from chart analyses to print its header once
     const transitChartAnalysis = chartAnalyses.find(
       (a) => a.chart.chartType === 'transit'
     );
@@ -225,8 +215,7 @@ export function formatReportToText(report: AstrologicalReport): string {
       outputLines.push(
         ...generateAspectsOutput(
           `[TRANSIT ASPECTS: ${analysis.natalChart.name}]`,
-          analysis.aspects,
-          settings,
+          analysis.groupedAspects,
           analysis.natalChart.name,
           analysis.transitChart.name,
           true
@@ -253,18 +242,4 @@ export function formatReportToText(report: AstrologicalReport): string {
   }
 
   return outputLines.join('\n').trimEnd();
-}
-
-/**
- * Orchestrates the generation of a complete astrological chart report in text format.
- * @param data The chart data, can be for a single chart or multiple charts (synastry, transits).
- * @param partialSettings Optional: Custom settings to override defaults.
- * @returns A string representing the full chart report.
- */
-export function formatChartToText(
-  data: ChartData | MultiChartData,
-  partialSettings: PartialSettings = {}
-): string {
-  const report: AstrologicalReport = analyzeCharts(data, partialSettings);
-  return formatReportToText(report);
 }

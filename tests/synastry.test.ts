@@ -1,4 +1,4 @@
-import { chart2txt, formatChartToJson, ChartData } from '../src/index';
+import { chart2txt, analyzeCharts, ChartData, AspectData } from '../src/index';
 
 describe('Synastry and Multi-Chart Tests', () => {
   describe('Analysis Logic', () => {
@@ -14,7 +14,7 @@ describe('Synastry and Multi-Chart Tests', () => {
         houseCusps: [15, 45, 75, 105, 135, 165, 195, 225, 255, 285, 315, 345],
       };
 
-      const report = formatChartToJson([chart1, chart2]);
+      const report = analyzeCharts([chart1, chart2]);
       const overlays = report.pairwiseAnalyses[0]?.houseOverlays;
 
       expect(overlays).toBeDefined();
@@ -33,7 +33,7 @@ describe('Synastry and Multi-Chart Tests', () => {
         houseCusps: [0, 30, 60, 90, 120, 150, 180, 210, 240, 270, 300, 330],
       };
 
-      const report = formatChartToJson([chart1, chart2]);
+      const report = analyzeCharts([chart1, chart2]);
       const overlays = report.pairwiseAnalyses[0]?.houseOverlays;
 
       expect(overlays).toBeDefined();
@@ -52,12 +52,14 @@ describe('Synastry and Multi-Chart Tests', () => {
         midheaven: 90.0,
       };
 
-      const report = formatChartToJson([chart1, chart2]);
+      const report = analyzeCharts([chart1, chart2]);
       const synastryAspects = report.pairwiseAnalyses[0]?.synastryAspects;
 
       expect(synastryAspects).toBeDefined();
       expect(synastryAspects.length).toBeGreaterThan(0);
-      const square = synastryAspects.find((a) => a.aspectType === 'square');
+      const square = synastryAspects.find(
+        (a: AspectData) => a.aspectType === 'square'
+      );
       expect(square).toBeDefined();
       expect(square?.planetA).toBe('Ascendant');
       expect(square?.planetB).toBe('Midheaven');

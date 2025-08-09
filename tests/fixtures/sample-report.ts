@@ -28,7 +28,6 @@ export const sampleReport: AstrologicalReport = {
           planetB: 'Moon',
           aspectType: 'square',
           orb: 0,
-          strength: 'tight' as const,
           p1ChartName: 'Sample Chart',
           p2ChartName: 'Sample Chart',
         },

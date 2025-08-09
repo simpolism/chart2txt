@@ -63,14 +63,7 @@ export interface AspectData {
   p2ChartName?: string; // Optional: for multi-chart contexts
   aspectType: string;
   orb: number; // Actual orb of the aspect
-  strength: AspectStrength; // Classification based on orb tightness
   application?: 'applying' | 'separating' | 'exact'; // Optional: whether aspect is applying or separating
-}
-
-export interface AspectCategory {
-  name: string; // e.g., "MAJOR", "MODERATE"
-  minOrb?: number; // Minimum orb for this category (exclusive, e.g. 2 for 2-4°)
-  maxOrb: number; // Maximum orb for this category (inclusive)
 }
 
 // Removed complex OrbConfiguration - replaced with simple aspect-based orbs and strength classification
@@ -153,6 +146,7 @@ export interface ChartAnalysis {
     [key: string]: any; // Allow for other placements
   };
   aspects: AspectData[];
+  groupedAspects?: Map<string, AspectData[]>;
   patterns: AspectPattern[];
   stelliums: Stellium[];
   signDistributions: {
@@ -167,6 +161,7 @@ export interface PairwiseAnalysis {
   chart1: ChartData;
   chart2: ChartData;
   synastryAspects: AspectData[];
+  groupedSynastryAspects?: Map<string, AspectData[]>;
   compositePatterns: AspectPattern[];
   houseOverlays: {
     chart1InChart2Houses: { [key: string]: number };
@@ -183,6 +178,7 @@ export interface TransitAnalysis {
   natalChart: ChartData;
   transitChart: ChartData;
   aspects: AspectData[];
+  groupedAspects?: Map<string, AspectData[]>;
   patterns: AspectPattern[];
 }
 
@@ -195,23 +191,31 @@ export interface AstrologicalReport {
   globalTransitAnalysis?: GlobalAnalysis;
 }
 
-export interface Settings {
-  // house settings
-  houseSystemName: string; // Name of house system used in computations
-
-  // orb + aspect settings
-  aspectDefinitions: Aspect[] | 'traditional' | 'modern' | 'tight' | 'wide'; // Simple orb presets or custom aspects
-  aspectCategories: AspectCategory[];
-  skipOutOfSignAspects: boolean;
-  aspectStrengthThresholds: AspectStrengthThresholds; // New simple classification system
-
-  // pattern settings
-  includeAspectPatterns: boolean; // Whether to detect and display aspect patterns
-
-  // sign distribution settings
-  includeSignDistributions: boolean; // Whether to include element, modality, and polarity distributions
-
-  dateFormat: string; // e.g., "MM/DD/YYYY", "YYYY-MM-DD"
+export interface AnalysisSettings {
+  aspectDefinitions?: Aspect[] | 'traditional' | 'modern' | 'tight' | 'wide';
+  skipOutOfSignAspects?: boolean;
+  includeAspectPatterns?: boolean;
+  includeSignDistributions?: boolean;
 }
 
+export interface GroupingSettings {
+  aspectStrengthThresholds?: AspectStrengthThresholds;
+}
+
+export interface FormattingSettings {
+  dateFormat?: string;
+  houseSystemName?: string;
+}
+
+export interface Settings
+  extends AnalysisSettings,
+    GroupingSettings,
+    FormattingSettings {}
+
 export type PartialSettings = Partial<Settings>;
+
+// Utility type for internal use
+export type ChartDataWithInfo = {
+  data: ChartData;
+  index: number;
+};

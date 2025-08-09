@@ -164,8 +164,7 @@ export function analyzeCharts(
     const aspects = calculateAspects(
       settings.resolvedAspectDefinitions,
       points,
-      settings.skipOutOfSignAspects,
-      settings.aspectStrengthThresholds
+      settings.skipOutOfSignAspects
     );
     allAspects.push(...aspects);
   }
@@ -184,8 +183,7 @@ export function analyzeCharts(
       const aspects = calculateMultichartAspects(
         settings.resolvedAspectDefinitions,
         unionedPoints,
-        settings.skipOutOfSignAspects,
-        settings.aspectStrengthThresholds
+        settings.skipOutOfSignAspects
       );
       allAspects.push(...aspects);
     }
@@ -225,10 +223,9 @@ export function analyzeCharts(
       aspects: individualAspects,
       patterns: individualPatterns,
       stelliums: stelliums,
-      signDistributions: calculateSignDistributions(
-        chart.planets,
-        chart.ascendant
-      ),
+      signDistributions: settings.includeSignDistributions
+        ? calculateSignDistributions(chart.planets, chart.ascendant)
+        : { elements: {}, modalities: {}, polarities: {} },
       dispositors:
         chart.chartType !== 'transit'
           ? calculateDispositors(chart.planets)

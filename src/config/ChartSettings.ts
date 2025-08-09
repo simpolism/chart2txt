@@ -1,7 +1,6 @@
 import {
   Settings,
   PartialSettings,
-  AspectCategory,
   Aspect,
   AspectStrengthThresholds,
 } from '../types';
@@ -18,7 +17,6 @@ export class ChartSettings implements Settings {
   houseSystemName!: string;
   skipOutOfSignAspects!: boolean;
   aspectDefinitions!: Aspect[] | 'traditional' | 'modern' | 'tight' | 'wide';
-  aspectCategories!: AspectCategory[];
   aspectStrengthThresholds!: AspectStrengthThresholds;
   includeAspectPatterns!: boolean;
   includeSignDistributions!: boolean;
@@ -50,5 +48,20 @@ export class ChartSettings implements Settings {
       default:
         return DEFAULT_SETTINGS.aspectDefinitions as Aspect[];
     }
+  }
+
+  /**
+   * Returns a plain JSON object representation of the settings.
+   */
+  toJSON(): Settings {
+    return {
+      houseSystemName: this.houseSystemName,
+      skipOutOfSignAspects: this.skipOutOfSignAspects,
+      aspectDefinitions: this.aspectDefinitions,
+      aspectStrengthThresholds: this.aspectStrengthThresholds,
+      includeAspectPatterns: this.includeAspectPatterns,
+      includeSignDistributions: this.includeSignDistributions,
+      dateFormat: this.dateFormat,
+    };
   }
 }

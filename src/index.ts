@@ -5,26 +5,21 @@
  * This is the main entry point for the library.
  */
 
-// Core formatter function
-export { formatChartToText as chart2txt } from './formatters/text/textFormatter';
-export { formatReportToText } from './formatters/text/textFormatter';
-export { analyzeCharts as formatChartToJson } from './core/analysis';
+// Core functions
+export { chart2txt } from './chart2txt';
 export { analyzeCharts } from './core/analysis';
+export { groupAspects } from './core/grouping';
+export { formatReportToText } from './formatters/text/textFormatter';
 
 // Export all types for library users
 export * from './types';
 
 // Export constants that might be useful for users (e.g., for custom settings)
-export {
-  DEFAULT_SETTINGS,
-  DEFAULT_ASPECTS,
-  DEFAULT_ASPECT_CATEGORIES,
-  ZODIAC_SIGNS,
-} from './constants';
+export { DEFAULT_SETTINGS, DEFAULT_ASPECTS, ZODIAC_SIGNS } from './constants';
 
 // Export ChartSettings class for advanced configuration
 export { ChartSettings } from './config/ChartSettings';
 
 // Default export for convenience (e.g. UMD builds or simple script tags)
-import { formatChartToText } from './formatters/text/textFormatter';
-export default formatChartToText;
+import { chart2txt } from './chart2txt';
+export default chart2txt;

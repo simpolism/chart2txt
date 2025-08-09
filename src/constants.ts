@@ -1,7 +1,6 @@
 import {
   Aspect,
   Settings,
-  AspectCategory,
   AspectClassification,
   AspectStrengthThresholds,
 } from './types';
@@ -217,37 +216,37 @@ export const SIMPLE_TIGHT_ORBS: Aspect[] = [
   {
     name: 'conjunction',
     angle: 0,
-    orb: 5,
+    orb: 4,
     classification: AspectClassification.Major,
   },
   {
     name: 'opposition',
     angle: 180,
-    orb: 5,
+    orb: 4,
     classification: AspectClassification.Major,
   },
   {
     name: 'trine',
     angle: 120,
-    orb: 4,
+    orb: 3,
     classification: AspectClassification.Major,
   },
   {
     name: 'square',
     angle: 90,
-    orb: 4,
+    orb: 3,
     classification: AspectClassification.Major,
   },
   {
     name: 'sextile',
     angle: 60,
-    orb: 3,
+    orb: 2,
     classification: AspectClassification.Minor,
   },
   {
     name: 'quincunx',
     angle: 150,
-    orb: 2,
+    orb: 1,
     classification: AspectClassification.Minor,
   },
 ];
@@ -307,11 +306,6 @@ export const TIGHT_ASPECTS = SIMPLE_TIGHT_ORBS;
 
 export const WIDE_ASPECTS = SIMPLE_WIDE_ORBS;
 
-export const DEFAULT_ASPECT_CATEGORIES: AspectCategory[] = [
-  { name: 'TIGHT ASPECTS', maxOrb: 2 }, // Orb < 2°
-  { name: 'MODERATE ASPECTS', minOrb: 2, maxOrb: 4 }, // Orb 2-4°
-];
-
 // Default aspect strength thresholds
 export const DEFAULT_ASPECT_STRENGTH_THRESHOLDS: AspectStrengthThresholds = {
   tight: 2.0, // Aspects with orb <= 2° are classified as tight
@@ -319,20 +313,16 @@ export const DEFAULT_ASPECT_STRENGTH_THRESHOLDS: AspectStrengthThresholds = {
 };
 
 export const DEFAULT_SETTINGS: Settings = {
-  // house settings
-  houseSystemName: 'whole_sign',
-
-  // orb + aspect settings
+  // Analysis settings
   aspectDefinitions: DEFAULT_ASPECTS,
-  aspectCategories: DEFAULT_ASPECT_CATEGORIES,
   skipOutOfSignAspects: true,
+  includeAspectPatterns: false,
+  includeSignDistributions: true,
+
+  // Grouping settings
   aspectStrengthThresholds: DEFAULT_ASPECT_STRENGTH_THRESHOLDS,
 
-  // pattern settings
-  includeAspectPatterns: false, // Aspect patterns disabled by default
-
-  // sign distribution settings
-  includeSignDistributions: true, // Sign distributions enabled by default
-
-  dateFormat: 'MM/DD/YYYY', // As per example output
+  // Formatting settings
+  houseSystemName: 'whole_sign',
+  dateFormat: 'MM/DD/YYYY',
 };

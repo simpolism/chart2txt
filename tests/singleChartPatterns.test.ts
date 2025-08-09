@@ -1,5 +1,5 @@
 import {
-  formatChartToJson,
+  analyzeCharts,
   ChartData,
   TSquare,
   GrandTrine,
@@ -17,7 +17,7 @@ describe('Single Chart Aspect Pattern Analysis', () => {
         { name: 'Saturn', degree: 90 },
       ],
     };
-    const report = formatChartToJson(data, { includeAspectPatterns: true });
+    const report = analyzeCharts(data, { includeAspectPatterns: true });
     const patterns = report.chartAnalyses[0].patterns;
     expect(patterns.length).toBe(1);
     const tSquare = patterns[0] as TSquare;
@@ -34,7 +34,7 @@ describe('Single Chart Aspect Pattern Analysis', () => {
         { name: 'Mars', degree: 240 },
       ],
     };
-    const report = formatChartToJson(data, { includeAspectPatterns: true });
+    const report = analyzeCharts(data, { includeAspectPatterns: true });
     const patterns = report.chartAnalyses[0].patterns;
     expect(patterns.length).toBe(1);
     const grandTrine = patterns[0] as GrandTrine;
@@ -51,7 +51,7 @@ describe('Single Chart Aspect Pattern Analysis', () => {
         { name: 'Saturn', degree: 210 },
       ],
     };
-    const report = formatChartToJson(data, { includeAspectPatterns: true });
+    const report = analyzeCharts(data, { includeAspectPatterns: true });
     const patterns = report.chartAnalyses[0].patterns;
     expect(patterns.length).toBe(1);
     const yod = patterns[0] as Yod;
@@ -69,7 +69,7 @@ describe('Single Chart Aspect Pattern Analysis', () => {
       ],
       houseCusps: [0, 30, 60, 90, 120, 150, 180, 210, 240, 270, 300, 330],
     };
-    const report = formatChartToJson(data, { includeAspectPatterns: true });
+    const report = analyzeCharts(data, { includeAspectPatterns: true });
     const stelliums = report.chartAnalyses[0].stelliums;
     expect(stelliums.length).toBe(1);
     const stellium = stelliums[0] as Stellium;

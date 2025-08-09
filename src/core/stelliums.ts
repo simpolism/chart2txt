@@ -116,20 +116,23 @@ export function detectStelliums(
  */
 export function formatStellium(pattern: Stellium): string[] {
   const planetNames = pattern.planets.map((p) => p.name).join(', ');
-  
+
   let location = '';
   if (pattern.sign) {
     location = pattern.sign;
   }
-  
+
   if (pattern.houses && pattern.houses.length > 0) {
-    const houseStr = pattern.houses.length === 1
-      ? `${getOrdinal(pattern.houses[0])}`
-      : pattern.houses.map((h) => getOrdinal(h)).join('-');
+    const houseStr =
+      pattern.houses.length === 1
+        ? `${getOrdinal(pattern.houses[0])} House`
+        : pattern.houses.map((h) => `${getOrdinal(h)} House`).join('-');
     location += location ? ` (${houseStr})` : houseStr;
   }
-  
+
   const locationStr = location ? ` in ${location}` : '';
-  
-  return [`Stellium (${pattern.span.toFixed(1)}°): ${planetNames}${locationStr}`];
+
+  return [
+    `Stellium (${pattern.span.toFixed(1)}°): ${planetNames}${locationStr}`,
+  ];
 }

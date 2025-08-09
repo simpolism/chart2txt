@@ -174,6 +174,105 @@
             margin-top: 5px;
             font-size: 14px;
         }
+        .aspect-strength-container {
+            background-color: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+            padding: 15px;
+            margin-top: 10px;
+        }
+        .aspect-strength-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 8px;
+            padding: 8px;
+            background-color: white;
+            border-radius: 3px;
+            border: 1px solid #e9ecef;
+            height: 40px;
+            box-sizing: border-box;
+        }
+        .aspect-strength-row:last-child {
+            margin-bottom: 0;
+        }
+        .aspect-label-input {
+            width: 100px;
+            padding: 4px 6px;
+            border: 1px solid #ddd;
+            border-radius: 3px;
+            font-weight: 500;
+            text-transform: uppercase;
+            font-size: 11px;
+            height: 20px;
+            box-sizing: border-box;
+        }
+        .aspect-orb-input {
+            width: 60px;
+            padding: 4px 6px;
+            border: 1px solid #ddd;
+            border-radius: 3px;
+            text-align: center;
+            height: 20px;
+            box-sizing: border-box;
+        }
+        .aspect-strength-controls {
+            display: flex;
+            gap: 5px;
+            margin-top: 10px;
+        }
+        .btn-add {
+            background-color: #28a745;
+            color: white;
+            border: none;
+            padding: 6px 10px;
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+        .btn-add:hover {
+            background-color: #218838;
+        }
+        .btn-reset {
+            background-color: #6c757d;
+            color: white;
+            border: none;
+            padding: 6px 10px;
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+        .btn-reset:hover {
+            background-color: #5a6268;
+        }
+        .btn-remove {
+            background-color: #dc3545;
+            color: white;
+            border: none;
+            padding: 0;
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: bold;
+            margin-left: auto;
+            width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            line-height: 1;
+            position: relative;
+            top: -10px;
+        }
+        .btn-remove:hover {
+            background-color: #c82333;
+        }
+        .aspect-orb-label {
+            font-size: 11px;
+            color: #666;
+            margin-left: 2px;
+        }
         footer {
             text-align: center;
             margin-top: 30px;
@@ -231,6 +330,19 @@
                     <option value="O">Porphyry</option>
                 </select>
             </div>
+
+            <div class="form-group">
+                <label>Aspect Grouping Categories:</label>
+                <div class="aspect-strength-container">
+                    <div id="aspectThresholdsList">
+                        <!-- Dynamic threshold rows will be added here -->
+                    </div>
+                    <div class="aspect-strength-controls">
+                        <button type="button" id="addThreshold" class="btn-add">+ Add Category</button>
+                        <button type="button" id="resetThresholds" class="btn-reset">Reset to Defaults</button>
+                    </div>
+                </div>
+            </div>
             
             <button type="submit">Generate Chart Description</button>
         </form>
@@ -250,7 +362,7 @@
         </footer>
     </div>
 
-    <!--script src="https://cdn.jsdelivr.net/npm/chart2txt@0.6.0/dist/chart2txt.min.js"></script-->
+    <!--script src="https://cdn.jsdelivr.net/npm/chart2txt@0.7.0/dist/chart2txt.min.js"></script-->
     <script src="../../dist/chart2txt.min.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
@@ -275,6 +387,12 @@
             const transitHoursInput = document.getElementById('transitHours');
             const transitMinutesInput = document.getElementById('transitMinutes');
             const houseSystemSelect = document.getElementById('houseSystem');
+
+            // Aspect strength threshold elements
+            const aspectThresholdsList = document.getElementById('aspectThresholdsList');
+            const addThresholdBtn = document.getElementById('addThreshold');
+            const resetThresholdsBtn = document.getElementById('resetThresholds');
+            let thresholdCounter = 0;
 
             // Chart template for creating new charts
             function createChartHTML(chartId, chartNumber) {
@@ -471,6 +589,10 @@
                         }
                     }
                 });
+
+                // Save aspect strength thresholds
+                const aspectThresholds = getUiCategories();
+                localStorage.setItem('chartForm_aspectThresholds', JSON.stringify(aspectThresholds));
             }
 
             // Load form data from localStorage
@@ -512,6 +634,9 @@
 
                 // Update transit field visibility
                 updateTransitFieldsVisibility();
+                
+                // Initialize aspect strength thresholds
+                initializeAspectStrengthThresholds();
             }
 
             // Update transit fields visibility
@@ -528,6 +653,191 @@
                 }
             }
 
+            // Create a threshold row
+            function createThresholdRow(label = '', orb = '') {
+                thresholdCounter++;
+                const thresholdId = `threshold_${thresholdCounter}`;
+                
+                // Format orb value to always have one decimal place
+                const formattedOrb = orb ? parseFloat(orb).toFixed(1) : '';
+                
+                const row = document.createElement('div');
+                row.className = 'aspect-strength-row';
+                row.dataset.thresholdId = thresholdId;
+                
+                row.innerHTML = `
+                    <input type="text" class="aspect-label-input" placeholder="LABEL" value="${label}" data-field="label">
+                    <input type="number" class="aspect-orb-input" placeholder="0.0" value="${formattedOrb}" min="0" max="30" step="0.1" data-field="orb">
+                    <span class="aspect-orb-label">max orb</span>
+                    <button type="button" class="btn-remove" onclick="removeThreshold('${thresholdId}')">×</button>
+                `;
+                
+                // Add event listeners for the inputs
+                const inputs = row.querySelectorAll('input');
+                inputs.forEach(input => {
+                    input.addEventListener('input', saveFormData);
+                });
+
+                // Format number input to always show one decimal place
+                const orbInput = row.querySelector('[data-field="orb"]');
+                if (orbInput) {
+                    orbInput.addEventListener('blur', function() {
+                        const value = parseFloat(this.value);
+                        if (!isNaN(value)) {
+                            this.value = value.toFixed(1);
+                        }
+                    });
+                }
+                
+                aspectThresholdsList.appendChild(row);
+                return thresholdId;
+            }
+
+            // Remove a threshold row
+            window.removeThreshold = function(thresholdId) {
+                const row = document.querySelector(`[data-threshold-id="${thresholdId}"]`);
+                if (row) {
+                    row.remove();
+                    saveFormData();
+                }
+            };
+
+            // Add a new threshold
+            function addThreshold() {
+                createThresholdRow();
+                saveFormData();
+            }
+
+            // Reset aspect strength thresholds to defaults
+            function resetAspectStrengthThresholds() {
+                aspectThresholdsList.innerHTML = '';
+                thresholdCounter = 0;
+                createThresholdRow('TIGHT', '2.0');
+                createThresholdRow('MODERATE', '4.0');
+                createThresholdRow('WIDE', '7.0');
+                saveFormData();
+            }
+
+            /**
+             * Reads the user-defined aspect categories and their orb thresholds from the UI.
+             * @returns {Array<Object>} An array of category objects, sorted by orb.
+             *   Example: [{ label: 'TIGHT', orb: 2.0 }, { label: 'MODERATE', orb: 4.0 }]
+             */
+            function getUiCategories() {
+                const categories = [];
+                const rows = aspectThresholdsList.querySelectorAll('.aspect-strength-row');
+                
+                rows.forEach(row => {
+                    const labelInput = row.querySelector('[data-field="label"]');
+                    const orbInput = row.querySelector('[data-field="orb"]');
+                    
+                    const label = labelInput.value.trim().toUpperCase();
+                    const orb = parseFloat(orbInput.value);
+                    
+                    if (label && !isNaN(orb)) {
+                        categories.push({ label: label, orb: orb });
+                    }
+                });
+                
+                // Sort categories by orb to ensure correct grouping.
+                categories.sort((a, b) => a.orb - b.orb);
+                
+                return categories;
+            }
+
+            /**
+             * Groups aspects based on the simple orb categories defined in the UI.
+             * This function demonstrates the "custom grouping" step of the advanced workflow.
+             *
+             * @param {Array<Object>} aspects - The raw aspect data from analyzeCharts().
+             * @param {Array<Object>} uiCategories - The categories defined by the user.
+             * @returns {Map<string, Array<Object>>} - A map of grouped aspects for the report.
+             */
+            function groupAspectsFromUiSettings(aspects, uiCategories) {
+                const grouped = new Map();
+                let lastOrb = 0;
+
+                // Initialize the map to maintain the user-defined order.
+                uiCategories.forEach(cat => {
+                    const orbRangeStr = `orb ${lastOrb.toFixed(1)}-${cat.orb.toFixed(1)}°`;
+                    const mapKey = `[${cat.label} ASPECTS: ${orbRangeStr}]`;
+                    grouped.set(mapKey, []);
+                    lastOrb = cat.orb;
+                });
+
+                aspects.forEach(aspect => {
+                    // ADVANCED USER HOOK:
+                    // This is where you could implement more complex logic.
+                    // For example, you could create a "significance score" and group by that,
+                    // instead of just grouping by orb.
+                    //
+                    // Example of adding more logic:
+                    // let isImportant = false;
+                    // if (['Sun', 'Moon'].includes(aspect.planetA) || ['Sun', 'Moon'].includes(aspect.planetB)) {
+                    //     isImportant = true;
+                    // }
+                    // if (isImportant) {
+                    //     // Add to a special "LUMINARY ASPECTS" group.
+                    // }
+
+                    // Find the correct category for this aspect based on its orb.
+                    let assignedCategory = null;
+                    for (const category of uiCategories) {
+                        if (aspect.orb <= category.orb) {
+                            assignedCategory = category;
+                            break; // Found the tightest category it fits into.
+                        }
+                    }
+
+                    if (assignedCategory) {
+                        // Re-find the key to add the aspect to the list.
+                        let lastOrb = 0;
+                        for (const cat of uiCategories) {
+                            if (cat.label === assignedCategory.label) {
+                                const orbRangeStr = `orb ${lastOrb.toFixed(1)}-${cat.orb.toFixed(1)}°`;
+                                const mapKey = `[${cat.label} ASPECTS: ${orbRangeStr}]`;
+                                grouped.get(mapKey).push(aspect);
+                                break;
+                            }
+                            lastOrb = cat.orb;
+                        }
+                    }
+                });
+
+                // Clean up empty categories and sort the aspects within each group by orb.
+                for (const [key, aspectList] of grouped.entries()) {
+                    if (aspectList.length === 0) {
+                        grouped.delete(key);
+                    } else {
+                        aspectList.sort((a, b) => a.orb - b.orb);
+                    }
+                }
+
+                return grouped;
+            }
+
+            // Initialize aspect strength thresholds
+            function initializeAspectStrengthThresholds() {
+                const savedThresholds = localStorage.getItem('chartForm_aspectThresholds');
+                
+                if (savedThresholds) {
+                    try {
+                        const thresholds = JSON.parse(savedThresholds);
+                        aspectThresholdsList.innerHTML = '';
+                        thresholdCounter = 0;
+                        
+                        thresholds.forEach(cat => {
+                            createThresholdRow(cat.label, cat.orb.toString());
+                        });
+                    } catch (error) {
+                        console.error('Error loading saved thresholds:', error);
+                        resetAspectStrengthThresholds();
+                    }
+                } else {
+                    resetAspectStrengthThresholds();
+                }
+            }
+
             // Event listeners
             addChartBtn.addEventListener('click', addChart);
             
@@ -535,6 +845,9 @@
                 updateTransitFieldsVisibility();
                 saveFormData();
             });
+
+            addThresholdBtn.addEventListener('click', addThreshold);
+            resetThresholdsBtn.addEventListener('click', resetAspectStrengthThresholds);
 
             // Other field event listeners
             ['transitLocation', 'transitDate', 'transitHours', 'transitMinutes', 'houseSystem'].forEach(fieldId => {
@@ -611,10 +924,87 @@
                         return;
                     }
                     
-                    // Generate text description
-                    const houseSystemName = houseSystemSelect.options[houseSystemSelect.selectedIndex].innerText;
-                    console.log('Chart data:', multiChartData);
-                    const textDescription = window.chart2txt(multiChartData, { houseSystemName, includeAspectPatterns: true });
+                    // --- ADVANCED WORKFLOW DEMONSTRATION ---
+
+                    // 1. ANALYZE: Get the raw, ungrouped report from the library.
+                    const analysisSettings = { 
+                        includeAspectPatterns: true,
+                        includeSignDistributions: true
+                    };
+                    const report = window.chart2txt.analyzeCharts(multiChartData, analysisSettings);
+
+                    // --- CUSTOM FILTERING & GROUPING DEMONSTRATION ---
+
+                    // 2a. GET UI DEFINITIONS & DETERMINE MAX ORB
+                    const uiCategories = getUiCategories(); // Get categories from the UI.
+
+                    // Find the widest orb defined by the user to use as a filter threshold.
+                    // If no categories are defined, default to a wide orb so nothing is filtered.
+                    const maxOrbThreshold = uiCategories.length > 0 ? uiCategories[uiCategories.length - 1].orb : 10.0;
+
+                    // 2b. FILTER THE RAW REPORT
+                    // This is a powerful step. We remove any aspects that are wider than the user's
+                    // widest defined category, cleaning the data before grouping.
+                    console.log('Report before filtering:', JSON.parse(JSON.stringify(report)));
+
+                    // Filter single-chart analyses
+                    const singleChartMaxPatternOrb = 2.5;
+                    report.chartAnalyses.forEach(ca => {
+                        ca.aspects = ca.aspects.filter(aspect => aspect.orb <= maxOrbThreshold);
+                        ca.patterns = ca.patterns.filter(pattern => {
+                            if (pattern.type === 'Yod') return pattern.averageOrb <= 1.0;
+                            return pattern.averageOrb < singleChartMaxPatternOrb;
+                        });
+                    });
+
+                    // Filter multi-chart analyses (pairwise, transit, global)
+                    const multiChartMaxPatternOrb = 1.5;
+                    report.pairwiseAnalyses.forEach(pa => {
+                        pa.synastryAspects = pa.synastryAspects.filter(aspect => aspect.orb <= maxOrbThreshold);
+                        pa.compositePatterns = pa.compositePatterns.filter(pattern => {
+                            if (pattern.type === 'Yod') return pattern.averageOrb <= 0.5;
+                            return pattern.averageOrb <= multiChartMaxPatternOrb;
+                        });
+                    });
+                    report.transitAnalyses.forEach(ta => {
+                        ta.aspects = ta.aspects.filter(aspect => aspect.orb <= maxOrbThreshold);
+                        ta.patterns = ta.patterns.filter(pattern => {
+                            if (pattern.type === 'Yod') return pattern.averageOrb <= 0.5;
+                            return pattern.averageOrb <= multiChartMaxPatternOrb;
+                        });
+                    });
+                    if (report.globalAnalysis) {
+                        report.globalAnalysis.patterns = report.globalAnalysis.patterns.filter(pattern => {
+                            if (pattern.type === 'Yod') return pattern.averageOrb <= 0.5;
+                            return pattern.averageOrb <= multiChartMaxPatternOrb;
+                        });
+                    }
+                    if (report.globalTransitAnalysis) {
+                        report.globalTransitAnalysis.patterns = report.globalTransitAnalysis.patterns.filter(pattern => {
+                            if (pattern.type === 'Yod') return pattern.averageOrb <= 0.5;
+                            return pattern.averageOrb <= multiChartMaxPatternOrb;
+                        });
+                    }
+
+                    console.log('Report after filtering:', JSON.parse(JSON.stringify(report)));
+
+                    // 2c. GROUP THE FILTERED ASPECTS
+                    // Now, we pass the cleaned-up data to our grouping function.
+                    report.chartAnalyses.forEach(ca => {
+                        ca.groupedAspects = groupAspectsFromUiSettings(ca.aspects, uiCategories);
+                    });
+                    report.pairwiseAnalyses.forEach(pa => {
+                        // For multi-chart aspects, we can use a different grouping or the same one.
+                        // Here, we'll just use the same UI categories for simplicity.
+                        pa.groupedSynastryAspects = groupAspectsFromUiSettings(pa.synastryAspects, uiCategories);
+                    });
+                    report.transitAnalyses.forEach(ta => {
+                        ta.groupedAspects = groupAspectsFromUiSettings(ta.aspects, uiCategories);
+                    });
+
+                    // 3. FORMAT: Pass the modified report object to the formatter.
+                    const textDescription = window.chart2txt.formatReportToText(report);
+                    
                     resultDiv.textContent = textDescription;
                     copyBtn.style.display = 'block';
                     

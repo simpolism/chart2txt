@@ -1,6 +1,6 @@
-import { formatChartToJson, ChartData, AstrologicalReport } from '../src/index';
+import { analyzeCharts, ChartData, AstrologicalReport } from '../src/index';
 
-describe('formatChartToJson Validation', () => {
+describe('analyzeCharts Validation', () => {
   const chartData: ChartData = {
     name: 'Test Chart',
     planets: [
@@ -11,7 +11,7 @@ describe('formatChartToJson Validation', () => {
   };
 
   it('should return a valid AstrologicalReport object', () => {
-    const report: AstrologicalReport = formatChartToJson(chartData);
+    const report: AstrologicalReport = analyzeCharts(chartData);
 
     // Check for top-level keys
     expect(report).toBeDefined();

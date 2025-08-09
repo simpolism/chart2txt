@@ -1,4 +1,10 @@
-import { chart2txt, formatChartToJson, ChartData } from '../src/index';
+import {
+  chart2txt,
+  analyzeCharts,
+  ChartData,
+  TransitAnalysis,
+  AspectPattern,
+} from '../src/index';
 
 describe('Transit Pattern Consistency', () => {
   describe('Analysis Logic', () => {
@@ -20,7 +26,7 @@ describe('Transit Pattern Consistency', () => {
         planets: [{ name: 'Pluto', degree: 90 }],
       };
 
-      const report = formatChartToJson([natal1, natal2, transit], {
+      const report = analyzeCharts([natal1, natal2, transit], {
         includeAspectPatterns: true,
       });
 
@@ -28,10 +34,10 @@ describe('Transit Pattern Consistency', () => {
       expect(report.transitAnalyses.length).toBe(2);
 
       const transitToP1 = report.transitAnalyses.find(
-        (t) => t.natalChart.name === 'Person1'
+        (t: TransitAnalysis) => t.natalChart.name === 'Person1'
       );
       const transitToP2 = report.transitAnalyses.find(
-        (t) => t.natalChart.name === 'Person2'
+        (t: TransitAnalysis) => t.natalChart.name === 'Person2'
       );
 
       // Person 1 should have a T-Square pattern with the transit
@@ -90,7 +96,8 @@ describe('Transit Pattern Consistency', () => {
         '[ASPECT PATTERNS: Transit to Person2]'
       );
       const p2Section = result.substring(p2SectionStart);
-      expect(p2Section).toContain('No aspect patterns detected.');
+      expect(p2Section).toContain('No T-Squares detected.');
+      expect(p2Section).toContain('No Grand Trines detected.');
     });
   });
 });

@@ -113,11 +113,10 @@ const CUSTOM_SETTINGS: PartialSettings = {
     { name: 'sextile', angle: 60, orb: 4 },
     { name: 'quincunx', angle: 150, orb: 3 },
   ],
-  aspectCategories: [
-    { name: 'TIGHT', maxOrb: 1 },
-    { name: 'MODERATE', minOrb: 1, maxOrb: 3 },
-    { name: 'WIDE', minOrb: 3, maxOrb: 6 },
-  ],
+  aspectStrengthThresholds: {
+    tight: 1.0,
+    moderate: 3.0,
+  },
   dateFormat: 'YYYY-MM-DD',
   includeAspectPatterns: true
 };

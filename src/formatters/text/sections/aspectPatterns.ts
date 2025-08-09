@@ -28,10 +28,22 @@ function formatTSquare(
   if (pattern.type !== 'T-Square') return [];
 
   const apex = formatPlanetPosition(pattern.apex, false, showChartNames);
-  const opp1 = formatPlanetPosition(pattern.opposition[0], false, showChartNames);
-  const opp2 = formatPlanetPosition(pattern.opposition[1], false, showChartNames);
-  
-  return [`T-Square (${pattern.mode}, ${pattern.averageOrb.toFixed(1)}°): ${apex} ← ${opp1} ↔ ${opp2}`];
+  const opp1 = formatPlanetPosition(
+    pattern.opposition[0],
+    false,
+    showChartNames
+  );
+  const opp2 = formatPlanetPosition(
+    pattern.opposition[1],
+    false,
+    showChartNames
+  );
+
+  return [
+    `T-Square (${pattern.mode}, ${pattern.averageOrb.toFixed(
+      1
+    )}°): ${apex} ← ${opp1} ↔ ${opp2}`,
+  ];
 }
 
 /**
@@ -44,10 +56,14 @@ function formatGrandTrine(
   if (pattern.type !== 'Grand Trine') return [];
 
   const planets = pattern.planets
-    .map(p => formatPlanetPosition(p, false, showChartNames))
+    .map((p) => formatPlanetPosition(p, false, showChartNames))
     .join(' △ ');
-  
-  return [`Grand Trine (${pattern.element}, ${pattern.averageOrb.toFixed(1)}°): ${planets}`];
+
+  return [
+    `Grand Trine (${pattern.element}, ${pattern.averageOrb.toFixed(
+      1
+    )}°): ${planets}`,
+  ];
 }
 
 /**
@@ -60,10 +76,14 @@ function formatGrandCross(
   if (pattern.type !== 'Grand Cross') return [];
 
   const planets = pattern.planets
-    .map(p => formatPlanetPosition(p, false, showChartNames))
+    .map((p) => formatPlanetPosition(p, false, showChartNames))
     .join(' ⨯ ');
-  
-  return [`Grand Cross (${pattern.mode}, ${pattern.averageOrb.toFixed(1)}°): ${planets}`];
+
+  return [
+    `Grand Cross (${pattern.mode}, ${pattern.averageOrb.toFixed(
+      1
+    )}°): ${planets}`,
+  ];
 }
 
 /**
@@ -75,8 +95,10 @@ function formatYod(pattern: AspectPattern, showChartNames = true): string[] {
   const apex = formatPlanetPosition(pattern.apex, false, showChartNames);
   const base1 = formatPlanetPosition(pattern.base[0], false, showChartNames);
   const base2 = formatPlanetPosition(pattern.base[1], false, showChartNames);
-  
-  return [`Yod (${pattern.averageOrb.toFixed(1)}°): ${apex} ← ${base1} • ${base2}`];
+
+  return [
+    `Yod (${pattern.averageOrb.toFixed(1)}°): ${apex} ← ${base1} • ${base2}`,
+  ];
 }
 
 /**
@@ -88,12 +110,32 @@ function formatMysticRectangle(
 ): string[] {
   if (pattern.type !== 'Mystic Rectangle') return [];
 
-  const opp1_1 = formatPlanetPosition(pattern.oppositions[0][0], false, showChartNames);
-  const opp1_2 = formatPlanetPosition(pattern.oppositions[0][1], false, showChartNames);
-  const opp2_1 = formatPlanetPosition(pattern.oppositions[1][0], false, showChartNames);
-  const opp2_2 = formatPlanetPosition(pattern.oppositions[1][1], false, showChartNames);
-  
-  return [`Mystic Rectangle (${pattern.averageOrb.toFixed(1)}°): ${opp1_1} ↔ ${opp1_2} | ${opp2_1} ↔ ${opp2_2}`];
+  const opp1_1 = formatPlanetPosition(
+    pattern.oppositions[0][0],
+    false,
+    showChartNames
+  );
+  const opp1_2 = formatPlanetPosition(
+    pattern.oppositions[0][1],
+    false,
+    showChartNames
+  );
+  const opp2_1 = formatPlanetPosition(
+    pattern.oppositions[1][0],
+    false,
+    showChartNames
+  );
+  const opp2_2 = formatPlanetPosition(
+    pattern.oppositions[1][1],
+    false,
+    showChartNames
+  );
+
+  return [
+    `Mystic Rectangle (${pattern.averageOrb.toFixed(
+      1
+    )}°): ${opp1_1} ↔ ${opp1_2} | ${opp2_1} ↔ ${opp2_2}`,
+  ];
 }
 
 /**
@@ -103,15 +145,25 @@ function formatKite(pattern: AspectPattern, showChartNames = true): string[] {
   if (pattern.type !== 'Kite') return [];
 
   const grandTrineStr = pattern.grandTrine
-    .map(p => formatPlanetPosition(p, false, showChartNames))
+    .map((p) => formatPlanetPosition(p, false, showChartNames))
     .join(' △ ');
-  const oppositionPlanet = formatPlanetPosition(pattern.opposition, false, showChartNames);
-  
+  const oppositionPlanet = formatPlanetPosition(
+    pattern.opposition,
+    false,
+    showChartNames
+  );
+
   // Get the element from the first planet's sign for context
-  const element = pattern.grandTrine[0].sign ? getElementFromSign(pattern.grandTrine[0].sign) : '';
+  const element = pattern.grandTrine[0].sign
+    ? getElementFromSign(pattern.grandTrine[0].sign)
+    : '';
   const elementStr = element ? `${element}, ` : '';
-  
-  return [`Kite (${elementStr}${pattern.averageOrb.toFixed(1)}°): [${grandTrineStr}] ← ${oppositionPlanet}`];
+
+  return [
+    `Kite (${elementStr}${pattern.averageOrb.toFixed(
+      1
+    )}°): [${grandTrineStr}] ← ${oppositionPlanet}`,
+  ];
 }
 
 /**
@@ -122,7 +174,7 @@ function getElementFromSign(sign: string): string {
   const earthSigns = ['Taurus', 'Virgo', 'Capricorn'];
   const airSigns = ['Gemini', 'Libra', 'Aquarius'];
   const waterSigns = ['Cancer', 'Scorpio', 'Pisces'];
-  
+
   if (fireSigns.includes(sign)) return 'Fire';
   if (earthSigns.includes(sign)) return 'Earth';
   if (airSigns.includes(sign)) return 'Air';
@@ -134,21 +186,27 @@ function getElementFromSign(sign: string): string {
  * Check if a Grand Trine is part of any Kite pattern within the same analysis context
  * Uses exact planet identity matching (chart name + planet name + degree)
  */
-function isGrandTrinePartOfKite(grandTrine: AspectPattern, patterns: AspectPattern[]): boolean {
+function isGrandTrinePartOfKite(
+  grandTrine: AspectPattern,
+  patterns: AspectPattern[]
+): boolean {
   if (grandTrine.type !== 'Grand Trine') return false;
-  
-  return patterns.some(pattern => {
+
+  return patterns.some((pattern) => {
     if (pattern.type !== 'Kite') return false;
-    
+
     // Create unique identifiers for exact planet identity matching
-    const createPlanetId = (p: any) => `${p.chartName || ''}-${p.name}-${p.degree}`;
-    
+    const createPlanetId = (p: any) =>
+      `${p.chartName || ''}-${p.name}-${p.degree}`;
+
     const kiteGrandTrinePlanets = pattern.grandTrine.map(createPlanetId);
     const grandTrinePlanets = grandTrine.planets.map(createPlanetId);
-    
+
     // Check if the sets of planets are identical (same planets, same count)
-    return kiteGrandTrinePlanets.length === grandTrinePlanets.length &&
-           kiteGrandTrinePlanets.every(kp => grandTrinePlanets.includes(kp));
+    return (
+      kiteGrandTrinePlanets.length === grandTrinePlanets.length &&
+      kiteGrandTrinePlanets.every((kp) => grandTrinePlanets.includes(kp))
+    );
   });
 }
 
@@ -169,15 +227,13 @@ export function generateAspectPatternsOutput(
   ];
 
   if (patterns.length === 0) {
-    // General statement plus explicit enumeration to prevent LLM hallucinations
-    output.push('No aspect patterns detected.');
     output.push('No T-Squares detected.');
     output.push('No Grand Trines detected.');
     return output;
   }
 
   // Filter out Grand Trines that are part of Kites to avoid duplication
-  const filteredPatterns = patterns.filter(pattern => {
+  const filteredPatterns = patterns.filter((pattern) => {
     if (pattern.type === 'Grand Trine') {
       return !isGrandTrinePartOfKite(pattern, patterns);
     }

@@ -1,114 +1,100 @@
-import { chart2txt, formatChartToJson, ChartData } from '../src/index';
+import {
+  chart2txt,
+  analyzeCharts,
+  ChartData,
+  AspectPattern,
+  TransitAnalysis,
+} from '../src/index';
 
-describe('Global Transit Composite Logic', () => {
+describe('Global Transit Duplication', () => {
   describe('Analysis Logic', () => {
-    it('should only include patterns involving transit planets in the global transit analysis', () => {
-      const chart1: ChartData = {
-        name: 'Person1',
+    it('should not duplicate patterns between global transit and individual transit analyses', () => {
+      const natalA: ChartData = {
+        name: 'Natal A',
         planets: [
           { name: 'Sun', degree: 0 },
           { name: 'Moon', degree: 120 },
         ],
       };
-      const chart2: ChartData = {
-        name: 'Person2',
+      const natalB: ChartData = {
+        name: 'Natal B',
         planets: [{ name: 'Mars', degree: 240 }],
       };
-      const chart3: ChartData = {
-        name: 'Person3',
-        planets: [{ name: 'Jupiter', degree: 180 }],
-      };
-      const transitChart: ChartData = {
+      const transit: ChartData = {
         name: 'Transit',
         chartType: 'transit',
-        planets: [{ name: 'Pluto', degree: 270 }],
+        planets: [
+          { name: 'Saturn', degree: 180 }, // Creates a Kite with the Grand Trine
+        ],
       };
 
-      const report = formatChartToJson([chart1, chart2, chart3, transitChart], {
+      const report = analyzeCharts([natalA, natalB, transit], {
         includeAspectPatterns: true,
       });
 
-      // Global analysis should contain the non-transit pattern (Kite)
-      const hasMajorPattern = report.globalAnalysis?.patterns.some(
-        (p) => p.type === 'Kite'
+      // The global transit analysis should contain the Kite
+      expect(report.globalTransitAnalysis).toBeDefined();
+      expect(report.globalTransitAnalysis?.patterns.length).toBe(1);
+      const kite = report.globalTransitAnalysis?.patterns.find(
+        (p: AspectPattern) => p.type === 'Kite'
       );
-      expect(hasMajorPattern).toBe(true);
+      expect(kite).toBeDefined();
 
-      // Global transit analysis should only contain patterns involving Pluto
-      report.globalTransitAnalysis?.patterns.forEach((pattern) => {
-        const planetNames = JSON.stringify(pattern);
-        expect(planetNames).toContain('Pluto');
-      });
-    });
-
-    it('should not create a global transit section for patterns with only one natal chart', () => {
-      const natalChart1: ChartData = {
-        name: 'Natal A',
-        planets: [
-          { name: 'Sun', degree: 0 },
-          { name: 'Moon', degree: 180 },
-        ],
-      };
-      const natalChart2: ChartData = {
-        name: 'Natal B',
-        planets: [{ name: 'Mars', degree: 120 }],
-      };
-      const transitChart: ChartData = {
-        name: 'Transit',
-        chartType: 'transit',
-        planets: [{ name: 'Pluto', degree: 90 }],
-      };
-
-      const report = formatChartToJson(
-        [natalChart1, natalChart2, transitChart],
-        { includeAspectPatterns: true }
-      );
-
-      // The T-Square should be in the individual transit analysis for Natal A
+      // The individual transit analyses should NOT contain the Kite
+      // because it's a global pattern involving more than 2 charts.
       const transitToA = report.transitAnalyses.find(
-        (t) => t.natalChart.name === 'Natal A'
+        (t: TransitAnalysis) => t.natalChart.name === 'Natal A'
       );
-      expect(transitToA?.patterns.some((p) => p.type === 'T-Square')).toBe(
-        true
+      const transitToB = report.transitAnalyses.find(
+        (t: TransitAnalysis) => t.natalChart.name === 'Natal B'
       );
-
-      // There should be no global transit analysis section, as no patterns involve 3+ charts
-      expect(report.globalTransitAnalysis).toBeUndefined();
+      expect(transitToA?.patterns.length).toBe(0);
+      expect(transitToB?.patterns.length).toBe(0);
     });
   });
 
   describe('Integration Test', () => {
-    it('should format a report with both global and global transit patterns correctly', () => {
-      const chart1 = {
-        name: 'Person A',
-        planets: [{ name: 'Sun', degree: 0 }],
+    it('should format the report without duplicating patterns', () => {
+      const natalA: ChartData = {
+        name: 'Natal A',
+        planets: [
+          { name: 'Sun', degree: 0 },
+          { name: 'Moon', degree: 120 },
+        ],
+        houseCusps: [0, 30, 60, 90, 120, 150, 180, 210, 240, 270, 300, 330],
       };
-      const chart2 = {
-        name: 'Person B',
-        planets: [{ name: 'Moon', degree: 120 }],
-      };
-      const chart3 = {
-        name: 'Person C',
+      const natalB: ChartData = {
+        name: 'Natal B',
         planets: [{ name: 'Mars', degree: 240 }],
+        houseCusps: [0, 30, 60, 90, 120, 150, 180, 210, 240, 270, 300, 330],
       };
-      const transit = {
+      const transit: ChartData = {
         name: 'Transit',
-        chartType: 'transit' as const,
-        planets: [{ name: 'Pluto', degree: 90 }],
+        chartType: 'transit',
+        planets: [{ name: 'Saturn', degree: 180 }],
+        houseCusps: [0, 30, 60, 90, 120, 150, 180, 210, 240, 270, 300, 330],
       };
 
-      // This setup creates a Grand Trine between A, B, C
-      // and a T-Square between A's Sun, C's Mars (as an opposition), and Transit Pluto
-      const result = chart2txt([chart1, chart2, chart3, transit], {
+      const result = chart2txt([natalA, natalB, transit], {
         includeAspectPatterns: true,
       });
 
-      expect(result).toContain('Person A-Person B-Person C Global Composite');
-      expect(result).toContain('Grand Trine (');
+      // The global transit section should contain the Kite
+      expect(result).toContain(
+        '[ASPECT PATTERNS: Natal A-Natal B-Transit Global Transit Composite]'
+      );
+      expect(result).toContain('Kite (');
 
-      // This scenario does not produce a global transit pattern, so the section should not appear.
-      // A more complex setup would be needed to test the positive case.
-      expect(result).not.toContain('Global Transit Composite');
+      // The individual transit sections should not
+      expect(result).toContain('[ASPECT PATTERNS: Transit to Natal A]');
+      expect(result).toContain('[ASPECT PATTERNS: Transit to Natal B]');
+
+      const transitToASection = result.substring(
+        result.indexOf('[ASPECT PATTERNS: Transit to Natal A]'),
+        result.indexOf('[ASPECT PATTERNS: Transit to Natal B]')
+      );
+      expect(transitToASection).toContain('No T-Squares detected.');
+      expect(transitToASection).toContain('No Grand Trines detected.');
     });
   });
 });

@@ -1,4 +1,9 @@
-import { chart2txt, formatChartToJson, ChartData } from '../src/index';
+import {
+  chart2txt,
+  analyzeCharts,
+  ChartData,
+  AspectPattern,
+} from '../src/index';
 
 describe('Grand Trine Deduplication in Kites', () => {
   describe('Analysis Logic', () => {
@@ -7,38 +12,43 @@ describe('Grand Trine Deduplication in Kites', () => {
       const chart1: ChartData = {
         name: 'Person1',
         planets: [
-          { name: 'Sun', degree: 0 },    // 0° Aries
-          { name: 'Moon', degree: 120 }, // 0° Leo  
+          { name: 'Sun', degree: 0 }, // 0° Aries
+          { name: 'Moon', degree: 120 }, // 0° Leo
         ],
       };
       const chart2: ChartData = {
-        name: 'Person2', 
+        name: 'Person2',
         planets: [
-          { name: 'Mars', degree: 240 },  // 0° Sagittarius (completes Grand Trine)
+          { name: 'Mars', degree: 240 }, // 0° Sagittarius (completes Grand Trine)
           { name: 'Saturn', degree: 180 }, // 0° Libra (opposition to Sun, creates Kite)
         ],
       };
 
-      const report = formatChartToJson([chart1, chart2], {
+      const report = analyzeCharts([chart1, chart2], {
         includeAspectPatterns: true,
       });
 
       // The composite analysis should detect both a Grand Trine and a Kite
-      const compositePatterns = report.pairwiseAnalyses[0]?.compositePatterns || [];
-      
-      const grandTrine = compositePatterns.find(p => p.type === 'Grand Trine');
-      const kite = compositePatterns.find(p => p.type === 'Kite');
+      const compositePatterns =
+        report.pairwiseAnalyses[0]?.compositePatterns || [];
+
+      const grandTrine = compositePatterns.find(
+        (p: AspectPattern) => p.type === 'Grand Trine'
+      );
+      const kite = compositePatterns.find(
+        (p: AspectPattern) => p.type === 'Kite'
+      );
 
       expect(grandTrine).toBeDefined();
       expect(kite).toBeDefined();
-      
+
       // Verify the Grand Trine is Fire element with the expected planets
-      expect(grandTrine?.element).toBe('Fire');
-      expect(grandTrine?.planets).toHaveLength(3);
-      
+      expect((grandTrine as any)?.element).toBe('Fire');
+      expect((grandTrine as any)?.planets).toHaveLength(3);
+
       // Verify the Kite uses the same Grand Trine planets
-      expect(kite?.grandTrine).toHaveLength(3);
-      expect(kite?.opposition.name).toBe('Saturn');
+      expect((kite as any)?.grandTrine).toHaveLength(3);
+      expect((kite as any)?.opposition.name).toBe('Saturn');
     });
   });
 
@@ -48,15 +58,15 @@ describe('Grand Trine Deduplication in Kites', () => {
       const chart1: ChartData = {
         name: 'Person1',
         planets: [
-          { name: 'Sun', degree: 0 },    // 0° Aries
-          { name: 'Moon', degree: 120 }, // 0° Leo  
+          { name: 'Sun', degree: 0 }, // 0° Aries
+          { name: 'Moon', degree: 120 }, // 0° Leo
         ],
         houseCusps: [0, 30, 60, 90, 120, 150, 180, 210, 240, 270, 300, 330],
       };
       const chart2: ChartData = {
-        name: 'Person2', 
+        name: 'Person2',
         planets: [
-          { name: 'Mars', degree: 240 },  // 0° Sagittarius (completes Fire Grand Trine)
+          { name: 'Mars', degree: 240 }, // 0° Sagittarius (completes Fire Grand Trine)
           { name: 'Saturn', degree: 180 }, // 0° Libra (creates Kite with Sun)
         ],
         houseCusps: [0, 30, 60, 90, 120, 150, 180, 210, 240, 270, 300, 330],
@@ -68,23 +78,29 @@ describe('Grand Trine Deduplication in Kites', () => {
 
       // Should contain the Kite pattern
       expect(result).toContain('Kite (Fire');
-      expect(result).toContain('Person1\'s Sun 0° Aries');
-      expect(result).toContain('Person1\'s Moon 0° Leo'); 
-      expect(result).toContain('Person2\'s Mars 0° Sagittarius');
-      expect(result).toContain('Person2\'s Saturn 0° Libra');
+      expect(result).toContain("Person1's Sun 0° Aries");
+      expect(result).toContain("Person1's Moon 0° Leo");
+      expect(result).toContain("Person2's Mars 0° Sagittarius");
+      expect(result).toContain("Person2's Saturn 0° Libra");
 
       // Verify the composite section exists and check its contents
-      const compositeSection = result.substring(
-        result.indexOf('[ASPECT PATTERNS: Person1-Person2 Composite]'),
-        result.indexOf('[HOUSE OVERLAYS]') > -1 
-          ? result.indexOf('[HOUSE OVERLAYS]')
-          : result.length
+      const compositeSectionStart = result.indexOf(
+        '[ASPECT PATTERNS: Person1-Person2 Composite]'
       );
-      
+      let compositeSectionEnd = result.indexOf('[HOUSE OVERLAYS]');
+      if (compositeSectionEnd === -1) {
+        compositeSectionEnd = result.length;
+      }
+      const compositeSection = result.substring(
+        compositeSectionStart,
+        compositeSectionEnd
+      );
+
       // Count pattern occurrences in the composite section only
       const kiteCount = (compositeSection.match(/Kite \(/g) || []).length;
-      const grandTrineCount = (compositeSection.match(/Grand Trine \(/g) || []).length;
-      
+      const grandTrineCount = (compositeSection.match(/Grand Trine \(/g) || [])
+        .length;
+
       expect(kiteCount).toBe(1);
       expect(grandTrineCount).toBe(0); // Should be filtered out due to deduplication
     });
@@ -94,7 +110,7 @@ describe('Grand Trine Deduplication in Kites', () => {
       const chart1: ChartData = {
         name: 'Person1',
         planets: [
-          { name: 'Sun', degree: 0 },    // 0° Aries
+          { name: 'Sun', degree: 0 }, // 0° Aries
           { name: 'Moon', degree: 120 }, // 0° Leo
         ],
       };
@@ -112,9 +128,9 @@ describe('Grand Trine Deduplication in Kites', () => {
 
       // Should contain the standalone Grand Trine in composite section
       expect(result).toContain('Grand Trine (Fire');
-      expect(result).toContain('Person1\'s Sun 0° Aries');
-      expect(result).toContain('Person1\'s Moon 0° Leo');
-      expect(result).toContain('Person2\'s Mars 0° Sagittarius');
+      expect(result).toContain("Person1's Sun 0° Aries");
+      expect(result).toContain("Person1's Moon 0° Leo");
+      expect(result).toContain("Person2's Mars 0° Sagittarius");
 
       // Should NOT contain a Kite (no opposition)
       expect(result).not.toContain('Kite (');
@@ -125,8 +141,8 @@ describe('Grand Trine Deduplication in Kites', () => {
       const alice: ChartData = {
         name: 'Alice',
         planets: [
-          { name: 'Sun', degree: 0 },    // 0° Aries
-          { name: 'Moon', degree: 120 }, // 0° Leo  
+          { name: 'Sun', degree: 0 }, // 0° Aries
+          { name: 'Moon', degree: 120 }, // 0° Leo
           { name: 'Mars', degree: 240 }, // 0° Sagittarius (Alice's natal Grand Trine)
         ],
         houseCusps: [0, 30, 60, 90, 120, 150, 180, 210, 240, 270, 300, 330],
@@ -134,7 +150,7 @@ describe('Grand Trine Deduplication in Kites', () => {
       const bob: ChartData = {
         name: 'Bob',
         planets: [
-          { name: 'Saturn', degree: 180 }, // 0° Libra (opposition to Alice's Sun = Kite)
+          { name: 'Saturn', degree: 180 }, // 0° Libra (opposition to Alice\'s Sun = Kite)
         ],
         houseCusps: [0, 30, 60, 90, 120, 150, 180, 210, 240, 270, 300, 330],
       };
@@ -167,17 +183,17 @@ describe('Grand Trine Deduplication in Kites', () => {
       const chart1: ChartData = {
         name: 'Person1',
         planets: [
-          { name: 'Sun', degree: 0 },     // 0° Aries 
-          { name: 'Moon', degree: 120 },  // 0° Leo 
+          { name: 'Sun', degree: 0 }, // 0° Aries
+          { name: 'Moon', degree: 120 }, // 0° Leo
           { name: 'Mercury', degree: 60 }, // 0° Gemini
         ],
       };
       const chart2: ChartData = {
         name: 'Person2',
         planets: [
-          { name: 'Mars', degree: 240 },    // 0° Sagittarius 
-          { name: 'Jupiter', degree: 180 },  // 0° Libra
-          { name: 'Venus', degree: 300 },   // 0° Aquarius
+          { name: 'Mars', degree: 240 }, // 0° Sagittarius
+          { name: 'Jupiter', degree: 180 }, // 0° Libra
+          { name: 'Venus', degree: 300 }, // 0° Aquarius
         ],
       };
 
@@ -188,20 +204,21 @@ describe('Grand Trine Deduplication in Kites', () => {
       // Should contain Kite patterns (both Fire and Air)
       expect(result).toContain('Kite (Fire');
       expect(result).toContain('Kite (Air');
-      
+
       // Should NOT contain standalone Grand Trines since they're all part of Kites
       expect(result).not.toContain('Grand Trine (Fire');
       expect(result).not.toContain('Grand Trine (Air');
-      
+
       // Verify that the composite section doesn't have redundant Grand Trines
       const compositeSection = result.substring(
         result.indexOf('[ASPECT PATTERNS: Person1-Person2 Composite]'),
         result.indexOf('[HOUSE OVERLAYS]')
       );
-      
+
       const kiteCount = (compositeSection.match(/Kite \(/g) || []).length;
-      const grandTrineCount = (compositeSection.match(/Grand Trine \(/g) || []).length;
-      
+      const grandTrineCount = (compositeSection.match(/Grand Trine \(/g) || [])
+        .length;
+
       expect(kiteCount).toBeGreaterThan(0); // Should have Kites
       expect(grandTrineCount).toBe(0); // Should have no Grand Trines (all filtered)
     });

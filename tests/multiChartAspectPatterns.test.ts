@@ -1,6 +1,6 @@
 import {
   chart2txt,
-  formatChartToJson,
+  analyzeCharts,
   ChartData,
   AspectPattern,
   TSquare,
@@ -21,7 +21,7 @@ describe('MultiChart Aspect Pattern Detection', () => {
         planets: [{ name: 'Mars', degree: 90 }],
       };
 
-      const report = formatChartToJson([chart1, chart2], {
+      const report = analyzeCharts([chart1, chart2], {
         includeAspectPatterns: true,
       });
       const compositePatterns = report.pairwiseAnalyses[0]?.compositePatterns;
@@ -48,7 +48,7 @@ describe('MultiChart Aspect Pattern Detection', () => {
         planets: [{ name: 'Jupiter', degree: 240 }],
       };
 
-      const report = formatChartToJson([chart1, chart2, chart3], {
+      const report = analyzeCharts([chart1, chart2, chart3], {
         includeAspectPatterns: true,
       });
       const globalPatterns = report.globalAnalysis?.patterns;
@@ -74,7 +74,7 @@ describe('MultiChart Aspect Pattern Detection', () => {
         planets: [{ name: 'Pluto', degree: 90 }],
       };
 
-      const report = formatChartToJson([natalChart, transitChart], {
+      const report = analyzeCharts([natalChart, transitChart], {
         includeAspectPatterns: true,
       });
       const transitPatterns = report.transitAnalyses[0]?.patterns;
