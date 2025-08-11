@@ -20,6 +20,8 @@ export class ChartSettings implements Settings {
   aspectStrengthThresholds!: AspectStrengthThresholds;
   includeAspectPatterns!: boolean;
   includeSignDistributions!: boolean;
+  includeDispositors!: boolean | 'finals';
+  includeHouseOverlays!: boolean;
   dateFormat!: string;
 
   constructor(customSettings: PartialSettings = {}) {

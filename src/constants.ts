@@ -318,6 +318,8 @@ export const DEFAULT_SETTINGS: Settings = {
   skipOutOfSignAspects: true,
   includeAspectPatterns: false,
   includeSignDistributions: true,
+  includeDispositors: true,
+  includeHouseOverlays: true,
 
   // Grouping settings
   aspectStrengthThresholds: DEFAULT_ASPECT_STRENGTH_THRESHOLDS,

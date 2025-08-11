@@ -49,7 +49,10 @@ const processSingleChartOutput = (
   outputLines.push(...generateAnglesOutput(chart.ascendant, chart.midheaven));
   outputLines.push(...generateHousesOutput(chart.houseCusps));
   outputLines.push(...generatePlanetsOutput(placements.planets));
-  outputLines.push(...generateDispositorsOutput(dispositors));
+  
+  if (settings.includeDispositors) {
+    outputLines.push(...generateDispositorsOutput(dispositors));
+  }
 
   if (settings.includeSignDistributions) {
     outputLines.push(
@@ -121,10 +124,14 @@ const processChartPairOutput = (
   }
 
   outputLines.push('');
-  outputLines.push(
-    ...generateHouseOverlaysOutput(houseOverlays, chart1.name, chart2.name)
-  );
-  outputLines.push('');
+  
+  if (settings.includeHouseOverlays) {
+    outputLines.push(
+      ...generateHouseOverlaysOutput(houseOverlays, chart1.name, chart2.name)
+    );
+    outputLines.push('');
+  }
+  
   return outputLines;
 };
 

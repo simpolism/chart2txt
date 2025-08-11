@@ -228,7 +228,7 @@ export function analyzeCharts(
         : { elements: {}, modalities: {}, polarities: {} },
       dispositors:
         chart.chartType !== 'transit'
-          ? calculateDispositors(chart.planets)
+          ? calculateDispositors(chart.planets, settings.includeDispositors)
           : {},
     });
   }
@@ -261,7 +261,9 @@ export function analyzeCharts(
           chart2: chart2,
           synastryAspects: synastryAspects,
           compositePatterns: compositePatterns,
-          houseOverlays: calculateHouseOverlays(chart1, chart2),
+          houseOverlays: settings.includeHouseOverlays 
+            ? calculateHouseOverlays(chart1, chart2)
+            : { chart1InChart2Houses: {}, chart2InChart1Houses: {} },
         });
       }
     }

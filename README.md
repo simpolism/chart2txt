@@ -121,6 +121,8 @@ The `Settings` object is composed of three parts:
     *   `skipOutOfSignAspects`: `boolean`
     *   `includeAspectPatterns`: `boolean`
     *   `includeSignDistributions`: `boolean`
+    *   `includeDispositors`: `boolean | 'finals'` - Controls dispositor tree output. `true` shows all chains, `false` disables, `'finals'` shows only final dispositors and deduplicated cycles.
+    *   `includeHouseOverlays`: `boolean` - Controls house overlays section in synastry charts.
 *   **`GroupingSettings`**: For `groupAspects()` or the simple `chart2txt()` workflow.
     *   `aspectStrengthThresholds`: An object to define orb limits for default grouping, e.g., `{ tight: 2.0, moderate: 4.0 }`.
 *   **`FormattingSettings`**: For `formatReportToText()`

@@ -196,6 +196,8 @@ export interface AnalysisSettings {
   skipOutOfSignAspects?: boolean;
   includeAspectPatterns?: boolean;
   includeSignDistributions?: boolean;
+  includeDispositors?: boolean | 'finals';
+  includeHouseOverlays?: boolean;
 }
 
 export interface GroupingSettings {
