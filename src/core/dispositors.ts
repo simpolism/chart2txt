@@ -110,7 +110,8 @@ export function calculateDispositors(
       if (nextDispositor === current) {
         // Planet is its own dispositor (final dispositor).
         chain += ` → (final)`;
-        isFinal = true;
+        // Only mark as final if this is the starting planet
+        isFinal = (current === planet.name);
         break;
       }
 
@@ -137,15 +138,18 @@ export function calculateDispositors(
     chainInfo[planet.name] = { isFinal, isCycle };
   });
 
-  // Only deduplicate cycles if mode is 'finals'
+  // Handle finals mode with summary format
   if (mode === 'finals') {
-    // Second pass: deduplicate cycles while keeping non-cycle chains
-    const finalChains: { [key: string]: string } = {};
+    const finalDispositors: string[] = [];
+    const cycles: string[] = [];
+    const processedCycles = new Set<string>();
     
     for (const planet in chains) {
       const info = chainInfo[planet];
       
-      if (info.isCycle) {
+      if (info.isFinal) {
+        finalDispositors.push(planet);
+      } else if (info.isCycle) {
         // Extract cycle from chain to create canonical representation
         const chain = chains[planet];
         const parts = chain.split(' → ');
@@ -157,26 +161,44 @@ export function calculateDispositors(
           
           if (cycleStartIndex >= 0 && cycleStartIndex < cycleEndIndex) {
             const cyclePlanets = parts.slice(cycleStartIndex, cycleEndIndex);
-            const sortedCycle = [...cyclePlanets].sort();
+            // Create a unique cycle representation using only the planets in the cycle (not the path)
+            const uniqueCyclePlanets = [...new Set(cyclePlanets)];
+            const sortedCycle = uniqueCyclePlanets.sort();
             const cycleKey = sortedCycle.join('|');
             
             if (!processedCycles.has(cycleKey)) {
               processedCycles.add(cycleKey);
-              finalChains[planet] = chains[planet];
+              // Show the directed cycle, starting with the alphabetically first planet
+              const startPlanet = sortedCycle[0];
+              const reorderedCycle = [...cyclePlanets];
+              if (reorderedCycle[0] !== startPlanet) {
+                // Find the starting planet and rotate the array to start there
+                const startIndex = reorderedCycle.indexOf(startPlanet);
+                reorderedCycle.push(...reorderedCycle.splice(0, startIndex));
+              }
+              reorderedCycle.push(reorderedCycle[0]); // Complete the cycle
+              cycles.push(reorderedCycle.join(' → '));
             }
-            // Skip other planets in the same cycle
           }
         }
-      } else if (!cycleMembers.has(planet) || !info.isCycle) {
-        // Include non-cycle planets and planets that lead to cycles but aren't in cycles themselves
-        finalChains[planet] = chains[planet];
       }
     }
 
-    chains = finalChains;
+    // Return summary format
+    const summaryParts: string[] = [];
+    if (finalDispositors.length > 0) {
+      summaryParts.push(`Final dispositors: ${finalDispositors.join(', ')}`);
+    }
+    if (cycles.length > 0) {
+      summaryParts.push(`Cycles: ${cycles.join(', ')}`);
+    }
+    
+    if (summaryParts.length === 0) {
+      return { 'summary': 'No final dispositors or cycles found' };
+    }
+    
+    return { 'summary': summaryParts.join('; ') };
   }
-
-  // Mode 'finals' filtering was already handled above during deduplication
 
   return chains;
 }

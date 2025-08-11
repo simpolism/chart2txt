@@ -76,7 +76,7 @@ describe('Output Control Flags', () => {
       expect(result).toContain('Venus → Sun → (final)');
     });
 
-    test('includeDispositors="finals" includes only final dispositors and cycles', () => {
+    test('includeDispositors="finals" uses single line format for finals and cycles', () => {
       const dataWithCycle: ChartData = {
         name: 'test',
         planets: [
@@ -89,18 +89,39 @@ describe('Output Control Flags', () => {
 
       const result = chart2txt(dataWithCycle, { includeDispositors: 'finals' });
 
-      expect(result).toContain('[DISPOSITOR TREE]');
-      expect(result).toContain('Sun → (final)');
+      // Should use single line format
+      expect(result).not.toContain('[DISPOSITOR TREE]');
+      expect(result).toContain('[DISPOSITORS] Final dispositors: Sun; Cycles: Mars → Venus → Mars');
       
-      // In finals mode, should only show one cycle line, not both directions
-      const cycleLines = result.split('\n').filter(line => line.trim().endsWith('(cycle)'));
-      expect(cycleLines).toHaveLength(1);
-      
-      // Should show one of the cycle directions
-      expect(result).toMatch(/(?:Venus → Mars → Venus \(cycle\)|Mars → Venus → Mars \(cycle\))/);
-      
-      // Mercury is not part of the cycle itself, so it should not be shown
+      // Should NOT contain the old format
+      expect(result).not.toContain('Sun → (final)');
+      expect(result).not.toContain('Venus → Mars → Venus (cycle)');
+      expect(result).not.toContain('Mars → Venus → Mars (cycle)');
       expect(result).not.toContain('Mercury → Venus');
+    });
+
+    test('finals mode shows single line format with only final dispositors and cycles', () => {
+      const dataWithFinalDispositorChain: ChartData = {
+        name: 'test',
+        planets: [
+          { name: 'Sun', degree: 120 }, // 0° Leo - final dispositor
+          { name: 'Venus', degree: 120 }, // 0° Leo - disposed by Sun (final)
+          { name: 'Mercury', degree: 120 }, // 0° Leo - disposed by Sun (final)
+          { name: 'Mars', degree: 30 }, // 0° Taurus - disposed by Venus → Sun (final)
+        ],
+      };
+
+      const result = chart2txt(dataWithFinalDispositorChain, { includeDispositors: 'finals' });
+
+      // Should use single line format, not the full dispositor tree
+      expect(result).not.toContain('[DISPOSITOR TREE]');
+      expect(result).toContain('[DISPOSITORS] Final dispositors: Sun');
+      
+      // Should NOT contain any of the full chains
+      expect(result).not.toContain('Sun → (final)');
+      expect(result).not.toContain('Venus → Sun → (final)');
+      expect(result).not.toContain('Mercury → Sun → (final)');
+      expect(result).not.toContain('Mars → Venus → Sun → (final)');
     });
 
     test('default behavior includes dispositors (backward compatibility)', () => {

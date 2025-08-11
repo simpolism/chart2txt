@@ -46,8 +46,8 @@ describe('Dispositor Cycle Deduplication', () => {
     });
   });
 
-  describe('finals mode deduplication (includeDispositors: "finals")', () => {
-    test('shows only one line for Venus-Mars mutual reception', () => {
+  describe('finals mode single line format (includeDispositors: "finals")', () => {
+    test('shows single line format for Venus-Mars mutual reception', () => {
       const data: ChartData = {
         name: 'test',
         planets: [
@@ -59,18 +59,17 @@ describe('Dispositor Cycle Deduplication', () => {
 
       const result = chart2txt(data, { includeDispositors: 'finals' });
 
-      expect(result).toContain('[DISPOSITOR TREE]');
-      expect(result).toContain('Sun → (final)');
+      // Should use single line format
+      expect(result).not.toContain('[DISPOSITOR TREE]');
+      expect(result).toContain('[DISPOSITORS] Final dispositors: Sun; Cycles: Mars → Venus → Mars');
       
-      // Should only show the cycle once - count lines that end with (cycle)
-      const cycleLines = result.split('\n').filter(line => line.trim().endsWith('(cycle)'));
-      expect(cycleLines).toHaveLength(1);
-      
-      // Check that the cycle is shown in a consistent format
-      expect(result).toMatch(/(?:Venus → Mars → Venus \(cycle\)|Mars → Venus → Mars \(cycle\))/);
+      // Should NOT contain the old format
+      expect(result).not.toContain('Sun → (final)');
+      expect(result).not.toContain('Venus → Mars → Venus (cycle)');
+      expect(result).not.toContain('Mars → Venus → Mars (cycle)');
     });
 
-    test('shows only one line for three-planet cycle', () => {
+    test('shows single line format for three-planet cycle', () => {
       const data: ChartData = {
         name: 'test',
         planets: [
@@ -82,16 +81,15 @@ describe('Dispositor Cycle Deduplication', () => {
 
       const result = chart2txt(data, { includeDispositors: 'finals' });
 
-      // Should only show the cycle once, not three times
-      const cycleLines = result.split('\n').filter(line => line.includes('(cycle)'));
-      expect(cycleLines).toHaveLength(1);
+      // Should use single line format with correct cycle representation
+      expect(result).not.toContain('[DISPOSITOR TREE]');
+      expect(result).toContain('[DISPOSITORS] Cycles: Mars → Venus → Mercury → Mars');
       
-      // All three planets should be mentioned in the single cycle line
-      const cycleLine = cycleLines[0];
-      expect(cycleLine).toContain('Mercury');
-      expect(cycleLine).toContain('Venus');
-      expect(cycleLine).toContain('Mars');
-      expect(cycleLine).toContain('(cycle)');
+      // Should NOT contain old tree format with separate lines
+      expect(result).not.toContain('Mercury → Mars → Venus (cycle)');
+      expect(result).not.toContain('Venus → Mercury → Mars (cycle)');
+      expect(result).not.toContain('Mars → Venus → Mercury (cycle)');
+      expect(result).not.toContain('[DISPOSITOR TREE]');
     });
   });
 
@@ -126,7 +124,7 @@ describe('Dispositor Cycle Deduplication', () => {
   });
 
   describe('includeDispositors="finals" mode with cycles', () => {
-    test('shows only finals and cycles when mode is "finals"', () => {
+    test('uses single line format for finals and cycles', () => {
       const data: ChartData = {
         name: 'test',
         planets: [
@@ -139,14 +137,13 @@ describe('Dispositor Cycle Deduplication', () => {
 
       const result = chart2txt(data, { includeDispositors: 'finals' });
 
-      expect(result).toContain('[DISPOSITOR TREE]');
-      expect(result).toContain('Sun → (final)');
+      // Should use single line format
+      expect(result).not.toContain('[DISPOSITOR TREE]');
+      expect(result).toContain('[DISPOSITORS] Final dispositors: Sun; Cycles: Mars → Venus → Mars');
       
-      // Should show the cycle once
-      const cycleLines = result.split('\n').filter(line => line.includes('(cycle)'));
-      expect(cycleLines).toHaveLength(1);
-      
-      // Should NOT show Mercury since it's not a final or directly in a cycle
+      // Should NOT contain old format
+      expect(result).not.toContain('Sun → (final)');
+      expect(result).not.toContain('(cycle)');
       expect(result).not.toContain('Mercury → Venus → Mars');
     });
   });
