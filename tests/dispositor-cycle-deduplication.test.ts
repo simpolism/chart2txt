@@ -148,6 +148,32 @@ describe('Dispositor Cycle Deduplication', () => {
     });
   });
 
+  describe('includeDispositors="finals" mode with multiple cycles', () => {
+    test('uses single line format for multiple cycles', () => {
+      const data: ChartData = {
+        name: 'test',
+        planets: [
+          { name: 'Moon', degree: 120 }, // 0° Leo - disposed by Sun (cycle)
+          { name: 'Sun', degree: 90 }, // 0° Cancer - disposed by Moon (cycle)
+          { name: 'Venus', degree: 210 }, // 0° Scorpio - disposed by Mars (cycle)
+          { name: 'Mars', degree: 30 }, // 0° Taurus - disposed by Venus (cycle)
+          { name: 'Mercury', degree: 35 }, // 5° Taurus - disposed by Venus (not final/cycle)
+        ],
+      };
+
+      const result = chart2txt(data, { includeDispositors: 'finals' });
+
+      // Should use single line format
+      expect(result).not.toContain('[DISPOSITOR TREE]');
+      expect(result).toContain('[DISPOSITORS] Cycles: Moon → Sun → Moon, Mars → Venus → Mars');
+      
+      // Should NOT contain old format
+      expect(result).not.toContain('Sun → (final)');
+      expect(result).not.toContain('(cycle)');
+      expect(result).not.toContain('Mercury → Venus → Mars');
+    });
+  });
+
   describe('backward compatibility', () => {
     test('maintains the same behavior for final dispositors', () => {
       const data: ChartData = {
