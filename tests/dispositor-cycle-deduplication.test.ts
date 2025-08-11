@@ -165,7 +165,7 @@ describe('Dispositor Cycle Deduplication', () => {
 
       // Should use single line format
       expect(result).not.toContain('[DISPOSITOR TREE]');
-      expect(result).toContain('[DISPOSITORS] Cycles: Moon → Sun → Moon, Mars → Venus → Mars');
+      expect(result).toContain('[DISPOSITORS] Cycles: Mars → Venus → Mars, Moon → Sun → Moon');
       
       // Should NOT contain old format
       expect(result).not.toContain('Sun → (final)');

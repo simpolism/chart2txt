@@ -1,6 +1,6 @@
 {
   "name": "chart2txt",
-  "version": "0.7.0",
+  "version": "0.7.1",
   "description": "Convert astrological chart data to human-readable text",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",

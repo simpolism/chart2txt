@@ -2,6 +2,15 @@ import { Point } from '../types';
 import { ZODIAC_SIGN_DATA } from '../constants';
 import { getSign } from '../utils/formatting';
 
+type DispositorMap = { [key: string]: string };
+type AnalysisResult = {
+  path: string[];
+  isCycle: boolean;
+  isFinal: boolean;
+  isBroken: boolean;
+};
+type AnalysisCache = { [key: string]: AnalysisResult };
+
 /**
  * Calculates the dispositor for a single planet.
  * @param planet The planet to find the dispositor for.
@@ -14,191 +23,184 @@ function getDispositor(planet: Point): string {
 }
 
 /**
- * Finds all cycles in the dispositor network and returns their canonical representation
+ * Analyzes the dispositor graph for a single planet, using memoization to avoid re-computation.
+ * @param startPlanet - The planet to begin the analysis from.
+ * @param dispositorMap - A map of each planet to its direct dispositor.
+ * @param cache - A cache of already computed results to avoid redundant work.
+ * @returns The analysis result for the starting planet.
  */
-function findCycles(dispositorMap: { [key: string]: string }): Set<string> {
-  const visited = new Set<string>();
-  const cycles = new Set<string>();
-  
-  function findCycle(start: string, path: string[] = [], pathSet: Set<string> = new Set()): void {
-    if (visited.has(start)) return;
-    
-    const next = dispositorMap[start];
-    if (!next || !dispositorMap.hasOwnProperty(next)) return;
-    
-    if (pathSet.has(next)) {
-      // Found a cycle - extract it from the path
-      const cycleStartIndex = path.indexOf(next);
-      const cyclePlanets = path.slice(cycleStartIndex);
-      
-      // Create canonical representation (sorted to ensure uniqueness)
-      const sortedCycle = [...cyclePlanets].sort();
-      const cycleKey = sortedCycle.join(' ↔ ');
-      cycles.add(cycleKey);
-      return;
-    }
-    
-    if (next === start) {
-      // Self-dispositor (not a cycle, just a final dispositor)
-      return;
-    }
-    
-    path.push(start);
-    pathSet.add(start);
-    findCycle(next, [...path], new Set(pathSet));
+function analyzePlanetChain(
+  startPlanet: string,
+  dispositorMap: DispositorMap,
+  cache: AnalysisCache,
+): AnalysisResult {
+  if (cache[startPlanet]) {
+    return cache[startPlanet];
   }
-  
-  // Check all planets for cycles
-  for (const planet in dispositorMap) {
-    if (!visited.has(planet)) {
-      findCycle(planet);
+
+  const path = [startPlanet];
+  let current = startPlanet;
+
+  // eslint-disable-next-line no-constant-condition
+  while (true) {
+    const nextDispositor = dispositorMap[current];
+
+    if (!nextDispositor || !dispositorMap.hasOwnProperty(nextDispositor)) {
+      // Chain is broken (dispositor not in the chart)
+      const result: AnalysisResult = {
+        path: [...path, nextDispositor],
+        isCycle: false,
+        isFinal: false,
+        isBroken: true,
+      };
+      return (cache[startPlanet] = result);
     }
+
+    if (nextDispositor === current) {
+      // Final dispositor
+      const result: AnalysisResult = {
+        path,
+        isCycle: false,
+        isFinal: true,
+        isBroken: false,
+      };
+      return (cache[startPlanet] = result);
+    }
+
+    if (path.includes(nextDispositor)) {
+      // Cycle detected
+      const cycleStartIndex = path.indexOf(nextDispositor);
+      const cyclePath = path.slice(cycleStartIndex);
+      const result: AnalysisResult = {
+        path: [...path, nextDispositor],
+        isCycle: true,
+        isFinal: false,
+        isBroken: false,
+      };
+
+      // Cache the result for all members of the cycle
+      cyclePath.forEach((planet) => {
+        cache[planet] = result;
+      });
+      return result;
+    }
+
+    // If we've hit a node that's already been analyzed, we can use its result
+    if (cache[nextDispositor]) {
+      const nestedResult = cache[nextDispositor];
+      const combinedPath = [...path, ...nestedResult.path];
+      const result: AnalysisResult = { ...nestedResult, path: combinedPath };
+      return (cache[startPlanet] = result);
+    }
+
+    path.push(nextDispositor);
+    current = nextDispositor;
   }
-  
-  // Mark all planets as visited to avoid redundant processing
-  for (const planet in dispositorMap) {
-    visited.add(planet);
-  }
-  
-  return cycles;
 }
 
 /**
  * Calculates the full dispositor chain for each planet in the chart.
  * @param planets The list of planets in the chart.
  * @param mode Controls which dispositor chains to include: true (all), false (none), 'finals' (only final dispositors and cycles).
- * @returns A map of each planet to its full dispositor chain string.
+ * @returns A map of each planet to its full dispositor chain string, or a summary in 'finals' mode.
  */
 export function calculateDispositors(
-  planets: Point[], 
-  mode: boolean | 'finals' = true
-): {
-  [key: string]: string;
-} {
+  planets: Point[],
+  mode: boolean | 'finals' = true,
+): { [key: string]: string } {
   if (mode === false) {
     return {};
   }
-  
-  const dispositorMap: { [key: string]: string } = {};
+
+  const dispositorMap: DispositorMap = {};
   planets.forEach((p) => {
     dispositorMap[p.name] = getDispositor(p);
   });
 
-  let chains: { [key: string]: string } = {};
-  const chainInfo: { [key: string]: { isFinal: boolean; isCycle: boolean; cycleKey?: string } } = {};
-  const cycleMembers = new Set<string>(); // Planets that are part of cycles
-  const processedCycles = new Set<string>(); // Already represented cycles
-  
-  // First pass: build all chains and identify cycle members
-  planets.forEach((planet) => {
-    const path = [planet.name];
-    let current = planet.name;
-    let chain = `${current}`;
-    let isFinal = false;
-    let isCycle = false;
-
-    // eslint-disable-next-line no-constant-condition
-    while (true) {
-      const nextDispositor = dispositorMap[current];
-      // eslint-disable-next-line no-prototype-builtins
-      if (!nextDispositor || !dispositorMap.hasOwnProperty(nextDispositor)) {
-        // Dispositor is not in the chart, so the chain ends.
-        chain += ` → ${nextDispositor} (not in chart)`;
-        break;
-      }
-
-      if (nextDispositor === current) {
-        // Planet is its own dispositor (final dispositor).
-        chain += ` → (final)`;
-        // Only mark as final if this is the starting planet
-        isFinal = (current === planet.name);
-        break;
-      }
-
-      if (path.includes(nextDispositor)) {
-        // A loop is detected - extract the cycle
-        const cycleStartIndex = path.indexOf(nextDispositor);
-        const cyclePlanets = path.slice(cycleStartIndex);
-        
-        // Mark all planets in this cycle
-        cyclePlanets.forEach(p => cycleMembers.add(p));
-        cycleMembers.add(nextDispositor);
-        
-        chain += ` → ${nextDispositor} (cycle)`;
-        isCycle = true;
-        break;
-      }
-
-      path.push(nextDispositor);
-      chain += ` → ${nextDispositor}`;
-      current = nextDispositor;
+  const analysisCache: AnalysisCache = {};
+  planets.forEach((p) => {
+    if (!analysisCache[p.name]) {
+      analyzePlanetChain(p.name, dispositorMap, analysisCache);
     }
-
-    chains[planet.name] = chain;
-    chainInfo[planet.name] = { isFinal, isCycle };
   });
 
-  // Handle finals mode with summary format
   if (mode === 'finals') {
-    const finalDispositors: string[] = [];
-    const cycles: string[] = [];
-    const processedCycles = new Set<string>();
-    
-    for (const planet in chains) {
-      const info = chainInfo[planet];
-      
-      if (info.isFinal) {
-        finalDispositors.push(planet);
-      } else if (info.isCycle) {
-        // Extract cycle from chain to create canonical representation
-        const chain = chains[planet];
-        const parts = chain.split(' → ');
-        const cycleEndIndex = parts.findIndex(part => part.includes('(cycle)'));
-        
-        if (cycleEndIndex > 0) {
-          const cycleEndPlanet = parts[cycleEndIndex].replace(' (cycle)', '');
-          const cycleStartIndex = parts.indexOf(cycleEndPlanet);
-          
-          if (cycleStartIndex >= 0 && cycleStartIndex < cycleEndIndex) {
-            const cyclePlanets = parts.slice(cycleStartIndex, cycleEndIndex);
-            // Create a unique cycle representation using only the planets in the cycle (not the path)
-            const uniqueCyclePlanets = [...new Set(cyclePlanets)];
-            const sortedCycle = uniqueCyclePlanets.sort();
-            const cycleKey = sortedCycle.join('|');
-            
-            if (!processedCycles.has(cycleKey)) {
-              processedCycles.add(cycleKey);
-              // Show the directed cycle, starting with the alphabetically first planet
-              const startPlanet = sortedCycle[0];
-              const reorderedCycle = [...cyclePlanets];
-              if (reorderedCycle[0] !== startPlanet) {
-                // Find the starting planet and rotate the array to start there
-                const startIndex = reorderedCycle.indexOf(startPlanet);
-                reorderedCycle.push(...reorderedCycle.splice(0, startIndex));
-              }
-              reorderedCycle.push(reorderedCycle[0]); // Complete the cycle
-              cycles.push(reorderedCycle.join(' → '));
-            }
-          }
+    const finalDispositors = new Set<string>();
+    const cycles = new Map<string, string[]>();
+
+    planets.forEach((p) => {
+      if (dispositorMap[p.name] === p.name) {
+        finalDispositors.add(p.name);
+      }
+    });
+
+    for (const planetName in analysisCache) {
+      const result = analysisCache[planetName];
+      if (result.isCycle) {
+        const lastPlanetInPath = result.path[result.path.length - 1];
+        const cycleStartIndex = result.path.indexOf(lastPlanetInPath);
+        const cyclePlanets = result.path.slice(cycleStartIndex, -1);
+        const canonicalKey = [...new Set(cyclePlanets)].sort().join('|');
+
+        if (!cycles.has(canonicalKey)) {
+          cycles.set(canonicalKey, cyclePlanets);
         }
       }
     }
 
-    // Return summary format
     const summaryParts: string[] = [];
-    if (finalDispositors.length > 0) {
-      summaryParts.push(`Final dispositors: ${finalDispositors.join(', ')}`);
+    if (finalDispositors.size > 0) {
+      summaryParts.push(
+        `Final dispositors: ${[...finalDispositors].sort().join(', ')}`,
+      );
     }
-    if (cycles.length > 0) {
-      summaryParts.push(`Cycles: ${cycles.join(', ')}`);
+    if (cycles.size > 0) {
+      const formattedCycles = [...cycles.values()]
+        .map((cycle) => {
+          const uniqueCyclePlanets = [...new Set(cycle)];
+          const startNode = uniqueCyclePlanets.sort()[0];
+          const startIndex = cycle.indexOf(startNode);
+          const reordered = [
+            ...cycle.slice(startIndex),
+            ...cycle.slice(0, startIndex),
+          ];
+          return [...reordered, startNode].join(' → ');
+        })
+        .sort();
+      summaryParts.push(`Cycles: ${formattedCycles.join(', ')}`);
     }
-    
+
     if (summaryParts.length === 0) {
-      return { 'summary': 'No final dispositors or cycles found' };
+      return { summary: 'No final dispositors or cycles found' };
     }
-    
-    return { 'summary': summaryParts.join('; ') };
+    return { summary: summaryParts.join('; ') };
   }
 
+  // Default mode: return all chains
+  const chains: { [key: string]: string } = {};
+  planets.forEach((p) => {
+    const planetName = p.name;
+    const path = [planetName];
+    let current = planetName;
+
+    // eslint-disable-next-line no-constant-condition
+    while (true) {
+      const nextDispositor = dispositorMap[current];
+      if (!nextDispositor || !dispositorMap.hasOwnProperty(nextDispositor)) {
+        chains[planetName] = `${path.join(' → ')} → ${nextDispositor} (not in chart)`;
+        break;
+      }
+      if (nextDispositor === current) {
+        chains[planetName] = `${path.join(' → ')} → (final)`;
+        break;
+      }
+      if (path.includes(nextDispositor)) {
+        chains[planetName] = `${path.join(' → ')} → ${nextDispositor} (cycle)`;
+        break;
+      }
+      path.push(nextDispositor);
+      current = nextDispositor;
+    }
+  });
   return chains;
 }
