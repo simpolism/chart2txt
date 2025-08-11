@@ -13,7 +13,7 @@ export function generateDispositorsOutput(dispositors: {
 
   // Traditional format
   const output: string[] = ['[DISPOSITOR TREE]'];
-  
+
   if (Object.keys(dispositors).length === 0) {
     output.push('No dispositor data available.');
     return output;

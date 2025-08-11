@@ -49,7 +49,7 @@ const processSingleChartOutput = (
   outputLines.push(...generateAnglesOutput(chart.ascendant, chart.midheaven));
   outputLines.push(...generateHousesOutput(chart.houseCusps));
   outputLines.push(...generatePlanetsOutput(placements.planets));
-  
+
   if (settings.includeDispositors) {
     outputLines.push(...generateDispositorsOutput(dispositors));
   }
@@ -124,14 +124,14 @@ const processChartPairOutput = (
   }
 
   outputLines.push('');
-  
+
   if (settings.includeHouseOverlays) {
     outputLines.push(
       ...generateHouseOverlaysOutput(houseOverlays, chart1.name, chart2.name)
     );
     outputLines.push('');
   }
-  
+
   return outputLines;
 };
 

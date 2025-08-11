@@ -16,11 +16,13 @@ describe('Dispositor Cycle Deduplication', () => {
 
       expect(result).toContain('[DISPOSITOR TREE]');
       expect(result).toContain('Sun → (final)');
-      
+
       // Should show both directions of the cycle
-      const cycleLines = result.split('\n').filter(line => line.trim().endsWith('(cycle)'));
+      const cycleLines = result
+        .split('\n')
+        .filter((line) => line.trim().endsWith('(cycle)'));
       expect(cycleLines).toHaveLength(2);
-      
+
       // Should contain both cycle directions
       expect(result).toContain('Venus → Mars → Venus (cycle)');
       expect(result).toContain('Mars → Venus → Mars (cycle)');
@@ -38,9 +40,11 @@ describe('Dispositor Cycle Deduplication', () => {
       const result = chart2txt(data, { includeDispositors: true });
 
       // Should show both directions of the cycle
-      const cycleLines = result.split('\n').filter(line => line.includes('(cycle)'));
+      const cycleLines = result
+        .split('\n')
+        .filter((line) => line.includes('(cycle)'));
       expect(cycleLines).toHaveLength(2);
-      
+
       expect(result).toContain('Venus → Mars → Venus (cycle)');
       expect(result).toContain('Mars → Venus → Mars (cycle)');
     });
@@ -61,8 +65,10 @@ describe('Dispositor Cycle Deduplication', () => {
 
       // Should use single line format
       expect(result).not.toContain('[DISPOSITOR TREE]');
-      expect(result).toContain('[DISPOSITORS] Final dispositors: Sun; Cycles: Mars → Venus → Mars');
-      
+      expect(result).toContain(
+        '[DISPOSITORS] Final dispositors: Sun; Cycles: Mars → Venus → Mars'
+      );
+
       // Should NOT contain the old format
       expect(result).not.toContain('Sun → (final)');
       expect(result).not.toContain('Venus → Mars → Venus (cycle)');
@@ -74,7 +80,7 @@ describe('Dispositor Cycle Deduplication', () => {
         name: 'test',
         planets: [
           { name: 'Mercury', degree: 0 }, // 0° Aries - disposed by Mars
-          { name: 'Venus', degree: 60 }, // 0° Gemini - disposed by Mercury  
+          { name: 'Venus', degree: 60 }, // 0° Gemini - disposed by Mercury
           { name: 'Mars', degree: 180 }, // 0° Libra - disposed by Venus
         ],
       };
@@ -83,8 +89,10 @@ describe('Dispositor Cycle Deduplication', () => {
 
       // Should use single line format with correct cycle representation
       expect(result).not.toContain('[DISPOSITOR TREE]');
-      expect(result).toContain('[DISPOSITORS] Cycles: Mars → Venus → Mercury → Mars');
-      
+      expect(result).toContain(
+        '[DISPOSITORS] Cycles: Mars → Venus → Mercury → Mars'
+      );
+
       // Should NOT contain old tree format with separate lines
       expect(result).not.toContain('Mercury → Mars → Venus (cycle)');
       expect(result).not.toContain('Venus → Mercury → Mars (cycle)');
@@ -109,16 +117,18 @@ describe('Dispositor Cycle Deduplication', () => {
       const result = chart2txt(data, { includeDispositors: true });
 
       expect(result).toContain('[DISPOSITOR TREE]');
-      
+
       // Should show both finals
       expect(result).toContain('Sun → (final)');
       expect(result).toContain('Moon → (final)');
-      
+
       // Should show Mercury's chain leading to the cycle
       expect(result).toContain('Mercury → Venus');
-      
+
       // Should show both directions of the Venus-Mars cycle
-      const cycleLines = result.split('\n').filter(line => line.includes('(cycle)'));
+      const cycleLines = result
+        .split('\n')
+        .filter((line) => line.includes('(cycle)'));
       expect(cycleLines.length).toBeGreaterThanOrEqual(2); // Venus and Mars cycles, plus Mercury leads to it
     });
   });
@@ -139,8 +149,10 @@ describe('Dispositor Cycle Deduplication', () => {
 
       // Should use single line format
       expect(result).not.toContain('[DISPOSITOR TREE]');
-      expect(result).toContain('[DISPOSITORS] Final dispositors: Sun; Cycles: Mars → Venus → Mars');
-      
+      expect(result).toContain(
+        '[DISPOSITORS] Final dispositors: Sun; Cycles: Mars → Venus → Mars'
+      );
+
       // Should NOT contain old format
       expect(result).not.toContain('Sun → (final)');
       expect(result).not.toContain('(cycle)');
@@ -165,8 +177,10 @@ describe('Dispositor Cycle Deduplication', () => {
 
       // Should use single line format
       expect(result).not.toContain('[DISPOSITOR TREE]');
-      expect(result).toContain('[DISPOSITORS] Cycles: Mars → Venus → Mars, Moon → Sun → Moon');
-      
+      expect(result).toContain(
+        '[DISPOSITORS] Cycles: Mars → Venus → Mars, Moon → Sun → Moon'
+      );
+
       // Should NOT contain old format
       expect(result).not.toContain('Sun → (final)');
       expect(result).not.toContain('(cycle)');

@@ -32,7 +32,7 @@ function getDispositor(planet: Point): string {
 function analyzePlanetChain(
   startPlanet: string,
   dispositorMap: DispositorMap,
-  cache: AnalysisCache,
+  cache: AnalysisCache
 ): AnalysisResult {
   if (cache[startPlanet]) {
     return cache[startPlanet];
@@ -45,6 +45,7 @@ function analyzePlanetChain(
   while (true) {
     const nextDispositor = dispositorMap[current];
 
+    // eslint-disable-next-line no-prototype-builtins
     if (!nextDispositor || !dispositorMap.hasOwnProperty(nextDispositor)) {
       // Chain is broken (dispositor not in the chart)
       const result: AnalysisResult = {
@@ -106,7 +107,7 @@ function analyzePlanetChain(
  */
 export function calculateDispositors(
   planets: Point[],
-  mode: boolean | 'finals' = true,
+  mode: boolean | 'finals' = true
 ): { [key: string]: string } {
   if (mode === false) {
     return {};
@@ -151,7 +152,7 @@ export function calculateDispositors(
     const summaryParts: string[] = [];
     if (finalDispositors.size > 0) {
       summaryParts.push(
-        `Final dispositors: ${[...finalDispositors].sort().join(', ')}`,
+        `Final dispositors: ${[...finalDispositors].sort().join(', ')}`
       );
     }
     if (cycles.size > 0) {
@@ -186,8 +187,11 @@ export function calculateDispositors(
     // eslint-disable-next-line no-constant-condition
     while (true) {
       const nextDispositor = dispositorMap[current];
+      // eslint-disable-next-line no-prototype-builtins
       if (!nextDispositor || !dispositorMap.hasOwnProperty(nextDispositor)) {
-        chains[planetName] = `${path.join(' → ')} → ${nextDispositor} (not in chart)`;
+        chains[planetName] = `${path.join(
+          ' → '
+        )} → ${nextDispositor} (not in chart)`;
         break;
       }
       if (nextDispositor === current) {

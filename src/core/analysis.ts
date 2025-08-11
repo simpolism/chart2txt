@@ -261,7 +261,7 @@ export function analyzeCharts(
           chart2: chart2,
           synastryAspects: synastryAspects,
           compositePatterns: compositePatterns,
-          houseOverlays: settings.includeHouseOverlays 
+          houseOverlays: settings.includeHouseOverlays
             ? calculateHouseOverlays(chart1, chart2)
             : { chart1InChart2Houses: {}, chart2InChart1Houses: {} },
         });

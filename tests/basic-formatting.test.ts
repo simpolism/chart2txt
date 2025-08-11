@@ -442,11 +442,13 @@ describe('Basic Formatting', () => {
       expect(result).toContain('[DISPOSITOR TREE]');
       expect(result).toContain('Sun → (final)');
       expect(result).toContain('Mercury → (final)');
-      
+
       // Should show both directions of the cycle in default mode
-      const cycleLines = result.split('\n').filter(line => line.trim().endsWith('(cycle)'));
+      const cycleLines = result
+        .split('\n')
+        .filter((line) => line.trim().endsWith('(cycle)'));
       expect(cycleLines).toHaveLength(2);
-      
+
       // Should contain both cycle directions
       expect(result).toContain('Venus → Mars → Venus (cycle)');
       expect(result).toContain('Mars → Venus → Mars (cycle)');

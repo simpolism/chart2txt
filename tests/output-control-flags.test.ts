@@ -38,9 +38,9 @@ describe('Output Control Flags', () => {
 
   describe('includeAspectPatterns flag', () => {
     test('confirms existing includeAspectPatterns=false disables aspect patterns', () => {
-      const result = chart2txt(sampleData, { 
+      const result = chart2txt(sampleData, {
         includeAspectPatterns: false,
-        aspectDefinitions: 'wide' // Use wide orbs to ensure aspects are found
+        aspectDefinitions: 'wide', // Use wide orbs to ensure aspects are found
       });
 
       expect(result).not.toContain('[ASPECT PATTERNS]');
@@ -48,9 +48,9 @@ describe('Output Control Flags', () => {
     });
 
     test('confirms existing includeAspectPatterns=true enables aspect patterns', () => {
-      const result = chart2txt(sampleData, { 
+      const result = chart2txt(sampleData, {
         includeAspectPatterns: true,
-        aspectDefinitions: 'wide' // Use wide orbs to ensure aspects are found
+        aspectDefinitions: 'wide', // Use wide orbs to ensure aspects are found
       });
 
       expect(result).toContain('[ASPECT PATTERNS]');
@@ -91,8 +91,10 @@ describe('Output Control Flags', () => {
 
       // Should use single line format
       expect(result).not.toContain('[DISPOSITOR TREE]');
-      expect(result).toContain('[DISPOSITORS] Final dispositors: Sun; Cycles: Mars → Venus → Mars');
-      
+      expect(result).toContain(
+        '[DISPOSITORS] Final dispositors: Sun; Cycles: Mars → Venus → Mars'
+      );
+
       // Should NOT contain the old format
       expect(result).not.toContain('Sun → (final)');
       expect(result).not.toContain('Venus → Mars → Venus (cycle)');
@@ -111,12 +113,14 @@ describe('Output Control Flags', () => {
         ],
       };
 
-      const result = chart2txt(dataWithFinalDispositorChain, { includeDispositors: 'finals' });
+      const result = chart2txt(dataWithFinalDispositorChain, {
+        includeDispositors: 'finals',
+      });
 
       // Should use single line format, not the full dispositor tree
       expect(result).not.toContain('[DISPOSITOR TREE]');
       expect(result).toContain('[DISPOSITORS] Final dispositors: Sun');
-      
+
       // Should NOT contain any of the full chains
       expect(result).not.toContain('Sun → (final)');
       expect(result).not.toContain('Venus → Sun → (final)');
@@ -134,8 +138,8 @@ describe('Output Control Flags', () => {
 
   describe('includeHouseOverlays flag', () => {
     test('includeHouseOverlays=false disables house overlays in synastry', () => {
-      const result = chart2txt(sampleSynastryData, { 
-        includeHouseOverlays: false 
+      const result = chart2txt(sampleSynastryData, {
+        includeHouseOverlays: false,
       });
 
       expect(result).not.toContain('[HOUSE OVERLAYS]');
@@ -144,8 +148,8 @@ describe('Output Control Flags', () => {
     });
 
     test('includeHouseOverlays=true includes house overlays in synastry (default)', () => {
-      const result = chart2txt(sampleSynastryData, { 
-        includeHouseOverlays: true 
+      const result = chart2txt(sampleSynastryData, {
+        includeHouseOverlays: true,
       });
 
       expect(result).toContain('[HOUSE OVERLAYS]');
@@ -161,8 +165,12 @@ describe('Output Control Flags', () => {
     });
 
     test('house overlays flag has no effect on single chart', () => {
-      const resultDisabled = chart2txt(sampleData, { includeHouseOverlays: false });
-      const resultEnabled = chart2txt(sampleData, { includeHouseOverlays: true });
+      const resultDisabled = chart2txt(sampleData, {
+        includeHouseOverlays: false,
+      });
+      const resultEnabled = chart2txt(sampleData, {
+        includeHouseOverlays: true,
+      });
 
       // Neither should contain house overlays for single chart
       expect(resultDisabled).not.toContain('[HOUSE OVERLAYS]');
