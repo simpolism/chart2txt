@@ -40,26 +40,29 @@ export function calculateSignDistributions(
 export function formatElementDistribution(elements: {
   [key: string]: string[];
 }): string[] {
-  return Object.entries(elements).map(([element, planets]) => {
+  const parts = Object.entries(elements).map(([element, planets]) => {
     if (planets.length === 0) {
       return `${element}: 0`;
     }
     return `${element}: ${planets.length} (${planets.join(', ')})`;
   });
+  return [parts.join(' | ')];
 }
 
 export function formatModalityDistribution(modalities: {
   [key: string]: number;
 }): string[] {
-  return Object.entries(modalities).map(
+  const parts = Object.entries(modalities).map(
     ([modality, count]) => `${modality}: ${count}`
   );
+  return [parts.join(' | ')];
 }
 
 export function formatPolarityDistribution(polarities: {
   [key: string]: number;
 }): string[] {
-  return Object.entries(polarities).map(
+  const parts = Object.entries(polarities).map(
     ([polarity, count]) => `${polarity}: ${count}`
   );
+  return [parts.join(' | ')];
 }
