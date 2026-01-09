@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>chart2txt - Convert Astrological Chart to Text</title>
+    <title>chart2txt - Convert Chart to Text</title>
     <style>
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -288,30 +288,70 @@
         footer a:hover {
             text-decoration: underline;
         }
+        .mode-toggle {
+            display: flex;
+            justify-content: center;
+            gap: 0;
+            margin-bottom: 20px;
+        }
+        .mode-toggle button {
+            flex: 1;
+            max-width: 200px;
+            margin: 0;
+            border-radius: 0;
+            background-color: #bdc3c7;
+            color: #2c3e50;
+            border: 1px solid #95a5a6;
+        }
+        .mode-toggle button:first-child {
+            border-radius: 4px 0 0 4px;
+        }
+        .mode-toggle button:last-child {
+            border-radius: 0 4px 4px 0;
+        }
+        .mode-toggle button.active {
+            background-color: #3498db;
+            color: white;
+            border-color: #3498db;
+        }
+        .mode-toggle button:hover:not(.active) {
+            background-color: #a6acaf;
+        }
+        .astrology-only, .human-design-only {
+            transition: opacity 0.2s ease;
+        }
+        .hidden-mode {
+            display: none !important;
+        }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>Convert Astrological Chart to Text</h1>
-        
+        <h1 id="pageTitle">Convert Astrological Chart to Text</h1>
+
+        <div class="mode-toggle">
+            <button type="button" id="modeAstrology" class="active">Astrology</button>
+            <button type="button" id="modeHumanDesign">Human Design</button>
+        </div>
+
         <form id="birthDataForm">
             <div id="chartsContainer">
                 <!-- Charts will be dynamically added here -->
             </div>
             
-            <button type="button" id="addChartBtn" class="btn-secondary">Add Another Chart</button>
+            <button type="button" id="addChartBtn" class="btn-secondary astrology-only">Add Another Chart</button>
 
-            <h2>Optional: Transits</h2>
-            <div class="checkbox-group">
+            <h2 class="astrology-only">Optional: Transits</h2>
+            <div class="checkbox-group astrology-only">
                 <input type="checkbox" id="enableTransits">
                 <label for="enableTransits">Enable Transits</label>
             </div>
-            <div id="transitLocationGroup" class="form-group" style="display:none;">
+            <div id="transitLocationGroup" class="form-group astrology-only" style="display:none;">
                 <label for="transitLocation">Transit Location:</label>
                 <input type="text" id="transitLocation" placeholder="City, Country for Transits">
                 <div id="transitLocationError" class="error"></div>
             </div>
-            <div id="transitDateTimeGroup" class="form-group" style="display:none;">
+            <div id="transitDateTimeGroup" class="form-group astrology-only" style="display:none;">
                 <label for="transitDate">Transit Date:</label>
                 <input type="date" id="transitDate">
                 <label for="transitTime">Transit Time:</label>
@@ -321,7 +361,7 @@
                 </div>
             </div>
 
-            <div class="form-group">
+            <div class="form-group astrology-only">
                 <label for="houseSystem">House System (for all charts):</label>
                 <select id="houseSystem">
                     <option value="P" selected>Placidus</option>
@@ -331,7 +371,7 @@
                 </select>
             </div>
 
-            <div class="form-group">
+            <div class="form-group astrology-only">
                 <label>Aspect Grouping Categories:</label>
                 <div class="aspect-strength-container">
                     <div id="aspectThresholdsList">
@@ -362,8 +402,8 @@
         </footer>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/chart2txt@0.7.1/dist/chart2txt.min.js"></script>
-    <!--script src="../../dist/chart2txt.min.js"></script-->
+    <!-- <script src="https://cdn.jsdelivr.net/npm/chart2txt@0.7.1/dist/chart2txt.min.js"></script> -->
+    <script src="../../dist/chart2txt.min.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             const MAX_CHARTS = 10;
@@ -393,6 +433,64 @@
             const addThresholdBtn = document.getElementById('addThreshold');
             const resetThresholdsBtn = document.getElementById('resetThresholds');
             let thresholdCounter = 0;
+
+            // Mode toggle elements
+            const modeAstrologyBtn = document.getElementById('modeAstrology');
+            const modeHumanDesignBtn = document.getElementById('modeHumanDesign');
+            const pageTitle = document.getElementById('pageTitle');
+            let currentMode = 'astrology'; // 'astrology' or 'humandesign'
+
+            // API endpoints
+            const ASTROLOGY_API_ENDPOINT = 'https://simple-astro-api.netlify.app/api/positions';
+            const HUMAN_DESIGN_API_ENDPOINT = 'https://simple-astro-api.netlify.app/api/positions-with-design';
+
+            // Mode toggle functions
+            function setMode(mode) {
+                currentMode = mode;
+                const astrologyElements = document.querySelectorAll('.astrology-only');
+
+                if (mode === 'astrology') {
+                    modeAstrologyBtn.classList.add('active');
+                    modeHumanDesignBtn.classList.remove('active');
+                    pageTitle.textContent = 'Convert Astrological Chart to Text';
+                    astrologyElements.forEach(el => el.classList.remove('hidden-mode'));
+                    // Show all charts in astrology mode
+                    document.querySelectorAll('.chart-container').forEach((el, index) => {
+                        el.style.display = 'block';
+                    });
+                    // Show "Is Event?" checkbox in astrology mode
+                    document.querySelectorAll('.checkbox-group').forEach(el => {
+                        const checkbox = el.querySelector('input[type="checkbox"]');
+                        if (checkbox && checkbox.id.startsWith('isEvent_')) {
+                            el.style.display = 'flex';
+                        }
+                    });
+                    updateAddButtonVisibility();
+                } else {
+                    modeAstrologyBtn.classList.remove('active');
+                    modeHumanDesignBtn.classList.add('active');
+                    pageTitle.textContent = 'Convert Human Design Chart to Text';
+                    astrologyElements.forEach(el => el.classList.add('hidden-mode'));
+                    // Only show first chart in HD mode (single chart only)
+                    document.querySelectorAll('.chart-container').forEach((el, index) => {
+                        el.style.display = index === 0 ? 'block' : 'none';
+                    });
+                    // Hide "Is Event?" checkbox in HD mode
+                    document.querySelectorAll('.checkbox-group').forEach(el => {
+                        const checkbox = el.querySelector('input[type="checkbox"]');
+                        if (checkbox && checkbox.id.startsWith('isEvent_')) {
+                            el.style.display = 'none';
+                        }
+                    });
+                }
+
+                // Save mode preference
+                localStorage.setItem('chartMode', mode);
+            }
+
+            // Mode toggle event listeners
+            modeAstrologyBtn.addEventListener('click', () => setMode('astrology'));
+            modeHumanDesignBtn.addEventListener('click', () => setMode('humandesign'));
 
             // Chart template for creating new charts
             function createChartHTML(chartId, chartNumber) {
@@ -875,16 +973,16 @@
                 }
             });
             
-            const API_ENDPOINT = 'https://simple-astro-api.netlify.app/api/positions';
+            // API_ENDPOINT is now defined at the top as ASTROLOGY_API_ENDPOINT
             
             // Form submission handler
             form.addEventListener('submit', async function(e) {
                 e.preventDefault();
-                
+
                 resultDiv.textContent = '';
                 copyBtn.style.display = 'none';
                 loadingDiv.style.display = 'block';
-                
+
                 // Clear all error messages
                 charts.forEach(chart => {
                     const errorElement = document.getElementById(`locationError_${chart.id}`);
@@ -892,122 +990,13 @@
                 });
                 transitLocationError.textContent = '';
 
-                const multiChartData = [];
-                const houseSystem = houseSystemSelect.value;
-
                 try {
-                    // Process each chart
-                    for (const chart of charts) {
-                        const chartData = await processChart(chart, houseSystem);
-                        if (chartData) {
-                            multiChartData.push(chartData);
-                        } else {
-                            loadingDiv.style.display = 'none';
-                            return; // Error occurred, stop processing
-                        }
+                    // Branch based on current mode
+                    if (currentMode === 'humandesign') {
+                        await processHumanDesignChart();
+                    } else {
+                        await processAstrologyCharts();
                     }
-
-                    // Process transit data if enabled
-                    if (enableTransitsCheckbox.checked) {
-                        const transitData = await processTransitData(houseSystem);
-                        if (transitData) {
-                            multiChartData.push(transitData);
-                        } else {
-                            loadingDiv.style.display = 'none';
-                            return; // Error occurred, stop processing
-                        }
-                    }
-
-                    if (multiChartData.length === 0) {
-                        resultDiv.textContent = 'Please provide at least one chart.';
-                        loadingDiv.style.display = 'none';
-                        return;
-                    }
-                    
-                    // --- ADVANCED WORKFLOW DEMONSTRATION ---
-
-                    // 1. ANALYZE: Get the raw, ungrouped report from the library.
-                    const analysisSettings = { 
-                        includeAspectPatterns: true,
-                        includeSignDistributions: true
-                    };
-                    const report = window.chart2txt.analyzeCharts(multiChartData, analysisSettings);
-
-                    // --- CUSTOM FILTERING & GROUPING DEMONSTRATION ---
-
-                    // 2a. GET UI DEFINITIONS & DETERMINE MAX ORB
-                    const uiCategories = getUiCategories(); // Get categories from the UI.
-
-                    // Find the widest orb defined by the user to use as a filter threshold.
-                    // If no categories are defined, default to a wide orb so nothing is filtered.
-                    const maxOrbThreshold = uiCategories.length > 0 ? uiCategories[uiCategories.length - 1].orb : 10.0;
-
-                    // 2b. FILTER THE RAW REPORT
-                    // This is a powerful step. We remove any aspects that are wider than the user's
-                    // widest defined category, cleaning the data before grouping.
-                    console.log('Report before filtering:', JSON.parse(JSON.stringify(report)));
-
-                    // Filter single-chart analyses
-                    const singleChartMaxPatternOrb = 2.5;
-                    report.chartAnalyses.forEach(ca => {
-                        ca.aspects = ca.aspects.filter(aspect => aspect.orb <= maxOrbThreshold);
-                        ca.patterns = ca.patterns.filter(pattern => {
-                            if (pattern.type === 'Yod') return pattern.averageOrb <= 1.0;
-                            return pattern.averageOrb < singleChartMaxPatternOrb;
-                        });
-                    });
-
-                    // Filter multi-chart analyses (pairwise, transit, global)
-                    const multiChartMaxPatternOrb = 1.5;
-                    report.pairwiseAnalyses.forEach(pa => {
-                        pa.synastryAspects = pa.synastryAspects.filter(aspect => aspect.orb <= maxOrbThreshold);
-                        pa.compositePatterns = pa.compositePatterns.filter(pattern => {
-                            if (pattern.type === 'Yod') return pattern.averageOrb <= 0.5;
-                            return pattern.averageOrb <= multiChartMaxPatternOrb;
-                        });
-                    });
-                    report.transitAnalyses.forEach(ta => {
-                        ta.aspects = ta.aspects.filter(aspect => aspect.orb <= maxOrbThreshold);
-                        ta.patterns = ta.patterns.filter(pattern => {
-                            if (pattern.type === 'Yod') return pattern.averageOrb <= 0.5;
-                            return pattern.averageOrb <= multiChartMaxPatternOrb;
-                        });
-                    });
-                    if (report.globalAnalysis) {
-                        report.globalAnalysis.patterns = report.globalAnalysis.patterns.filter(pattern => {
-                            if (pattern.type === 'Yod') return pattern.averageOrb <= 0.5;
-                            return pattern.averageOrb <= multiChartMaxPatternOrb;
-                        });
-                    }
-                    if (report.globalTransitAnalysis) {
-                        report.globalTransitAnalysis.patterns = report.globalTransitAnalysis.patterns.filter(pattern => {
-                            if (pattern.type === 'Yod') return pattern.averageOrb <= 0.5;
-                            return pattern.averageOrb <= multiChartMaxPatternOrb;
-                        });
-                    }
-
-                    console.log('Report after filtering:', JSON.parse(JSON.stringify(report)));
-
-                    // 2c. GROUP THE FILTERED ASPECTS
-                    // Now, we pass the cleaned-up data to our grouping function.
-                    report.chartAnalyses.forEach(ca => {
-                        ca.groupedAspects = groupAspectsFromUiSettings(ca.aspects, uiCategories);
-                    });
-                    report.pairwiseAnalyses.forEach(pa => {
-                        // For multi-chart aspects, we can use a different grouping or the same one.
-                        // Here, we'll just use the same UI categories for simplicity.
-                        pa.groupedSynastryAspects = groupAspectsFromUiSettings(pa.synastryAspects, uiCategories);
-                    });
-                    report.transitAnalyses.forEach(ta => {
-                        ta.groupedAspects = groupAspectsFromUiSettings(ta.aspects, uiCategories);
-                    });
-
-                    // 3. FORMAT: Pass the modified report object to the formatter.
-                    const textDescription = window.chart2txt.formatReportToText(report);
-                    
-                    resultDiv.textContent = textDescription;
-                    copyBtn.style.display = 'block';
-                    
                 } catch (error) {
                     console.error('Error generating chart:', error);
                     resultDiv.textContent = 'Error: ' + error.message;
@@ -1015,6 +1004,173 @@
                     loadingDiv.style.display = 'none';
                 }
             });
+
+            // Human Design chart processing
+            async function processHumanDesignChart() {
+                const chart = charts[0]; // HD only uses first chart
+                if (!chart) {
+                    resultDiv.textContent = 'Please provide chart data.';
+                    return;
+                }
+
+                const nameInput = document.getElementById(`name_${chart.id}`);
+                const birthdateInput = document.getElementById(`birthdate_${chart.id}`);
+                const hoursInput = document.getElementById(`hours_${chart.id}`);
+                const minutesInput = document.getElementById(`minutes_${chart.id}`);
+                const locationInput = document.getElementById(`location_${chart.id}`);
+                const locationError = document.getElementById(`locationError_${chart.id}`);
+
+                const name = nameInput.value.trim() || 'Chart';
+                const birthdate = birthdateInput.value;
+                const hours = parseInt(hoursInput.value);
+                const minutes = parseInt(minutesInput.value);
+                const location = locationInput.value.trim();
+
+                if (!birthdate || isNaN(hours) || isNaN(minutes) || !location) {
+                    locationError.textContent = 'Please fill all required date, time, and location fields.';
+                    return;
+                }
+
+                const coordinates = await geocodeLocation(location, locationError);
+                if (!coordinates) return;
+
+                const timeString = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:00`;
+
+                // Call Human Design API
+                const url = `${HUMAN_DESIGN_API_ENDPOINT}?date=${birthdate}&time=${timeString}&lat=${coordinates.latitude}&lng=${coordinates.longitude}`;
+                const response = await fetch(url);
+
+                if (!response.ok) {
+                    locationError.textContent = `API error: ${response.statusText || response.status}`;
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const apiResponse = await response.json();
+
+                // Generate Human Design text using the library
+                const textDescription = window.chart2txt.humandesign2txt(apiResponse, {
+                    name: name,
+                    location: location
+                });
+
+                resultDiv.textContent = textDescription;
+                copyBtn.style.display = 'block';
+            }
+
+            // Astrology chart processing
+            async function processAstrologyCharts() {
+                const multiChartData = [];
+                const houseSystem = houseSystemSelect.value;
+
+                // Process each chart
+                for (const chart of charts) {
+                    const chartData = await processChart(chart, houseSystem);
+                    if (chartData) {
+                        multiChartData.push(chartData);
+                    } else {
+                        return; // Error occurred, stop processing
+                    }
+                }
+
+                // Process transit data if enabled
+                if (enableTransitsCheckbox.checked) {
+                    const transitData = await processTransitData(houseSystem);
+                    if (transitData) {
+                        multiChartData.push(transitData);
+                    } else {
+                        return; // Error occurred, stop processing
+                    }
+                }
+
+                if (multiChartData.length === 0) {
+                    resultDiv.textContent = 'Please provide at least one chart.';
+                    return;
+                }
+
+                // --- ADVANCED WORKFLOW DEMONSTRATION ---
+
+                // 1. ANALYZE: Get the raw, ungrouped report from the library.
+                const analysisSettings = {
+                    includeAspectPatterns: true,
+                    includeSignDistributions: true
+                };
+                const report = window.chart2txt.analyzeCharts(multiChartData, analysisSettings);
+
+                // --- CUSTOM FILTERING & GROUPING DEMONSTRATION ---
+
+                // 2a. GET UI DEFINITIONS & DETERMINE MAX ORB
+                const uiCategories = getUiCategories(); // Get categories from the UI.
+
+                // Find the widest orb defined by the user to use as a filter threshold.
+                // If no categories are defined, default to a wide orb so nothing is filtered.
+                const maxOrbThreshold = uiCategories.length > 0 ? uiCategories[uiCategories.length - 1].orb : 10.0;
+
+                // 2b. FILTER THE RAW REPORT
+                // This is a powerful step. We remove any aspects that are wider than the user's
+                // widest defined category, cleaning the data before grouping.
+                console.log('Report before filtering:', JSON.parse(JSON.stringify(report)));
+
+                // Filter single-chart analyses
+                const singleChartMaxPatternOrb = 2.5;
+                report.chartAnalyses.forEach(ca => {
+                    ca.aspects = ca.aspects.filter(aspect => aspect.orb <= maxOrbThreshold);
+                    ca.patterns = ca.patterns.filter(pattern => {
+                        if (pattern.type === 'Yod') return pattern.averageOrb <= 1.0;
+                        return pattern.averageOrb < singleChartMaxPatternOrb;
+                    });
+                });
+
+                // Filter multi-chart analyses (pairwise, transit, global)
+                const multiChartMaxPatternOrb = 1.5;
+                report.pairwiseAnalyses.forEach(pa => {
+                    pa.synastryAspects = pa.synastryAspects.filter(aspect => aspect.orb <= maxOrbThreshold);
+                    pa.compositePatterns = pa.compositePatterns.filter(pattern => {
+                        if (pattern.type === 'Yod') return pattern.averageOrb <= 0.5;
+                        return pattern.averageOrb <= multiChartMaxPatternOrb;
+                    });
+                });
+                report.transitAnalyses.forEach(ta => {
+                    ta.aspects = ta.aspects.filter(aspect => aspect.orb <= maxOrbThreshold);
+                    ta.patterns = ta.patterns.filter(pattern => {
+                        if (pattern.type === 'Yod') return pattern.averageOrb <= 0.5;
+                        return pattern.averageOrb <= multiChartMaxPatternOrb;
+                    });
+                });
+                if (report.globalAnalysis) {
+                    report.globalAnalysis.patterns = report.globalAnalysis.patterns.filter(pattern => {
+                        if (pattern.type === 'Yod') return pattern.averageOrb <= 0.5;
+                        return pattern.averageOrb <= multiChartMaxPatternOrb;
+                    });
+                }
+                if (report.globalTransitAnalysis) {
+                    report.globalTransitAnalysis.patterns = report.globalTransitAnalysis.patterns.filter(pattern => {
+                        if (pattern.type === 'Yod') return pattern.averageOrb <= 0.5;
+                        return pattern.averageOrb <= multiChartMaxPatternOrb;
+                    });
+                }
+
+                console.log('Report after filtering:', JSON.parse(JSON.stringify(report)));
+
+                // 2c. GROUP THE FILTERED ASPECTS
+                // Now, we pass the cleaned-up data to our grouping function.
+                report.chartAnalyses.forEach(ca => {
+                    ca.groupedAspects = groupAspectsFromUiSettings(ca.aspects, uiCategories);
+                });
+                report.pairwiseAnalyses.forEach(pa => {
+                    // For multi-chart aspects, we can use a different grouping or the same one.
+                    // Here, we'll just use the same UI categories for simplicity.
+                    pa.groupedSynastryAspects = groupAspectsFromUiSettings(pa.synastryAspects, uiCategories);
+                });
+                report.transitAnalyses.forEach(ta => {
+                    ta.groupedAspects = groupAspectsFromUiSettings(ta.aspects, uiCategories);
+                });
+
+                // 3. FORMAT: Pass the modified report object to the formatter.
+                const textDescription = window.chart2txt.formatReportToText(report);
+
+                resultDiv.textContent = textDescription;
+                copyBtn.style.display = 'block';
+            }
 
             // Process individual chart data
             async function processChart(chart, houseSystem) {
@@ -1135,7 +1291,7 @@
             async function getPlanetaryPositions(date, time, lat, lng, houseSystem, errorElement) {
                 errorElement.textContent = '';
                 try {
-                    const url = `${API_ENDPOINT}?date=${date}&time=${time}&lat=${lat}&lng=${lng}&house_system=${houseSystem}`;
+                    const url = `${ASTROLOGY_API_ENDPOINT}?date=${date}&time=${time}&lat=${lat}&lng=${lng}&house_system=${houseSystem}`;
                     const response = await fetch(url);
                     if (!response.ok) {
                         errorElement.textContent = `API error: ${response.statusText || response.status}`;
@@ -1151,6 +1307,12 @@
 
             // Initialize the application
             initializeCharts();
+
+            // Restore saved mode preference
+            const savedMode = localStorage.getItem('chartMode');
+            if (savedMode === 'humandesign') {
+                setMode('humandesign');
+            }
         });
     </script>
 </body>
