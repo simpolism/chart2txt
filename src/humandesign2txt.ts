@@ -59,6 +59,7 @@ export interface HumanDesignChart {
   strategy: string;
   authority: string;
   definition: string;
+  definitionIslands: string[][];  // Groups of connected defined centers
   profile: string;
   profileName: string;
   incarnationCross: string;
@@ -66,6 +67,7 @@ export interface HumanDesignChart {
   undefinedCenters: string[];
   openCenters: string[];
   activeChannels: Channel[];
+  hangingGates: Array<{ gate: number; center: string }>;  // Gates not in complete channels
   allGates: Map<number, { center: string; sources: string[] }>;
   personalityActivations: Activation[];
   designActivations: Activation[];
@@ -623,6 +625,25 @@ export function calculateDefinition(activeChannels: Channel[], definedCenters: s
     return 'None';
   }
 
+  const islands = getDefinitionIslands(activeChannels, definedCenters);
+
+  switch (islands.length) {
+    case 1: return 'Single Definition';
+    case 2: return 'Split Definition';
+    case 3: return 'Triple Split Definition';
+    case 4: return 'Quadruple Split Definition';
+    default: return `${islands.length}-Split Definition`;
+  }
+}
+
+/**
+ * Get definition islands - groups of connected defined centers
+ */
+export function getDefinitionIslands(activeChannels: Channel[], definedCenters: string[]): string[][] {
+  if (definedCenters.length === 0) {
+    return [];
+  }
+
   // Build connection groups using Union-Find approach
   const parent = new Map<string, string>();
 
@@ -653,19 +674,48 @@ export function calculateDefinition(activeChannels: Channel[], definedCenters: s
     }
   }
 
-  // Count distinct groups
-  const groups = new Set<string>();
+  // Group centers by their root
+  const islandMap = new Map<string, string[]>();
   for (const center of definedCenters) {
-    groups.add(find(center));
+    const root = find(center);
+    if (!islandMap.has(root)) {
+      islandMap.set(root, []);
+    }
+    islandMap.get(root)!.push(center);
   }
 
-  switch (groups.size) {
-    case 1: return 'Single Definition';
-    case 2: return 'Split Definition';
-    case 3: return 'Triple Split Definition';
-    case 4: return 'Quadruple Split Definition';
-    default: return `${groups.size}-Split Definition`;
+  // Return as array of arrays, sorted by first center in each island
+  return Array.from(islandMap.values()).sort((a, b) => {
+    const indexA = ALL_CENTERS.indexOf(a[0]);
+    const indexB = ALL_CENTERS.indexOf(b[0]);
+    return indexA - indexB;
+  });
+}
+
+/**
+ * Get hanging gates - gates that are not part of a complete channel
+ */
+export function getHangingGates(
+  allGates: Map<number, { center: string; sources: string[] }>,
+  activeChannels: Channel[]
+): Array<{ gate: number; center: string }> {
+  // Get all gates that are part of complete channels
+  const channelGates = new Set<number>();
+  for (const channel of activeChannels) {
+    channelGates.add(channel.gates[0]);
+    channelGates.add(channel.gates[1]);
   }
+
+  // Find gates that are NOT in complete channels
+  const hangingGates: Array<{ gate: number; center: string }> = [];
+  for (const [gate, info] of allGates) {
+    if (!channelGates.has(gate)) {
+      hangingGates.push({ gate, center: info.center });
+    }
+  }
+
+  // Sort by gate number
+  return hangingGates.sort((a, b) => a.gate - b.gate);
 }
 
 /**
@@ -738,6 +788,10 @@ export function humandesign2txt(
   const strategy = STRATEGY_BY_TYPE[type];
   const authority = calculateAuthority(defined, activeChannels);
   const definition = calculateDefinition(activeChannels, defined);
+  const definitionIslands = getDefinitionIslands(activeChannels, defined);
+
+  // Calculate hanging gates
+  const hangingGates = getHangingGates(allGates, activeChannels);
 
   // Calculate Profile
   const personalitySun = personalityActivations.find(a => a.planet === 'Sun')!;
@@ -767,6 +821,7 @@ export function humandesign2txt(
     strategy,
     authority,
     definition,
+    definitionIslands,
     profile,
     profileName,
     incarnationCross,
@@ -774,6 +829,7 @@ export function humandesign2txt(
     undefinedCenters,
     openCenters: open,
     activeChannels,
+    hangingGates,
     allGates,
     personalityActivations,
     designActivations
@@ -806,6 +862,10 @@ function formatHumanDesignToText(chart: HumanDesignChart): string {
   lines.push(`Strategy: ${chart.strategy}`);
   lines.push(`Authority: ${chart.authority}`);
   lines.push(`Definition: ${chart.definition}`);
+  if (chart.definitionIslands.length > 1) {
+    const islandStrs = chart.definitionIslands.map(island => `[${island.join('+')}]`);
+    lines.push(`Definition Islands: ${islandStrs.join(' + ')}`);
+  }
   lines.push(`Profile: ${chart.profile}${chart.profileName ? ` (${chart.profileName})` : ''}`);
   lines.push(`Incarnation Cross: ${chart.incarnationCross}`);
   lines.push('');
@@ -828,6 +888,18 @@ function formatHumanDesignToText(chart: HumanDesignChart): string {
   if (chart.activeChannels.length > 0) {
     for (const channel of chart.activeChannels) {
       lines.push(`${channel.gates[0]}-${channel.gates[1]} (${channel.name}): ${channel.centers[0]} ↔ ${channel.centers[1]}`);
+    }
+  } else {
+    lines.push('None');
+  }
+  lines.push('');
+
+  // Hanging Gates
+  lines.push('[HANGING GATES]');
+  lines.push('(Gates not part of a complete channel)');
+  if (chart.hangingGates.length > 0) {
+    for (const hg of chart.hangingGates) {
+      lines.push(`${hg.gate}: ${GATE_NAMES[hg.gate]} | ${hg.center}`);
     }
   } else {
     lines.push('None');
@@ -889,6 +961,566 @@ function formatHumanDesignToText(chart: HumanDesignChart): string {
   lines.push(`Mercury: ${dMercury.gate}.${dMercury.line}    Venus: ${dVenus.gate}.${dVenus.line}    Mars: ${dMars.gate}.${dMars.line}`);
   lines.push(`Jupiter: ${dJupiter.gate}.${dJupiter.line}    Saturn: ${dSaturn.gate}.${dSaturn.line}`);
   lines.push(`Uranus: ${dUranus.gate}.${dUranus.line}    Neptune: ${dNeptune.gate}.${dNeptune.line}    Pluto: ${dPluto.gate}.${dPluto.line}`);
+
+  return lines.join('\n');
+}
+
+// ============================================================================
+// PARTNERSHIP ANALYSIS TYPES
+// ============================================================================
+
+export interface ChannelConnection {
+  channel: Channel;
+  type: 'electromagnetic' | 'companionship' | 'dominance' | 'compromise';
+  person1Gates: number[];  // Gates person 1 contributes
+  person2Gates: number[];  // Gates person 2 contributes
+  description: string;
+}
+
+export interface GateConnection {
+  gate: number;
+  gateName: string;
+  center: string;
+  type: 'shared' | 'unique_person1' | 'unique_person2';
+}
+
+export interface HumanDesignPartnership {
+  person1: HumanDesignChart;
+  person2: HumanDesignChart;
+  electromagneticChannels: ChannelConnection[];  // Attraction - one has gate A, other has gate B
+  companionshipChannels: ChannelConnection[];    // Understanding - both have same channel
+  dominanceChannels: ChannelConnection[];        // One leads - one has full channel, other has hanging gate
+  compromiseChannels: ChannelConnection[];       // Neither leads - both have hanging gates
+  compositeDefinedCenters: string[];
+  compositeUndefinedCenters: string[];
+  compositeOpenCenters: string[];
+  compositeChannels: Channel[];
+  compositeType: string;
+  compositeStrategy: string;
+  compositeDefinition: string;
+  compositeDefinitionIslands: string[][];
+  // Channel breakdown
+  channelsPerson1Only: Channel[];      // Channels only person1 has
+  channelsPerson2Only: Channel[];      // Channels only person2 has
+  channelsOnlyTogether: Channel[];     // Channels formed only by combining both (electromagnetic)
+  sharedGates: GateConnection[];
+  uniqueGatesPerson1: GateConnection[];
+  uniqueGatesPerson2: GateConnection[];
+}
+
+// ============================================================================
+// PARTNERSHIP ANALYSIS FUNCTIONS
+// ============================================================================
+
+/**
+ * Analyze the relationship between two Human Design charts
+ */
+export function analyzePartnership(
+  chart1: HumanDesignChart,
+  chart2: HumanDesignChart
+): HumanDesignPartnership {
+  const electromagneticChannels: ChannelConnection[] = [];
+  const companionshipChannels: ChannelConnection[] = [];
+  const dominanceChannels: ChannelConnection[] = [];
+  const compromiseChannels: ChannelConnection[] = [];
+
+  // Get all gates for each person
+  const person1Gates = new Set(chart1.allGates.keys());
+  const person2Gates = new Set(chart2.allGates.keys());
+
+  // Get channels for each person
+  const person1ChannelGates = new Set<string>();
+  for (const ch of chart1.activeChannels) {
+    person1ChannelGates.add(`${ch.gates[0]}-${ch.gates[1]}`);
+  }
+  const person2ChannelGates = new Set<string>();
+  for (const ch of chart2.activeChannels) {
+    person2ChannelGates.add(`${ch.gates[0]}-${ch.gates[1]}`);
+  }
+
+  // Analyze each potential channel
+  for (const channel of CHANNELS) {
+    const [gateA, gateB] = channel.gates;
+    const channelKey = `${gateA}-${gateB}`;
+
+    const p1HasGateA = person1Gates.has(gateA);
+    const p1HasGateB = person1Gates.has(gateB);
+    const p2HasGateA = person2Gates.has(gateA);
+    const p2HasGateB = person2Gates.has(gateB);
+
+    const p1HasChannel = p1HasGateA && p1HasGateB;
+    const p2HasChannel = p2HasGateA && p2HasGateB;
+
+    // Companionship: Both have the full channel
+    if (p1HasChannel && p2HasChannel) {
+      companionshipChannels.push({
+        channel,
+        type: 'companionship',
+        person1Gates: [gateA, gateB],
+        person2Gates: [gateA, gateB],
+        description: `Both ${chart1.name} and ${chart2.name} have the complete ${channel.name} channel - deep mutual understanding in this area`
+      });
+    }
+    // Electromagnetic: Together they complete a channel neither has alone
+    else if (!p1HasChannel && !p2HasChannel) {
+      // Check if together they form the channel
+      const togetherHasA = p1HasGateA || p2HasGateA;
+      const togetherHasB = p1HasGateB || p2HasGateB;
+
+      if (togetherHasA && togetherHasB) {
+        // One contributes gate A, other contributes gate B (or both contribute to both)
+        const p1Contributes: number[] = [];
+        const p2Contributes: number[] = [];
+
+        if (p1HasGateA) p1Contributes.push(gateA);
+        if (p1HasGateB) p1Contributes.push(gateB);
+        if (p2HasGateA) p2Contributes.push(gateA);
+        if (p2HasGateB) p2Contributes.push(gateB);
+
+        // True electromagnetic: each person contributes at least one unique gate
+        const p1Unique = p1Contributes.filter(g => !p2Contributes.includes(g));
+        const p2Unique = p2Contributes.filter(g => !p1Contributes.includes(g));
+
+        if (p1Unique.length > 0 && p2Unique.length > 0) {
+          electromagneticChannels.push({
+            channel,
+            type: 'electromagnetic',
+            person1Gates: p1Contributes,
+            person2Gates: p2Contributes,
+            description: `${chart1.name} brings gate ${p1Unique.join(', ')}, ${chart2.name} brings gate ${p2Unique.join(', ')} - magnetic attraction`
+          });
+        }
+        // Compromise: Both have hanging gates that connect
+        else if (p1Contributes.length > 0 && p2Contributes.length > 0) {
+          compromiseChannels.push({
+            channel,
+            type: 'compromise',
+            person1Gates: p1Contributes,
+            person2Gates: p2Contributes,
+            description: `Both contribute to the ${channel.name} channel but share gate(s) - requires compromise`
+          });
+        }
+      }
+    }
+    // Dominance: One has full channel, other has hanging gate(s)
+    else if (p1HasChannel && !p2HasChannel && (p2HasGateA || p2HasGateB)) {
+      const p2Gates: number[] = [];
+      if (p2HasGateA) p2Gates.push(gateA);
+      if (p2HasGateB) p2Gates.push(gateB);
+
+      dominanceChannels.push({
+        channel,
+        type: 'dominance',
+        person1Gates: [gateA, gateB],
+        person2Gates: p2Gates,
+        description: `${chart1.name} has the complete ${channel.name} channel and leads; ${chart2.name} has gate ${p2Gates.join(', ')}`
+      });
+    }
+    else if (p2HasChannel && !p1HasChannel && (p1HasGateA || p1HasGateB)) {
+      const p1Gates: number[] = [];
+      if (p1HasGateA) p1Gates.push(gateA);
+      if (p1HasGateB) p1Gates.push(gateB);
+
+      dominanceChannels.push({
+        channel,
+        type: 'dominance',
+        person1Gates: p1Gates,
+        person2Gates: [gateA, gateB],
+        description: `${chart2.name} has the complete ${channel.name} channel and leads; ${chart1.name} has gate ${p1Gates.join(', ')}`
+      });
+    }
+  }
+
+  // Calculate composite chart (combined gates and channels)
+  const compositeGates = new Map<number, { center: string; sources: string[] }>();
+  for (const [gate, info] of chart1.allGates) {
+    compositeGates.set(gate, { center: info.center, sources: [chart1.name] });
+  }
+  for (const [gate, info] of chart2.allGates) {
+    const existing = compositeGates.get(gate);
+    if (existing) {
+      existing.sources.push(chart2.name);
+    } else {
+      compositeGates.set(gate, { center: info.center, sources: [chart2.name] });
+    }
+  }
+
+  const compositeChannels = getActiveChannels(compositeGates);
+  const compositeCenterStatus = getCenterStatus(compositeChannels, compositeGates);
+  const compositeType = calculateType(compositeCenterStatus.defined, compositeChannels);
+  const compositeStrategy = STRATEGY_BY_TYPE[compositeType];
+  const compositeDefinition = calculateDefinition(compositeChannels, compositeCenterStatus.defined);
+  const compositeDefinitionIslands = getDefinitionIslands(compositeChannels, compositeCenterStatus.defined);
+
+  // Calculate channel breakdown
+  const person1ChannelKeys = new Set(chart1.activeChannels.map(ch => `${ch.gates[0]}-${ch.gates[1]}`));
+  const person2ChannelKeys = new Set(chart2.activeChannels.map(ch => `${ch.gates[0]}-${ch.gates[1]}`));
+
+  const channelsPerson1Only: Channel[] = [];
+  const channelsPerson2Only: Channel[] = [];
+  const channelsOnlyTogether: Channel[] = [];
+
+  for (const channel of compositeChannels) {
+    const key = `${channel.gates[0]}-${channel.gates[1]}`;
+    const p1Has = person1ChannelKeys.has(key);
+    const p2Has = person2ChannelKeys.has(key);
+
+    if (p1Has && !p2Has) {
+      channelsPerson1Only.push(channel);
+    } else if (p2Has && !p1Has) {
+      channelsPerson2Only.push(channel);
+    } else if (!p1Has && !p2Has) {
+      // Neither has it individually - only together
+      channelsOnlyTogether.push(channel);
+    }
+    // If both have it (companionship), it's not unique to anyone
+  }
+
+  // Categorize gates
+  const sharedGates: GateConnection[] = [];
+  const uniqueGatesPerson1: GateConnection[] = [];
+  const uniqueGatesPerson2: GateConnection[] = [];
+
+  for (const [gate, info] of compositeGates) {
+    const gateConnection: GateConnection = {
+      gate,
+      gateName: GATE_NAMES[gate],
+      center: info.center,
+      type: info.sources.length === 2 ? 'shared' :
+            info.sources[0] === chart1.name ? 'unique_person1' : 'unique_person2'
+    };
+
+    if (gateConnection.type === 'shared') {
+      sharedGates.push(gateConnection);
+    } else if (gateConnection.type === 'unique_person1') {
+      uniqueGatesPerson1.push(gateConnection);
+    } else {
+      uniqueGatesPerson2.push(gateConnection);
+    }
+  }
+
+  return {
+    person1: chart1,
+    person2: chart2,
+    electromagneticChannels,
+    companionshipChannels,
+    dominanceChannels,
+    compromiseChannels,
+    compositeDefinedCenters: compositeCenterStatus.defined,
+    compositeUndefinedCenters: compositeCenterStatus.undefined,
+    compositeOpenCenters: compositeCenterStatus.open,
+    compositeChannels,
+    compositeType,
+    compositeStrategy,
+    compositeDefinition,
+    compositeDefinitionIslands,
+    channelsPerson1Only,
+    channelsPerson2Only,
+    channelsOnlyTogether,
+    sharedGates,
+    uniqueGatesPerson1,
+    uniqueGatesPerson2
+  };
+}
+
+/**
+ * Build a HumanDesignChart object from API response
+ */
+export function buildChart(
+  apiResponse: HumanDesignApiResponse,
+  options: HumanDesign2TxtOptions = {}
+): HumanDesignChart {
+  const { personality, design } = apiResponse;
+
+  const personalityActivations = calculateActivations(personality.planets);
+  const designActivations = calculateActivations(design.planets);
+  const allGates = getAllGates(personalityActivations, designActivations);
+  const activeChannels = getActiveChannels(allGates);
+  const { defined, undefined: undefinedCenters, open } = getCenterStatus(activeChannels, allGates);
+
+  const type = calculateType(defined, activeChannels);
+  const strategy = STRATEGY_BY_TYPE[type];
+  const authority = calculateAuthority(defined, activeChannels);
+  const definition = calculateDefinition(activeChannels, defined);
+  const definitionIslands = getDefinitionIslands(activeChannels, defined);
+  const hangingGates = getHangingGates(allGates, activeChannels);
+
+  const personalitySun = personalityActivations.find(a => a.planet === 'Sun')!;
+  const designSun = designActivations.find(a => a.planet === 'Sun')!;
+  const profile = calculateProfile(personalitySun.line, designSun.line);
+  const profileName = PROFILE_NAMES[profile] || '';
+
+  const personalityEarth = personalityActivations.find(a => a.planet === 'Earth')!;
+  const designEarth = designActivations.find(a => a.planet === 'Earth')!;
+  const incarnationCross = getIncarnationCross(
+    personalitySun.gate,
+    personalityEarth.gate,
+    designSun.gate,
+    designEarth.gate,
+    personalitySun.line,
+    designSun.line
+  );
+
+  return {
+    name: options.name || 'Chart',
+    location: options.location || `${personality.location.latitude}, ${personality.location.longitude}`,
+    date: personality.date,
+    time: personality.time,
+    type,
+    strategy,
+    authority,
+    definition,
+    definitionIslands,
+    profile,
+    profileName,
+    incarnationCross,
+    definedCenters: defined,
+    undefinedCenters,
+    openCenters: open,
+    activeChannels,
+    hangingGates,
+    allGates,
+    personalityActivations,
+    designActivations
+  };
+}
+
+// ============================================================================
+// PARTNERSHIP MAIN FUNCTION
+// ============================================================================
+
+export interface HumanDesignPartnership2TxtOptions {
+  person1Name?: string;
+  person1Location?: string;
+  person2Name?: string;
+  person2Location?: string;
+}
+
+/**
+ * Main entry point for partnership analysis: Convert two Human Design API responses to formatted text
+ */
+export function humandesignPartnership2txt(
+  apiResponse1: HumanDesignApiResponse,
+  apiResponse2: HumanDesignApiResponse,
+  options: HumanDesignPartnership2TxtOptions = {}
+): string {
+  const chart1 = buildChart(apiResponse1, {
+    name: options.person1Name || 'Person 1',
+    location: options.person1Location
+  });
+
+  const chart2 = buildChart(apiResponse2, {
+    name: options.person2Name || 'Person 2',
+    location: options.person2Location
+  });
+
+  const partnership = analyzePartnership(chart1, chart2);
+
+  return formatPartnershipToText(partnership);
+}
+
+// ============================================================================
+// PARTNERSHIP TEXT FORMATTER
+// ============================================================================
+
+function formatPartnershipToText(partnership: HumanDesignPartnership): string {
+  const lines: string[] = [];
+  const { person1, person2 } = partnership;
+
+  // Metadata
+  lines.push('[METADATA]');
+  lines.push('chart_type: human_design_partnership');
+  lines.push('');
+
+  // Individual Chart Summaries
+  lines.push(`[CHART: ${person1.name}]`);
+  lines.push(`[BIRTHDATA] ${person1.location} | ${person1.date} | ${person1.time}`);
+  lines.push(`Type: ${person1.type} | Strategy: ${person1.strategy} | Authority: ${person1.authority}`);
+  lines.push(`Definition: ${person1.definition} | Profile: ${person1.profile}${person1.profileName ? ` (${person1.profileName})` : ''}`);
+  if (person1.definitionIslands.length > 1) {
+    const islandStrs = person1.definitionIslands.map(island => `[${island.join('+')}]`);
+    lines.push(`Definition Islands: ${islandStrs.join(' + ')}`);
+  }
+  lines.push(`Defined Centers: ${person1.definedCenters.join(', ') || 'None'}`);
+  if (person1.hangingGates.length > 0) {
+    const hangingStr = person1.hangingGates.map(hg => `${hg.gate} (${hg.center})`).join(', ');
+    lines.push(`Hanging Gates: ${hangingStr}`);
+  }
+  lines.push('');
+
+  lines.push(`[CHART: ${person2.name}]`);
+  lines.push(`[BIRTHDATA] ${person2.location} | ${person2.date} | ${person2.time}`);
+  lines.push(`Type: ${person2.type} | Strategy: ${person2.strategy} | Authority: ${person2.authority}`);
+  lines.push(`Definition: ${person2.definition} | Profile: ${person2.profile}${person2.profileName ? ` (${person2.profileName})` : ''}`);
+  if (person2.definitionIslands.length > 1) {
+    const islandStrs = person2.definitionIslands.map(island => `[${island.join('+')}]`);
+    lines.push(`Definition Islands: ${islandStrs.join(' + ')}`);
+  }
+  lines.push(`Defined Centers: ${person2.definedCenters.join(', ') || 'None'}`);
+  if (person2.hangingGates.length > 0) {
+    const hangingStr = person2.hangingGates.map(hg => `${hg.gate} (${hg.center})`).join(', ');
+    lines.push(`Hanging Gates: ${hangingStr}`);
+  }
+  lines.push('');
+
+  // Partnership Analysis Header
+  lines.push(`[PARTNERSHIP: ${person1.name} & ${person2.name}]`);
+  lines.push('');
+
+  // Composite Overview
+  lines.push('[COMPOSITE OVERVIEW]');
+  lines.push(`Composite Type: ${partnership.compositeType}`);
+  lines.push(`Composite Strategy: ${partnership.compositeStrategy}`);
+  lines.push(`Composite Definition: ${partnership.compositeDefinition}`);
+  if (partnership.compositeDefinitionIslands.length > 1) {
+    const islandStrs = partnership.compositeDefinitionIslands.map(island => `[${island.join('+')}]`);
+    lines.push(`Composite Definition Islands: ${islandStrs.join(' + ')}`);
+  }
+  if (partnership.compositeDefinedCenters.length > 0) {
+    lines.push(`Defined Centers Together: ${partnership.compositeDefinedCenters.join(', ')}`);
+  }
+  if (partnership.compositeUndefinedCenters.length > 0) {
+    lines.push(`Undefined Centers Together: ${partnership.compositeUndefinedCenters.join(', ')}`);
+  }
+  if (partnership.compositeOpenCenters.length > 0) {
+    lines.push(`Open Centers Together: ${partnership.compositeOpenCenters.join(', ')}`);
+  }
+  lines.push('');
+
+  // Electromagnetic Connections (Attraction)
+  lines.push('[ELECTROMAGNETIC CONNECTIONS]');
+  lines.push('(Channels completed together - magnetic attraction and chemistry)');
+  if (partnership.electromagneticChannels.length > 0) {
+    for (const conn of partnership.electromagneticChannels) {
+      lines.push(`${conn.channel.gates[0]}-${conn.channel.gates[1]} (${conn.channel.name}): ${conn.channel.centers[0]} ↔ ${conn.channel.centers[1]}`);
+      lines.push(`  ${conn.description}`);
+    }
+  } else {
+    lines.push('None');
+  }
+  lines.push('');
+
+  // Companionship Connections (Understanding)
+  lines.push('[COMPANIONSHIP CONNECTIONS]');
+  lines.push('(Channels both have individually - deep mutual understanding)');
+  if (partnership.companionshipChannels.length > 0) {
+    for (const conn of partnership.companionshipChannels) {
+      lines.push(`${conn.channel.gates[0]}-${conn.channel.gates[1]} (${conn.channel.name}): ${conn.channel.centers[0]} ↔ ${conn.channel.centers[1]}`);
+      lines.push(`  ${conn.description}`);
+    }
+  } else {
+    lines.push('None');
+  }
+  lines.push('');
+
+  // Dominance Connections (Leadership)
+  lines.push('[DOMINANCE CONNECTIONS]');
+  lines.push('(One person has full channel, the other has hanging gate - one naturally leads)');
+  if (partnership.dominanceChannels.length > 0) {
+    for (const conn of partnership.dominanceChannels) {
+      lines.push(`${conn.channel.gates[0]}-${conn.channel.gates[1]} (${conn.channel.name}): ${conn.channel.centers[0]} ↔ ${conn.channel.centers[1]}`);
+      lines.push(`  ${conn.description}`);
+    }
+  } else {
+    lines.push('None');
+  }
+  lines.push('');
+
+  // Compromise Connections
+  lines.push('[COMPROMISE CONNECTIONS]');
+  lines.push('(Both have hanging gates in same channel - requires negotiation)');
+  if (partnership.compromiseChannels.length > 0) {
+    for (const conn of partnership.compromiseChannels) {
+      lines.push(`${conn.channel.gates[0]}-${conn.channel.gates[1]} (${conn.channel.name}): ${conn.channel.centers[0]} ↔ ${conn.channel.centers[1]}`);
+      lines.push(`  ${conn.description}`);
+    }
+  } else {
+    lines.push('None');
+  }
+  lines.push('');
+
+  // Shared Gates
+  lines.push('[SHARED GATES]');
+  lines.push('(Gates both people have - common ground)');
+  if (partnership.sharedGates.length > 0) {
+    const sortedShared = [...partnership.sharedGates].sort((a, b) => a.gate - b.gate);
+    for (const g of sortedShared) {
+      lines.push(`${g.gate}: ${g.gateName} | ${g.center}`);
+    }
+  } else {
+    lines.push('None');
+  }
+  lines.push('');
+
+  // Unique Gates
+  lines.push(`[UNIQUE GATES: ${person1.name}]`);
+  lines.push(`(Gates only ${person1.name} brings to the relationship)`);
+  if (partnership.uniqueGatesPerson1.length > 0) {
+    const sorted = [...partnership.uniqueGatesPerson1].sort((a, b) => a.gate - b.gate);
+    for (const g of sorted) {
+      lines.push(`${g.gate}: ${g.gateName} | ${g.center}`);
+    }
+  } else {
+    lines.push('None');
+  }
+  lines.push('');
+
+  lines.push(`[UNIQUE GATES: ${person2.name}]`);
+  lines.push(`(Gates only ${person2.name} brings to the relationship)`);
+  if (partnership.uniqueGatesPerson2.length > 0) {
+    const sorted = [...partnership.uniqueGatesPerson2].sort((a, b) => a.gate - b.gate);
+    for (const g of sorted) {
+      lines.push(`${g.gate}: ${g.gateName} | ${g.center}`);
+    }
+  } else {
+    lines.push('None');
+  }
+  lines.push('');
+
+  // Channel Breakdown
+  lines.push(`[CHANNELS: ${person1.name} Only]`);
+  lines.push(`(Channels only ${person1.name} has)`);
+  if (partnership.channelsPerson1Only.length > 0) {
+    for (const channel of partnership.channelsPerson1Only) {
+      lines.push(`${channel.gates[0]}-${channel.gates[1]} (${channel.name}): ${channel.centers[0]} ↔ ${channel.centers[1]}`);
+    }
+  } else {
+    lines.push('None');
+  }
+  lines.push('');
+
+  lines.push(`[CHANNELS: ${person2.name} Only]`);
+  lines.push(`(Channels only ${person2.name} has)`);
+  if (partnership.channelsPerson2Only.length > 0) {
+    for (const channel of partnership.channelsPerson2Only) {
+      lines.push(`${channel.gates[0]}-${channel.gates[1]} (${channel.name}): ${channel.centers[0]} ↔ ${channel.centers[1]}`);
+    }
+  } else {
+    lines.push('None');
+  }
+  lines.push('');
+
+  lines.push('[CHANNELS: Only Together]');
+  lines.push('(Channels formed only when both are together - neither has individually)');
+  if (partnership.channelsOnlyTogether.length > 0) {
+    for (const channel of partnership.channelsOnlyTogether) {
+      lines.push(`${channel.gates[0]}-${channel.gates[1]} (${channel.name}): ${channel.centers[0]} ↔ ${channel.centers[1]}`);
+    }
+  } else {
+    lines.push('None');
+  }
+  lines.push('');
+
+  // Composite Channels (all channels when together)
+  lines.push('[COMPOSITE CHANNELS]');
+  lines.push('(All channels active when together)');
+  if (partnership.compositeChannels.length > 0) {
+    for (const channel of partnership.compositeChannels) {
+      lines.push(`${channel.gates[0]}-${channel.gates[1]} (${channel.name}): ${channel.centers[0]} ↔ ${channel.centers[1]}`);
+    }
+  } else {
+    lines.push('None');
+  }
 
   return lines.join('\n');
 }

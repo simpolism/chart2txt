@@ -12,11 +12,15 @@ export { groupAspects } from './core/grouping';
 export { formatReportToText } from './formatters/text/textFormatter';
 
 // Core functions - Human Design
-export { humandesign2txt } from './humandesign2txt';
+export { humandesign2txt, humandesignPartnership2txt, buildChart, analyzePartnership } from './humandesign2txt';
 export type {
   HumanDesignApiResponse,
   HumanDesignChart,
   HumanDesign2TxtOptions,
+  HumanDesignPartnership2TxtOptions,
+  HumanDesignPartnership,
+  ChannelConnection,
+  GateConnection,
   Activation,
   Channel
 } from './humandesign2txt';
