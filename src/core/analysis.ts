@@ -131,6 +131,30 @@ function filterPatternsByChartInvolvement(
   });
 }
 
+function resolveHouseSystemName(
+  charts: ChartData[],
+  partialSettings: PartialSettings
+): string | undefined {
+  if (partialSettings.houseSystemName !== undefined) {
+    return partialSettings.houseSystemName;
+  }
+
+  const houseSystems = charts
+    .map((chart) => chart.houseSystemName?.trim())
+    .filter((value): value is string => Boolean(value));
+
+  if (houseSystems.length === 0) {
+    return undefined;
+  }
+
+  const uniqueHouseSystems = [...new Set(houseSystems)];
+  if (uniqueHouseSystems.length === 1) {
+    return uniqueHouseSystems[0];
+  }
+
+  return `mixed (${uniqueHouseSystems.join(', ')})`;
+}
+
 /**
  * Analyzes single or multiple chart data and returns a structured report
  * containing all detected astrological configurations without any formatting.
@@ -146,6 +170,10 @@ export function analyzeCharts(
 
   const settings = new ChartSettings(partialSettings);
   const rawCharts = isMultiChartData(data) ? data : [data];
+  const resolvedHouseSystemName = resolveHouseSystemName(rawCharts, partialSettings);
+  if (resolvedHouseSystemName !== undefined) {
+    settings.houseSystemName = resolvedHouseSystemName;
+  }
 
   const nonTransitCharts = rawCharts.filter((c) => c.chartType !== 'transit');
   const transitChart = rawCharts.find((c) => c.chartType === 'transit');

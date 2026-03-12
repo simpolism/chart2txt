@@ -42,6 +42,32 @@ describe('Basic Formatting', () => {
       expect(result).toContain('Moon: 0° Leo');
     });
 
+    test('uses chart-level house system metadata when settings do not override it', () => {
+      const data: ChartData = {
+        name: 'test',
+        planets: [{ name: 'Sun', degree: 35 }],
+        houseSystemName: 'Placidus',
+      };
+
+      const result = chart2txt(data);
+
+      expect(result).toContain('[METADATA]');
+      expect(result).toContain('house_system: Placidus');
+    });
+
+    test('prefers explicit settings house system metadata over chart-level metadata', () => {
+      const data: ChartData = {
+        name: 'test',
+        planets: [{ name: 'Sun', degree: 35 }],
+        houseSystemName: 'Placidus',
+      };
+
+      const result = chart2txt(data, { houseSystemName: 'equal' });
+
+      expect(result).toContain('[METADATA]');
+      expect(result).toContain('house_system: equal');
+    });
+
     test('includes whole sign house positions', () => {
       const data: ChartData = {
         name: 'test',

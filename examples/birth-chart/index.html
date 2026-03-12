@@ -442,7 +442,7 @@
         </footer>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/chart2txt@0.8.0/dist/chart2txt.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart2txt@0.8.1/dist/chart2txt.min.js"></script>
     <!--script src="../../dist/chart2txt.min.js"></script-->
     <script>
         document.addEventListener('DOMContentLoaded', function() {
@@ -1316,6 +1316,7 @@
                     midheaven: apiData.midheaven,
                     points: apiData.points || [],
                     houseCusps: apiData.houseCusps,
+                    houseSystemName: houseSystem,
                     location: location,
                     timestamp: new Date(`${apiData.date.replace(/-/g, '/')} ${apiData.time.replace(/-/g, ':')}`),
                     chartType: isEvent ? 'event' : 'natal',
@@ -1362,6 +1363,7 @@
                     midheaven: apiDataTransit.midheaven,
                     points: apiDataTransit.points || [],
                     houseCusps: apiDataTransit.houseCusps,
+                    houseSystemName: houseSystem,
                     location: transitLocation,
                     timestamp: transitTimestamp,
                     chartType: 'transit'
