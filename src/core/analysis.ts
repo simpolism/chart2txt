@@ -76,12 +76,23 @@ function createMidpointCompositeChart(
       ? circularMeanDegrees([chart1.midheaven, chart2.midheaven])
       : undefined;
 
-  const houseCusps =
-    chart1.houseCusps && chart2.houseCusps
-      ? chart1.houseCusps.map((cusp, index) =>
-          circularMeanDegrees([cusp, chart2.houseCusps![index]])
-        )
-      : undefined;
+  // For Whole Sign and Equal, derive cusps from composite ascendant.
+  // For other systems (Placidus, Porphyry), midpoint the natal cusps
+  // to match astro.com composite behavior.
+  let houseCusps: number[] | undefined;
+  if (ascendant !== undefined && (houseSystemName === 'W' || houseSystemName === 'Whole Sign')) {
+    houseCusps = Array.from({ length: 12 }, (_, i) =>
+      normalizeDegree(Math.floor(ascendant / 30) * 30 + i * 30)
+    );
+  } else if (ascendant !== undefined && (houseSystemName === 'E' || houseSystemName === 'Equal')) {
+    houseCusps = Array.from({ length: 12 }, (_, i) =>
+      normalizeDegree(ascendant + i * 30)
+    );
+  } else if (chart1.houseCusps && chart2.houseCusps) {
+    houseCusps = chart1.houseCusps.map((cusp, index) =>
+      circularMeanDegrees([cusp, chart2.houseCusps![index]])
+    );
+  }
 
   return {
     name: `${chart1.name}-${chart2.name}`,
