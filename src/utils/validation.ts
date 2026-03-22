@@ -151,7 +151,7 @@ export function validateChartData(chartData: ChartData): string | null {
   }
 
   if (chartData.chartType !== undefined) {
-    const validTypes = ['natal', 'event', 'transit'];
+    const validTypes = ['natal', 'event', 'transit', 'composite'];
     if (!validTypes.includes(chartData.chartType)) {
       return `Chart type must be one of: ${validTypes.join(', ')}`;
     }

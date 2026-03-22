@@ -14,7 +14,11 @@ export interface ChartData {
   houseSystemName?: string; // Optional: Name of the house system used (e.g., "Placidus")
   timestamp?: Date; // the time for the chart, optional
   location?: string; // the location of the chart, optional
-  chartType?: 'natal' | 'event' | 'transit'; // type of chart, optional, defaults to natal
+  chartType?: 'natal' | 'event' | 'transit' | 'composite'; // type of chart, optional, defaults to natal
+  compositeSource?: {
+    chartNames: [string, string];
+    method: 'midpoint';
+  };
 }
 
 export type MultiChartData = ChartData[];
@@ -207,6 +211,7 @@ export interface GroupingSettings {
 export interface FormattingSettings {
   dateFormat?: string;
   houseSystemName?: string;
+  outputMode?: 'standard' | 'composite';
 }
 
 export interface Settings

@@ -26,6 +26,78 @@ import { calculateHouseOverlays } from '../utils/houseCalculations';
 
 // Helper functions
 
+function normalizeDegree(degree: number): number {
+  return ((degree % 360) + 360) % 360;
+}
+
+function circularMeanDegrees(degrees: number[]): number {
+  if (degrees.length === 0) {
+    throw new Error('Cannot compute circular mean of empty degree list');
+  }
+
+  const radians = degrees.map((degree) => (normalizeDegree(degree) * Math.PI) / 180);
+  const x = radians.reduce((sum, rad) => sum + Math.cos(rad), 0);
+  const y = radians.reduce((sum, rad) => sum + Math.sin(rad), 0);
+  const angle = (Math.atan2(y, x) * 180) / Math.PI;
+  return normalizeDegree(angle);
+}
+
+function midpointSpeed(speedA?: number, speedB?: number): number | undefined {
+  if (speedA === undefined || speedB === undefined) {
+    return undefined;
+  }
+  return (speedA + speedB) / 2;
+}
+
+function createMidpointCompositeChart(
+  chart1: ChartData,
+  chart2: ChartData,
+  houseSystemName?: string
+): ChartData {
+  const chart2PlanetMap = new Map(chart2.planets.map((planet) => [planet.name, planet]));
+  const compositePlanets: Point[] = chart1.planets
+    .filter((planet) => chart2PlanetMap.has(planet.name))
+    .map((planet) => {
+      const otherPlanet = chart2PlanetMap.get(planet.name)!;
+      return {
+        name: planet.name,
+        degree: circularMeanDegrees([planet.degree, otherPlanet.degree]),
+        speed: midpointSpeed(planet.speed, otherPlanet.speed),
+      };
+    });
+
+  const ascendant =
+    chart1.ascendant !== undefined && chart2.ascendant !== undefined
+      ? circularMeanDegrees([chart1.ascendant, chart2.ascendant])
+      : undefined;
+
+  const midheaven =
+    chart1.midheaven !== undefined && chart2.midheaven !== undefined
+      ? circularMeanDegrees([chart1.midheaven, chart2.midheaven])
+      : undefined;
+
+  const houseCusps =
+    chart1.houseCusps && chart2.houseCusps
+      ? chart1.houseCusps.map((cusp, index) =>
+          circularMeanDegrees([cusp, chart2.houseCusps![index]])
+        )
+      : undefined;
+
+  return {
+    name: `${chart1.name}-${chart2.name}`,
+    planets: compositePlanets,
+    ascendant,
+    midheaven,
+    houseCusps,
+    houseSystemName,
+    chartType: 'composite',
+    compositeSource: {
+      chartNames: [chart1.name, chart2.name],
+      method: 'midpoint',
+    },
+  };
+}
+
 function getAllPointsFromChart(chartData: ChartData): Point[] {
   const allPoints: Point[] = [...chartData.planets];
   if (chartData.ascendant !== undefined) {
@@ -173,6 +245,32 @@ export function analyzeCharts(
   const resolvedHouseSystemName = resolveHouseSystemName(rawCharts, partialSettings);
   if (resolvedHouseSystemName !== undefined) {
     settings.houseSystemName = resolvedHouseSystemName;
+  }
+
+  if (settings.outputMode === 'composite') {
+    const nonTransitCharts = rawCharts.filter((c) => c.chartType !== 'transit');
+    const transitCharts = rawCharts.filter((c) => c.chartType === 'transit');
+
+    if (transitCharts.length > 0) {
+      throw new Error('Composite output mode does not support transit charts');
+    }
+
+    if (nonTransitCharts.length !== 2) {
+      throw new Error(
+        `Composite output mode requires exactly 2 non-transit charts, got ${nonTransitCharts.length}`
+      );
+    }
+
+    const compositeChart = createMidpointCompositeChart(
+      nonTransitCharts[0],
+      nonTransitCharts[1],
+      settings.houseSystemName
+    );
+
+    return analyzeCharts(compositeChart, {
+      ...partialSettings,
+      outputMode: 'standard',
+    });
   }
 
   const nonTransitCharts = rawCharts.filter((c) => c.chartType !== 'transit');

@@ -1,7 +1,10 @@
 import { ChartSettings } from '../../../config/ChartSettings';
-import { MultiChartData } from '../../../types';
+import { MultiChartData, ChartData } from '../../../types';
 
 export function determineChartType(data: MultiChartData): string {
+  if (data.length === 1 && data[0].chartType === 'composite') {
+    return 'composite';
+  }
   let baseChartString = 'natal';
   let suffixString = '';
   const natalCharts = data.filter(
@@ -62,11 +65,16 @@ export function determineChartType(data: MultiChartData): string {
 export function generateMetadataOutput(
   settings: ChartSettings,
   chartType: string,
-  houseSystemName?: string
+  houseSystemName?: string,
+  compositeSource?: ChartData['compositeSource']
 ): string[] {
   const output = ['[METADATA]', `chart_type: ${chartType}`];
   if (houseSystemName) {
     output.push(`house_system: ${houseSystemName}`);
+  }
+  if (compositeSource) {
+    output.push(`composite_method: ${compositeSource.method}`);
+    output.push(`source_charts: ${compositeSource.chartNames.join(', ')}`);
   }
   output.push(`date_format: ${settings.dateFormat}`);
   return output;

@@ -172,8 +172,17 @@ export function formatReportToText(report: AstrologicalReport): string {
 
   const originalCharts = chartAnalyses.map((ca) => ca.chart);
   const chartType = determineChartType(originalCharts);
+  const compositeSource =
+    originalCharts.length === 1 && originalCharts[0].chartType === 'composite'
+      ? originalCharts[0].compositeSource
+      : undefined;
   outputLines.push(
-    ...generateMetadataOutput(settings, chartType, settings.houseSystemName)
+    ...generateMetadataOutput(
+      settings,
+      chartType,
+      settings.houseSystemName,
+      compositeSource
+    )
   );
   outputLines.push('');
 
@@ -182,7 +191,11 @@ export function formatReportToText(report: AstrologicalReport): string {
     (a) => a.chart.chartType !== 'transit'
   );
   for (const analysis of nonTransitAnalyses) {
-    outputLines.push(...processSingleChartOutput(analysis, settings));
+    const chartTitlePrefix =
+      analysis.chart.chartType === 'composite' ? 'COMPOSITE' : undefined;
+    outputLines.push(
+      ...processSingleChartOutput(analysis, settings, chartTitlePrefix)
+    );
   }
 
   // 2. Process pairwise analyses

@@ -327,4 +327,5 @@ export const DEFAULT_SETTINGS: Settings = {
   // Formatting settings
   houseSystemName: 'whole_sign',
   dateFormat: 'MM/DD/YYYY',
+  outputMode: 'standard',
 };

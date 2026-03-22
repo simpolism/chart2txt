@@ -412,6 +412,14 @@
             </div>
 
             <div class="form-group astrology-only">
+                <label for="outputMode">Output Mode:</label>
+                <select id="outputMode">
+                    <option value="standard" selected>Standard</option>
+                    <option value="composite">Composite (Midpoint)</option>
+                </select>
+            </div>
+
+            <div class="form-group astrology-only">
                 <label>Aspect Grouping Categories:</label>
                 <div class="aspect-strength-container">
                     <div id="aspectThresholdsList">
@@ -1191,12 +1199,29 @@
                     return;
                 }
 
+                const outputMode = document.getElementById('outputMode').value;
+
+                if (outputMode === 'composite') {
+                    const nonTransitCharts = multiChartData.filter(c => c.chartType !== 'transit');
+                    if (nonTransitCharts.length !== 2) {
+                        resultDiv.textContent = `Composite mode requires exactly 2 non-transit charts (you have ${nonTransitCharts.length}). Please add or remove charts.`;
+                        loadingDiv.style.display = 'none';
+                        return;
+                    }
+                    if (multiChartData.some(c => c.chartType === 'transit')) {
+                        resultDiv.textContent = 'Composite mode does not support transit charts. Please disable transits or switch to Standard mode.';
+                        loadingDiv.style.display = 'none';
+                        return;
+                    }
+                }
+
                 // --- ADVANCED WORKFLOW DEMONSTRATION ---
 
                 // 1. ANALYZE: Get the raw, ungrouped report from the library.
                 const analysisSettings = {
                     includeAspectPatterns: true,
-                    includeSignDistributions: true
+                    includeSignDistributions: true,
+                    outputMode: outputMode
                 };
                 const report = window.chart2txt.analyzeCharts(multiChartData, analysisSettings);
 

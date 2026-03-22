@@ -23,6 +23,7 @@ export class ChartSettings implements Settings {
   includeDispositors!: boolean | 'finals';
   includeHouseOverlays!: boolean;
   dateFormat!: string;
+  outputMode!: 'standard' | 'composite';
 
   constructor(customSettings: PartialSettings = {}) {
     const mergedSettings = { ...DEFAULT_SETTINGS, ...customSettings };
