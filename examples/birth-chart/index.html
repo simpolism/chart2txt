@@ -137,19 +137,36 @@
             border-radius: 4px;
             border-left: 4px solid #3498db;
         }
-        .copy-btn {
-            background-color: #2ecc71;
+        .result-actions {
+            display: none;
+            gap: 8px;
+            margin-top: 15px;
+        }
+        .result-actions.visible {
+            display: flex;
+        }
+        .copy-btn, .download-btn {
             color: white;
             border: none;
             padding: 8px 12px;
             border-radius: 4px;
             cursor: pointer;
             font-size: 14px;
-            margin-top: 15px;
-            display: none;
+            width: auto;
+            display: inline-block;
+            margin: 0;
+        }
+        .copy-btn {
+            background-color: #2ecc71;
         }
         .copy-btn:hover {
             background-color: #27ae60;
+        }
+        .download-btn {
+            background-color: #3498db;
+        }
+        .download-btn:hover {
+            background-color: #2980b9;
         }
         #loading {
             text-align: center;
@@ -440,8 +457,15 @@
             <p>Calculating chart(s)...</p>
         </div>
         
-        <button id="copyBtn" class="copy-btn">Copy to Clipboard</button>
+        <div id="topActions" class="result-actions">
+            <button id="copyBtnTop" class="copy-btn">Copy to Clipboard</button>
+            <button id="downloadBtnTop" class="download-btn">Download .txt</button>
+        </div>
         <div id="result"></div>
+        <div id="bottomActions" class="result-actions">
+            <button id="copyBtnBottom" class="copy-btn">Copy to Clipboard</button>
+            <button id="downloadBtnBottom" class="download-btn">Download .txt</button>
+        </div>
         
         <footer>
             Built with <a href="https://github.com/simpolism/chart2txt" target="_blank">chart2txt</a>, 
@@ -463,7 +487,8 @@
             const addChartBtn = document.getElementById('addChartBtn');
             const resultDiv = document.getElementById('result');
             const loadingDiv = document.getElementById('loading');
-            const copyBtn = document.getElementById('copyBtn');
+            const topActions = document.getElementById('topActions');
+            const bottomActions = document.getElementById('bottomActions');
 
             // Transit inputs
             const enableTransitsCheckbox = document.getElementById('enableTransits');
@@ -1026,22 +1051,55 @@
                 }
             });
             
-            copyBtn.addEventListener('click', function() {
+            function handleCopy(btn) {
                 const textToCopy = resultDiv.textContent;
                 if (textToCopy) {
                     navigator.clipboard.writeText(textToCopy)
                         .then(() => {
-                            const originalText = copyBtn.textContent;
-                            copyBtn.textContent = 'Copied!';
+                            const originalText = btn.textContent;
+                            btn.textContent = 'Copied!';
                             setTimeout(() => {
-                                copyBtn.textContent = originalText;
+                                btn.textContent = originalText;
                             }, 2000);
                         })
                         .catch(err => {
                             console.error('Failed to copy text: ', err);
                         });
                 }
-            });
+            }
+
+            function handleDownload() {
+                const text = resultDiv.textContent;
+                if (text) {
+                    const now = new Date();
+                    const stamp = now.toISOString().replace(/[:.]/g, '-').slice(0, 19);
+                    const filename = `chart2txt-${stamp}.txt`;
+                    const blob = new Blob([text], { type: 'text/plain' });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = filename;
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    URL.revokeObjectURL(url);
+                }
+            }
+
+            function showActions() {
+                topActions.classList.add('visible');
+                bottomActions.classList.add('visible');
+            }
+
+            function hideActions() {
+                topActions.classList.remove('visible');
+                bottomActions.classList.remove('visible');
+            }
+
+            document.getElementById('copyBtnTop').addEventListener('click', function() { handleCopy(this); });
+            document.getElementById('copyBtnBottom').addEventListener('click', function() { handleCopy(this); });
+            document.getElementById('downloadBtnTop').addEventListener('click', handleDownload);
+            document.getElementById('downloadBtnBottom').addEventListener('click', handleDownload);
             
             // API_ENDPOINT is now defined at the top as ASTROLOGY_API_ENDPOINT
             
@@ -1050,7 +1108,7 @@
                 e.preventDefault();
 
                 resultDiv.textContent = '';
-                copyBtn.style.display = 'none';
+                hideActions();
                 loadingDiv.style.display = 'block';
 
                 // Clear all error messages
@@ -1156,7 +1214,7 @@
                     });
 
                     resultDiv.textContent = textDescription;
-                    copyBtn.style.display = 'block';
+                    showActions();
                 } else {
                     // Single chart mode
                     const textDescription = window.chart2txt.humandesign2txt(apiResponse1, {
@@ -1165,7 +1223,7 @@
                     });
 
                     resultDiv.textContent = textDescription;
-                    copyBtn.style.display = 'block';
+                    showActions();
                 }
             }
 
@@ -1298,7 +1356,7 @@
                 const textDescription = window.chart2txt.formatReportToText(report);
 
                 resultDiv.textContent = textDescription;
-                copyBtn.style.display = 'block';
+                showActions();
             }
 
             // Process individual chart data
