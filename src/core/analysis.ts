@@ -253,18 +253,10 @@ export function analyzeCharts(
 
   const settings = new ChartSettings(partialSettings);
   const rawCharts = isMultiChartData(data) ? data : [data];
-  const resolvedHouseSystemName = resolveHouseSystemName(rawCharts, partialSettings);
-  if (resolvedHouseSystemName !== undefined) {
-    settings.houseSystemName = resolvedHouseSystemName;
-  }
 
   if (settings.outputMode === 'composite') {
     const nonTransitCharts = rawCharts.filter((c) => c.chartType !== 'transit');
     const transitCharts = rawCharts.filter((c) => c.chartType === 'transit');
-
-    if (transitCharts.length > 0) {
-      throw new Error('Composite output mode does not support transit charts');
-    }
 
     if (nonTransitCharts.length !== 2) {
       throw new Error(
@@ -272,16 +264,30 @@ export function analyzeCharts(
       );
     }
 
+    // Resolve house system from source charts only, excluding transit metadata.
+    const compositeHouseSystem = resolveHouseSystemName(nonTransitCharts, partialSettings);
     const compositeChart = createMidpointCompositeChart(
       nonTransitCharts[0],
       nonTransitCharts[1],
-      settings.houseSystemName
+      compositeHouseSystem
     );
 
-    return analyzeCharts(compositeChart, {
+    // If transit charts present, feed composite + transit into standard pipeline.
+    // Otherwise just analyze the composite alone.
+    const chartsToAnalyze: ChartData[] = transitCharts.length > 0
+      ? [compositeChart, ...transitCharts]
+      : [compositeChart];
+
+    return analyzeCharts(chartsToAnalyze, {
       ...partialSettings,
       outputMode: 'standard',
+      houseSystemName: compositeHouseSystem,
     });
+  }
+
+  const resolvedHouseSystemName = resolveHouseSystemName(rawCharts, partialSettings);
+  if (resolvedHouseSystemName !== undefined) {
+    settings.houseSystemName = resolvedHouseSystemName;
   }
 
   const nonTransitCharts = rawCharts.filter((c) => c.chartType !== 'transit');

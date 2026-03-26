@@ -56,7 +56,30 @@ describe('Composite Output Mode', () => {
     ).toThrow('Composite output mode requires exactly 2 non-transit charts');
   });
 
-  test('rejects transit charts in composite mode', () => {
+  test('supports transit overlay on composite chart', () => {
+    const transitChart: ChartData = {
+      name: 'Transit 2026',
+      planets: [
+        { name: 'Sun', degree: 353, speed: 1.0 },
+        { name: 'Moon', degree: 291, speed: 12.0 },
+      ],
+      chartType: 'transit',
+    };
+
+    const result = chart2txt([chartA, chartB, transitChart], {
+      outputMode: 'composite',
+      includeAspectPatterns: false,
+    });
+
+    expect(result).toContain('chart_type: composite_with_transit');
+    expect(result).toContain('composite_method: midpoint');
+    expect(result).toContain('source_charts: Alice, Bob');
+    expect(result).toContain('[COMPOSITE: Alice-Bob]');
+    expect(result).toContain('[TRANSIT');
+    expect(result).toContain('TRANSIT ASPECTS');
+  });
+
+  test('rejects transit-only charts in composite mode', () => {
     const transitChart: ChartData = {
       name: 'Transit',
       planets: [{ name: 'Sun', degree: 45 }],
@@ -65,6 +88,6 @@ describe('Composite Output Mode', () => {
 
     expect(() =>
       chart2txt([chartA, transitChart], { outputMode: 'composite' })
-    ).toThrow('Composite output mode does not support transit charts');
+    ).toThrow('Composite output mode requires exactly 2 non-transit charts');
   });
 });

@@ -2,10 +2,11 @@ import { ChartSettings } from '../../../config/ChartSettings';
 import { MultiChartData, ChartData } from '../../../types';
 
 export function determineChartType(data: MultiChartData): string {
-  if (data.length === 1 && data[0].chartType === 'composite') {
+  const hasComposite = data.some((d) => d.chartType === 'composite');
+  if (data.length === 1 && hasComposite) {
     return 'composite';
   }
-  let baseChartString = 'natal';
+  let baseChartString = hasComposite ? 'composite' : 'natal';
   let suffixString = '';
   const natalCharts = data.filter(
     ({ chartType }) => chartType !== 'transit' && chartType !== 'event'
@@ -45,7 +46,7 @@ export function determineChartType(data: MultiChartData): string {
       baseChartString = 'multi_event';
     }
   } else if (natalCharts.length === 1) {
-    baseChartString = 'natal';
+    if (!hasComposite) baseChartString = 'natal';
   } else if (natalCharts.length === 2) {
     baseChartString = 'synastry';
   } else {

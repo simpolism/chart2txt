@@ -172,10 +172,8 @@ export function formatReportToText(report: AstrologicalReport): string {
 
   const originalCharts = chartAnalyses.map((ca) => ca.chart);
   const chartType = determineChartType(originalCharts);
-  const compositeSource =
-    originalCharts.length === 1 && originalCharts[0].chartType === 'composite'
-      ? originalCharts[0].compositeSource
-      : undefined;
+  const compositeChart = originalCharts.find((c) => c.chartType === 'composite');
+  const compositeSource = compositeChart?.compositeSource;
   outputLines.push(
     ...generateMetadataOutput(
       settings,
