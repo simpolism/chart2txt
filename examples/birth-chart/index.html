@@ -1266,11 +1266,8 @@
                         loadingDiv.style.display = 'none';
                         return;
                     }
-                    if (multiChartData.some(c => c.chartType === 'transit')) {
-                        resultDiv.textContent = 'Composite mode does not support transit charts. Please disable transits or switch to Standard mode.';
-                        loadingDiv.style.display = 'none';
-                        return;
-                    }
+                    // Transit charts are now supported in composite mode —
+                    // the composite is synthesized first, then transits overlay it.
                 }
 
                 // --- ADVANCED WORKFLOW DEMONSTRATION ---
@@ -1279,6 +1276,7 @@
                 const analysisSettings = {
                     includeAspectPatterns: true,
                     includeSignDistributions: true,
+                    aspectDefinitions: 'modern',
                     outputMode: outputMode
                 };
                 const report = window.chart2txt.analyzeCharts(multiChartData, analysisSettings);
