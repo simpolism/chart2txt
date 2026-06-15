@@ -1,4 +1,5 @@
 import { getDegreeSign, getDegreeInSign } from '../../../core/astrology';
+import { formatDegMin } from '../../../utils/formatting';
 
 /**
  * Generates the [ANGLES] section of the chart output.
@@ -14,7 +15,7 @@ export function generateAnglesOutput(
 
   if (ascDegree !== undefined) {
     output.push(
-      `Ascendant: ${Math.floor(getDegreeInSign(ascDegree))}° ${getDegreeSign(
+      `Ascendant: ${formatDegMin(getDegreeInSign(ascDegree))} ${getDegreeSign(
         ascDegree
       )}`
     );
@@ -24,7 +25,7 @@ export function generateAnglesOutput(
 
   if (mcDegree !== undefined) {
     output.push(
-      `Midheaven: ${Math.floor(getDegreeInSign(mcDegree))}° ${getDegreeSign(
+      `Midheaven: ${formatDegMin(getDegreeInSign(mcDegree))} ${getDegreeSign(
         mcDegree
       )}`
     );

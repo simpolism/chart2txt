@@ -78,10 +78,10 @@ describe('Grand Trine Deduplication in Kites', () => {
 
       // Should contain the Kite pattern
       expect(result).toContain('Kite (Fire');
-      expect(result).toContain("Person1's Sun 0° Aries");
-      expect(result).toContain("Person1's Moon 0° Leo");
-      expect(result).toContain("Person2's Mars 0° Sagittarius");
-      expect(result).toContain("Person2's Saturn 0° Libra");
+      expect(result).toContain("Person1's Sun 0°00' Aries");
+      expect(result).toContain("Person1's Moon 0°00' Leo");
+      expect(result).toContain("Person2's Mars 0°00' Sagittarius");
+      expect(result).toContain("Person2's Saturn 0°00' Libra");
 
       // Verify the composite section exists and check its contents
       const compositeSectionStart = result.indexOf(
@@ -128,9 +128,9 @@ describe('Grand Trine Deduplication in Kites', () => {
 
       // Should contain the standalone Grand Trine in composite section
       expect(result).toContain('Grand Trine (Fire');
-      expect(result).toContain("Person1's Sun 0° Aries");
-      expect(result).toContain("Person1's Moon 0° Leo");
-      expect(result).toContain("Person2's Mars 0° Sagittarius");
+      expect(result).toContain("Person1's Sun 0°00' Aries");
+      expect(result).toContain("Person1's Moon 0°00' Leo");
+      expect(result).toContain("Person2's Mars 0°00' Sagittarius");
 
       // Should NOT contain a Kite (no opposition)
       expect(result).not.toContain('Kite (');
@@ -150,7 +150,7 @@ describe('Grand Trine Deduplication in Kites', () => {
       const bob: ChartData = {
         name: 'Bob',
         planets: [
-          { name: 'Saturn', degree: 180 }, // 0° Libra (opposition to Alice\'s Sun = Kite)
+          { name: 'Saturn', degree: 180 }, // 0° Libra (opposition to Alice's Sun = Kite)
         ],
         houseCusps: [0, 30, 60, 90, 120, 150, 180, 210, 240, 270, 300, 330],
       };

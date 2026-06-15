@@ -15,9 +15,30 @@ describe('Basic Formatting', () => {
       const result = chart2txt(data, { includeAspectPatterns: true });
 
       expect(result).toContain('[PLANETS]');
-      expect(result).toContain('Sun: 5° Taurus');
-      expect(result).toContain('Moon: 0° Leo');
-      expect(result).toContain('Mercury: 15° Gemini');
+      expect(result).toContain("Sun: 5°00' Taurus");
+      expect(result).toContain("Moon: 0°00' Leo");
+      expect(result).toContain("Mercury: 15°00' Gemini");
+    });
+
+    test('renders arcminutes for fractional degrees', () => {
+      const data: ChartData = {
+        name: 'test',
+        ascendant: 12.5, // 12°30' Aries
+        midheaven: 123.25, // 3°15' Leo
+        planets: [
+          { name: 'Sun', degree: 45.5 }, // 15°30' Taurus
+          { name: 'Moon', degree: 359.99 }, // 29°59' Pisces (floored, not rounded)
+          { name: 'Mars', degree: 200 + 1 / 60 }, // 20°01' Libra
+        ],
+      };
+
+      const result = chart2txt(data);
+
+      expect(result).toContain("Sun: 15°30' Taurus");
+      expect(result).toContain("Moon: 29°59' Pisces");
+      expect(result).toContain("Mars: 20°01' Libra");
+      expect(result).toContain("Ascendant: 12°30' Aries");
+      expect(result).toContain("Midheaven: 3°15' Leo");
     });
   });
 
@@ -38,8 +59,8 @@ describe('Basic Formatting', () => {
       expect(result).toContain('house_system: equal');
       expect(result).toContain('[PLANETS]');
       // Note: House positions are not shown without houseCusps data in current implementation
-      expect(result).toContain('Sun: 5° Taurus');
-      expect(result).toContain('Moon: 0° Leo');
+      expect(result).toContain("Sun: 5°00' Taurus");
+      expect(result).toContain("Moon: 0°00' Leo");
     });
 
     test('uses chart-level house system metadata when settings do not override it', () => {
@@ -85,8 +106,8 @@ describe('Basic Formatting', () => {
       expect(result).toContain('house_system: whole_sign');
       expect(result).toContain('[PLANETS]');
       // With this ASC at 6° Aries and these house cusps, actual house positions are different
-      expect(result).toContain('Sun: 5° Taurus [Ruler: Venus], 1st house');
-      expect(result).toContain('Moon: 0° Leo [Ruler: Sun], 4th house');
+      expect(result).toContain("Sun: 5°00' Taurus [Ruler: Venus], 1st house");
+      expect(result).toContain("Moon: 0°00' Leo [Ruler: Sun], 4th house");
     });
 
     test('includes equal house positions correctly with degree', () => {
@@ -103,8 +124,8 @@ describe('Basic Formatting', () => {
       const result = chart2txt(data);
 
       expect(result).toContain('[PLANETS]');
-      expect(result).toContain('Sun: 5° Taurus [Ruler: Venus], 1st house');
-      expect(result).toContain('Moon: 0° Leo [Ruler: Sun], 4th house');
+      expect(result).toContain("Sun: 5°00' Taurus [Ruler: Venus], 1st house");
+      expect(result).toContain("Moon: 0°00' Leo [Ruler: Sun], 4th house");
     });
 
     test('includes whole sign house positions correctly with degree', () => {
@@ -123,8 +144,8 @@ describe('Basic Formatting', () => {
       });
 
       expect(result).toContain('[PLANETS]');
-      expect(result).toContain('Sun: 5° Taurus [Ruler: Venus], 2nd house');
-      expect(result).toContain('Moon: 0° Leo [Ruler: Sun], 5th house');
+      expect(result).toContain("Sun: 5°00' Taurus [Ruler: Venus], 2nd house");
+      expect(result).toContain("Moon: 0°00' Leo [Ruler: Sun], 5th house");
     });
 
     test('handles zodiac wraparound when 1st house cusp > 12th house cusp', () => {
@@ -145,19 +166,19 @@ describe('Basic Formatting', () => {
 
       expect(result).toContain('[PLANETS]');
       // Sun at 350° (20° Pisces) should be in 1st house (340°-10° wraparound)
-      expect(result).toContain('Sun: 20° Pisces [Ruler: Jupiter], 1st house');
+      expect(result).toContain("Sun: 20°00' Pisces [Ruler: Jupiter], 1st house");
       // Moon at 10° (10° Aries) should be in 2nd house (10°-40°)
-      expect(result).toContain('Moon: 10° Aries [Ruler: Mars], 2nd house');
+      expect(result).toContain("Moon: 10°00' Aries [Ruler: Mars], 2nd house");
       // Mercury at 320° (20° Aquarius) should be in 12th house (310°-340°)
       expect(result).toContain(
-        'Mercury: 20° Aquarius [Ruler: Saturn], 12th house'
+        "Mercury: 20°00' Aquarius [Ruler: Saturn], 12th house"
       );
       // Venus at 40° (10° Taurus) should be in 3rd house (40°-70°)
-      expect(result).toContain('Venus: 10° Taurus [Domicile], 3rd house');
+      expect(result).toContain("Venus: 10°00' Taurus [Domicile], 3rd house");
 
       expect(result).toContain('[HOUSE CUSPS]');
-      expect(result).toContain('1st house: 10° Pisces'); // 340° = 10° Pisces
-      expect(result).toContain('12th house: 10° Aquarius'); // 310° = 10° Aquarius
+      expect(result).toContain("1st house: 10°00' Pisces"); // 340° = 10° Pisces
+      expect(result).toContain("12th house: 10°00' Aquarius"); // 310° = 10° Aquarius
     });
   });
 
@@ -174,7 +195,7 @@ describe('Basic Formatting', () => {
       const result = chart2txt(data, { includeAspectPatterns: true });
 
       expect(result).toContain('[ANGLES]');
-      expect(result).toContain('Ascendant: 6° Aries');
+      expect(result).toContain("Ascendant: 6°00' Aries");
     });
 
     test('formats midheaven correctly', () => {
@@ -190,8 +211,8 @@ describe('Basic Formatting', () => {
       const result = chart2txt(data, { includeAspectPatterns: true });
 
       expect(result).toContain('[ANGLES]');
-      expect(result).toContain('Ascendant: 6° Aries');
-      expect(result).toContain('Midheaven: 0° Leo');
+      expect(result).toContain("Ascendant: 6°00' Aries");
+      expect(result).toContain("Midheaven: 0°00' Leo");
     });
 
     test('omits midheaven when not provided', () => {
@@ -206,7 +227,7 @@ describe('Basic Formatting', () => {
       const result = chart2txt(data, { includeAspectPatterns: true });
 
       expect(result).toContain('[ANGLES]');
-      expect(result).toContain('Ascendant: 6° Aries');
+      expect(result).toContain("Ascendant: 6°00' Aries");
       expect(result).toContain('Midheaven: Not available');
     });
   });
@@ -289,10 +310,10 @@ describe('Basic Formatting', () => {
       const result = chart2txt(data, { includeAspectPatterns: true });
 
       expect(result).toContain('[HOUSE CUSPS]');
-      expect(result).toContain('1st house: 0° Aries');
-      expect(result).toContain('7th house: 0° Libra');
-      expect(result).toContain('2nd house: 0° Taurus');
-      expect(result).toContain('8th house: 0° Scorpio');
+      expect(result).toContain("1st house: 0°00' Aries");
+      expect(result).toContain("7th house: 0°00' Libra");
+      expect(result).toContain("2nd house: 0°00' Taurus");
+      expect(result).toContain("8th house: 0°00' Scorpio");
     });
 
     test('handles missing house cusps', () => {
@@ -317,10 +338,10 @@ describe('Basic Formatting', () => {
       const result = chart2txt(data, { includeAspectPatterns: true });
 
       expect(result).toContain('[HOUSE CUSPS]');
-      expect(result).toContain('1st house: 15° Aries');
-      expect(result).toContain('7th house: 15° Libra');
-      expect(result).toContain('4th house: 15° Cancer');
-      expect(result).toContain('10th house: 15° Capricorn');
+      expect(result).toContain("1st house: 15°00' Aries");
+      expect(result).toContain("7th house: 15°00' Libra");
+      expect(result).toContain("4th house: 15°00' Cancer");
+      expect(result).toContain("10th house: 15°00' Capricorn");
     });
   });
 
@@ -339,10 +360,10 @@ describe('Basic Formatting', () => {
       const result = chart2txt(data, { includeAspectPatterns: true });
 
       expect(result).toContain('[PLANETS]');
-      expect(result).toContain('Sun: 0° Leo [Domicile], 5th house');
-      expect(result).toContain('Moon: 0° Cancer [Domicile], 4th house');
+      expect(result).toContain("Sun: 0°00' Leo [Domicile], 5th house");
+      expect(result).toContain("Moon: 0°00' Cancer [Domicile], 4th house");
       expect(result).toContain(
-        'Mercury: 0° Virgo [Domicile, Exaltation], 6th house'
+        "Mercury: 0°00' Virgo [Domicile, Exaltation], 6th house"
       );
     });
 
@@ -358,8 +379,8 @@ describe('Basic Formatting', () => {
       const result = chart2txt(data, { includeAspectPatterns: true });
 
       expect(result).toContain('[PLANETS]');
-      expect(result).toContain('Sun: 0° Capricorn [Ruler: Saturn]');
-      expect(result).toContain('Mars: 0° Cancer [Fall | Ruler: Moon]');
+      expect(result).toContain("Sun: 0°00' Capricorn [Ruler: Saturn]");
+      expect(result).toContain("Mars: 0°00' Cancer [Fall | Ruler: Moon]");
     });
 
     test('formats planets with exaltation', () => {
@@ -374,8 +395,8 @@ describe('Basic Formatting', () => {
       const result = chart2txt(data, { includeAspectPatterns: true });
 
       expect(result).toContain('[PLANETS]');
-      expect(result).toContain('Sun: 0° Aries [Exaltation | Ruler: Mars]');
-      expect(result).toContain('Moon: 0° Taurus [Exaltation | Ruler: Venus]');
+      expect(result).toContain("Sun: 0°00' Aries [Exaltation | Ruler: Mars]");
+      expect(result).toContain("Moon: 0°00' Taurus [Exaltation | Ruler: Venus]");
     });
 
     test('formats planets with mixed dignities and retrograde', () => {
@@ -392,10 +413,10 @@ describe('Basic Formatting', () => {
 
       expect(result).toContain('[PLANETS]');
       expect(result).toContain(
-        'Mercury: 0° Virgo Retrograde [Domicile, Exaltation], 6th house'
+        "Mercury: 0°00' Virgo Retrograde [Domicile, Exaltation], 6th house"
       );
       expect(result).toContain(
-        'Venus: 0° Libra Retrograde [Domicile], 7th house'
+        "Venus: 0°00' Libra Retrograde [Domicile], 7th house"
       );
     });
   });

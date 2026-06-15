@@ -1,5 +1,5 @@
 import { getDegreeSign, getDegreeInSign } from '../../../core/astrology';
-import { getOrdinal } from '../../../utils/formatting';
+import { formatDegMin, getOrdinal } from '../../../utils/formatting';
 
 /**
  * Generates the [HOUSE CUSPS] section of the chart output.
@@ -23,17 +23,17 @@ export function generateHousesOutput(houseCusps?: number[]): string[] {
     const rightCusp = houseCusps[rightHouseIndex];
 
     const leftSign = getDegreeSign(leftCusp);
-    const leftDegInSign = Math.floor(getDegreeInSign(leftCusp));
+    const leftDegInSign = formatDegMin(getDegreeInSign(leftCusp));
     const leftHouseLabel = getOrdinal(leftHouseIndex + 1) + ' house';
 
     const rightSign = getDegreeSign(rightCusp);
-    const rightDegInSign = Math.floor(getDegreeInSign(rightCusp));
+    const rightDegInSign = formatDegMin(getDegreeInSign(rightCusp));
     const rightHouseLabel = getOrdinal(rightHouseIndex + 1) + ' house';
 
     // Pad the left side to align columns
-    const leftPart = `${leftHouseLabel}: ${leftDegInSign}° ${leftSign}`;
-    const paddedLeftPart = leftPart.padEnd(24); // Adjust padding as needed
-    const rightPart = `${rightHouseLabel}: ${rightDegInSign}° ${rightSign}`;
+    const leftPart = `${leftHouseLabel}: ${leftDegInSign} ${leftSign}`;
+    const paddedLeftPart = leftPart.padEnd(28); // Adjust padding as needed
+    const rightPart = `${rightHouseLabel}: ${rightDegInSign} ${rightSign}`;
 
     output.push(`${paddedLeftPart} ${rightPart}`);
   }

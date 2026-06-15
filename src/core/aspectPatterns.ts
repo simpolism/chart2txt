@@ -11,7 +11,7 @@ import {
   Kite,
   UnionedPoint,
 } from '../types';
-import { getDegreeSign } from './astrology';
+import { getDegreeSign, normalizeDegree } from './astrology';
 
 /**
  * Create a consistent key for planet+chart combinations
@@ -62,7 +62,7 @@ function pointToPlanetPosition(
     houseCusps && houseCusps.length === 12
       ? (() => {
           // Simple house calculation without importing the utility
-          const normalizedDegree = point.degree % 360;
+          const normalizedDegree = normalizeDegree(point.degree);
           for (let i = 0; i < 12; i++) {
             const currentCusp = houseCusps[i];
             const nextCusp = houseCusps[(i + 1) % 12];

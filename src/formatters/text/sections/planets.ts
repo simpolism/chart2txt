@@ -1,6 +1,7 @@
 import { PlanetPosition } from '../../../types';
-import { getOrdinal } from '../../../utils/formatting';
+import { formatDegMin, getOrdinal } from '../../../utils/formatting';
 import { formatPlanetWithDignities } from '../../../core/dignities';
+import { getDegreeInSign } from '../../../core/astrology';
 
 /**
  * Generates the [PLANETS] section of the chart output.
@@ -14,7 +15,7 @@ export function generatePlanetsOutput(placements: PlanetPosition[]): string[] {
   placements.forEach((planet) => {
     const dignities = formatPlanetWithDignities(planet);
     const retrograde = planet.speed && planet.speed < 0 ? ' Retrograde' : '';
-    let line = `${planet.name}: ${Math.floor(planet.degree % 30)}° ${
+    let line = `${planet.name}: ${formatDegMin(getDegreeInSign(planet.degree))} ${
       planet.sign
     }${retrograde} ${dignities}`;
 

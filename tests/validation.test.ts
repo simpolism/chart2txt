@@ -14,8 +14,8 @@ describe('Validation and Edge Cases', () => {
 
       const result = chart2txt(data);
 
-      expect(result).toContain('Sun: 0° Pisces'); // -30° + 360° = 330° = 0° Pisces
-      expect(result).toContain('Moon: 0° Capricorn'); // -90° + 360° = 270° = 0° Capricorn
+      expect(result).toContain("Sun: 0°00' Pisces"); // -30° + 360° = 330° = 0° Pisces
+      expect(result).toContain("Moon: 0°00' Capricorn"); // -90° + 360° = 270° = 0° Capricorn
     });
 
     test('handles degrees >= 360 correctly', () => {
@@ -29,8 +29,8 @@ describe('Validation and Edge Cases', () => {
 
       const result = chart2txt(data);
 
-      expect(result).toContain('Sun: 0° Taurus');
-      expect(result).toContain('Moon: 0° Cancer');
+      expect(result).toContain("Sun: 0°00' Taurus");
+      expect(result).toContain("Moon: 0°00' Cancer");
     });
 
     test('handles extreme degree values correctly', () => {
@@ -44,8 +44,8 @@ describe('Validation and Edge Cases', () => {
 
       const result = chart2txt(data);
 
-      expect(result).toContain('Sun: 0° Aries');
-      expect(result).toContain('Moon: 0° Aries');
+      expect(result).toContain("Sun: 0°00' Aries");
+      expect(result).toContain("Moon: 0°00' Aries");
     });
   });
 
@@ -140,8 +140,8 @@ describe('Validation and Edge Cases', () => {
       const result = chart2txt(data);
 
       // Planets exactly on cusps should be assigned to the house starting at that cusp
-      expect(result).toContain('Sun: 0° Taurus [Ruler: Venus], 2nd house');
-      expect(result).toContain('Moon: 0° Gemini [Ruler: Mercury], 3rd house');
+      expect(result).toContain("Sun: 0°00' Taurus [Ruler: Venus], 2nd house");
+      expect(result).toContain("Moon: 0°00' Gemini [Ruler: Mercury], 3rd house");
     });
 
     test('handles house wraparound at 0°/360° boundary consistently', () => {
@@ -157,10 +157,10 @@ describe('Validation and Edge Cases', () => {
 
       const result = chart2txt(data);
 
-      expect(result).toContain('Sun: 20° Pisces [Ruler: Jupiter], 1st house');
-      expect(result).toContain('Moon: 10° Aries [Ruler: Mars], 2nd house');
+      expect(result).toContain("Sun: 20°00' Pisces [Ruler: Jupiter], 1st house");
+      expect(result).toContain("Moon: 10°00' Aries [Ruler: Mars], 2nd house");
       expect(result).toContain(
-        'Mercury: 20° Aquarius [Ruler: Saturn], 12th house'
+        "Mercury: 20°00' Aquarius [Ruler: Saturn], 12th house"
       );
     });
   });
@@ -178,7 +178,7 @@ describe('Validation and Edge Cases', () => {
 
       // Mercury should show both detriment and fall in Pisces
       expect(result).toContain(
-        'Mercury: 0° Pisces [Detriment, Fall | Ruler: Jupiter]'
+        "Mercury: 0°00' Pisces [Detriment, Fall | Ruler: Jupiter]"
       );
     });
 
@@ -194,8 +194,8 @@ describe('Validation and Edge Cases', () => {
       const result = chart2txt(data);
 
       // Should not show fall information for signs that don't have it
-      expect(result).toContain('Sun: 0° Gemini [Ruler: Mercury]');
-      expect(result).toContain('Moon: 0° Sagittarius [Ruler: Jupiter]');
+      expect(result).toContain("Sun: 0°00' Gemini [Ruler: Mercury]");
+      expect(result).toContain("Moon: 0°00' Sagittarius [Ruler: Jupiter]");
       expect(result).not.toContain('Fall:');
     });
   });
@@ -214,11 +214,44 @@ describe('Validation and Edge Cases', () => {
       const result = chart2txt(data);
 
       // Both should be handled consistently despite tiny differences
-      expect(result).toContain('Sun: 29° Aries');
-      expect(result).toContain('Moon: 0° Taurus');
+      expect(result).toContain("Sun: 29°59' Aries");
+      expect(result).toContain("Moon: 0°00' Taurus");
       // House assignments should be consistent
       expect(result).toContain('1st house');
       expect(result).toContain('2nd house');
+    });
+
+    test('does not round positive values just below a sign boundary into the next sign', () => {
+      const data: ChartData = {
+        name: 'test',
+        planets: [
+          { name: 'Sun', degree: 29.999999999999996 },
+          { name: 'Moon', degree: 359.99999999999994 },
+        ],
+      };
+
+      const result = chart2txt(data);
+
+      expect(result).toContain("Sun: 29°59' Aries");
+      expect(result).toContain("Moon: 29°59' Pisces");
+      expect(result).not.toContain("30°00'");
+    });
+
+    test('renders exact sign boundaries (degree=30, 60, 360) as 0°00 of the next sign', () => {
+      const data: ChartData = {
+        name: 'test',
+        planets: [
+          { name: 'Sun', degree: 30 }, // exact Aries→Taurus boundary
+          { name: 'Moon', degree: 60 }, // exact Taurus→Gemini boundary
+          { name: 'Mars', degree: 360 }, // wraps to 0° Aries
+        ],
+      };
+
+      const result = chart2txt(data);
+
+      expect(result).toContain("Sun: 0°00' Taurus");
+      expect(result).toContain("Moon: 0°00' Gemini");
+      expect(result).toContain("Mars: 0°00' Aries");
     });
 
     test('handles aspects with very tight orbs consistently', () => {
