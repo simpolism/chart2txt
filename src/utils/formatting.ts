@@ -1,9 +1,12 @@
 import { Point, PlanetPosition } from '../types';
-import { ZODIAC_SIGNS } from '../constants';
+import { getDegreeSign, normalizeDegree } from '../core/astrology';
 
-function normalizeDegree(degree: number): number {
-  return ((degree % 360) + 360) % 360;
-}
+const MINUTES_PER_DEGREE = 60;
+const MINUTES_PER_SIGN = 30 * MINUTES_PER_DEGREE;
+// 1e-9 degree-minutes ≈ 3.6 microarcseconds — far below the resolution of any
+// astronomical ephemeris, but large enough to absorb double-precision % 30
+// rounding error at exact minute boundaries (e.g. 200 + 1/60).
+const MINUTE_FLOOR_EPSILON = 1e-9;
 
 /**
  * Converts a number to its ordinal form (1st, 2nd, 3rd, etc.)
@@ -17,22 +20,37 @@ export function getOrdinal(num: number): string {
 }
 
 /**
- * Formats a degree-in-sign value as "DD°MM'" with floored arcminutes.
+ * Formats a degree-in-sign value as "DD°MM'" with truncated arcminutes.
  * E.g. 15.3833 -> "15°22'", 0.5 -> "0°30'".
  * Minutes are zero-padded for stable column widths.
+ * A tiny epsilon prevents exact minute boundaries from underflowing due to
+ * floating-point representation after modulo arithmetic.
  * @param degreeInSign Position within the sign (0-30).
  * @returns Formatted "DD°MM'" string.
  */
 export function formatDegMin(degreeInSign: number): string {
-  const totalMinutes = Math.floor(degreeInSign * 60);
-  const deg = Math.floor(totalMinutes / 60);
-  const min = totalMinutes % 60;
+  if (!isFinite(degreeInSign)) {
+    throw new Error(`Invalid degree-in-sign value: ${degreeInSign}`);
+  }
+
+  let normalizedDegreeInSign = degreeInSign % 30;
+  if (normalizedDegreeInSign < 0) {
+    normalizedDegreeInSign += 30;
+  }
+
+  const totalMinutes = Math.min(
+    Math.floor(
+      normalizedDegreeInSign * MINUTES_PER_DEGREE + MINUTE_FLOOR_EPSILON
+    ),
+    MINUTES_PER_SIGN - 1
+  );
+  const deg = Math.floor(totalMinutes / MINUTES_PER_DEGREE);
+  const min = totalMinutes % MINUTES_PER_DEGREE;
   return `${deg}°${min.toString().padStart(2, '0')}'`;
 }
 
 export function getSign(degree: number): string {
-  const signIndex = Math.floor(degree / 30);
-  return ZODIAC_SIGNS[signIndex];
+  return getDegreeSign(degree);
 }
 
 export function getHouse(degree: number, houseCusps: number[]): number {

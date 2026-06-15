@@ -20,15 +20,12 @@ import { calculateAspects, calculateMultichartAspects } from './aspects';
 import { detectAspectPatterns } from './aspectPatterns';
 import { detectStelliums } from './stelliums';
 import { getPlanetPositions } from '../utils/formatting';
+import { normalizeDegree } from './astrology';
 import { calculateSignDistributions } from './signDistributions';
 import { calculateDispositors } from './dispositors';
 import { calculateHouseOverlays } from '../utils/houseCalculations';
 
 // Helper functions
-
-function normalizeDegree(degree: number): number {
-  return ((degree % 360) + 360) % 360;
-}
 
 function circularMeanDegrees(degrees: number[]): number {
   if (degrees.length === 0) {

@@ -221,6 +221,22 @@ describe('Validation and Edge Cases', () => {
       expect(result).toContain('2nd house');
     });
 
+    test('does not round positive values just below a sign boundary into the next sign', () => {
+      const data: ChartData = {
+        name: 'test',
+        planets: [
+          { name: 'Sun', degree: 29.999999999999996 },
+          { name: 'Moon', degree: 359.99999999999994 },
+        ],
+      };
+
+      const result = chart2txt(data);
+
+      expect(result).toContain("Sun: 29°59' Aries");
+      expect(result).toContain("Moon: 29°59' Pisces");
+      expect(result).not.toContain("30°00'");
+    });
+
     test('handles aspects with very tight orbs consistently', () => {
       const data: ChartData = {
         name: 'test',
