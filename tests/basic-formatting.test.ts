@@ -19,6 +19,27 @@ describe('Basic Formatting', () => {
       expect(result).toContain("Moon: 0°00' Leo");
       expect(result).toContain("Mercury: 15°00' Gemini");
     });
+
+    test('renders arcminutes for fractional degrees', () => {
+      const data: ChartData = {
+        name: 'test',
+        ascendant: 12.5, // 12°30' Aries
+        midheaven: 123.25, // 3°15' Leo
+        planets: [
+          { name: 'Sun', degree: 45.5 }, // 15°30' Taurus
+          { name: 'Moon', degree: 359.99 }, // 29°59' Pisces (floored, not rounded)
+          { name: 'Mars', degree: 200.75 }, // 20°45' Libra
+        ],
+      };
+
+      const result = chart2txt(data);
+
+      expect(result).toContain("Sun: 15°30' Taurus");
+      expect(result).toContain("Moon: 29°59' Pisces");
+      expect(result).toContain("Mars: 20°45' Libra");
+      expect(result).toContain("Ascendant: 12°30' Aries");
+      expect(result).toContain("Midheaven: 3°15' Leo");
+    });
   });
 
   describe('house formatting', () => {
