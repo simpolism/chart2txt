@@ -1,6 +1,6 @@
 import { AspectPattern, PlanetPosition } from '../../../types';
 import { getDegreeInSign } from '../../../core/astrology';
-import { getOrdinal } from '../../../utils/formatting';
+import { formatDegMin, getOrdinal } from '../../../utils/formatting';
 
 /**
  * Format a planet position for display
@@ -10,12 +10,12 @@ function formatPlanetPosition(
   includeHouse = false,
   showChartNames = true
 ): string {
-  const degInSign = Math.floor(getDegreeInSign(planet.degree));
+  const degInSign = formatDegMin(getDegreeInSign(planet.degree));
   const houseStr =
     includeHouse && planet.house ? ` (${getOrdinal(planet.house)} house)` : '';
   const chartPrefix =
     showChartNames && planet.chartName ? `${planet.chartName}'s ` : '';
-  return `${chartPrefix}${planet.name} ${degInSign}° ${planet.sign}${houseStr}`;
+  return `${chartPrefix}${planet.name} ${degInSign} ${planet.sign}${houseStr}`;
 }
 
 /**

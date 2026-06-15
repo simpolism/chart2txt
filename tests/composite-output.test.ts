@@ -36,8 +36,8 @@ describe('Composite Output Mode', () => {
     expect(result).toContain('source_charts: Alice, Bob');
     expect(result).toContain('[COMPOSITE: Alice-Bob]');
     expect(result).toContain('[PLANETS]');
-    expect(result).toContain('Sun: 0° Aries');
-    expect(result).toContain('Moon: 0° Leo');
+    expect(result).toContain("Sun: 0°00' Aries");
+    expect(result).toContain("Moon: 0°00' Leo");
 
     expect(result).not.toContain('[SYNASTRY:');
     expect(result).not.toContain('[HOUSE OVERLAYS]');

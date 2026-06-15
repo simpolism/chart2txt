@@ -16,6 +16,20 @@ export function getOrdinal(num: number): string {
   return num + (suffix[(v - 20) % 10] || suffix[v] || suffix[0]);
 }
 
+/**
+ * Formats a degree-in-sign value as "DD°MM'" with floored arcminutes.
+ * E.g. 15.3833 -> "15°22'", 0.5 -> "0°30'".
+ * Minutes are zero-padded for stable column widths.
+ * @param degreeInSign Position within the sign (0-30).
+ * @returns Formatted "DD°MM'" string.
+ */
+export function formatDegMin(degreeInSign: number): string {
+  const totalMinutes = Math.floor(degreeInSign * 60);
+  const deg = Math.floor(totalMinutes / 60);
+  const min = totalMinutes % 60;
+  return `${deg}°${min.toString().padStart(2, '0')}'`;
+}
+
 export function getSign(degree: number): string {
   const signIndex = Math.floor(degree / 30);
   return ZODIAC_SIGNS[signIndex];
