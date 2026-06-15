@@ -237,6 +237,23 @@ describe('Validation and Edge Cases', () => {
       expect(result).not.toContain("30°00'");
     });
 
+    test('renders exact sign boundaries (degree=30, 60, 360) as 0°00 of the next sign', () => {
+      const data: ChartData = {
+        name: 'test',
+        planets: [
+          { name: 'Sun', degree: 30 }, // exact Aries→Taurus boundary
+          { name: 'Moon', degree: 60 }, // exact Taurus→Gemini boundary
+          { name: 'Mars', degree: 360 }, // wraps to 0° Aries
+        ],
+      };
+
+      const result = chart2txt(data);
+
+      expect(result).toContain("Sun: 0°00' Taurus");
+      expect(result).toContain("Moon: 0°00' Gemini");
+      expect(result).toContain("Mars: 0°00' Aries");
+    });
+
     test('handles aspects with very tight orbs consistently', () => {
       const data: ChartData = {
         name: 'test',
